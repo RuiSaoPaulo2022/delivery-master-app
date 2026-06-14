@@ -1,0 +1,73 @@
+{
+  "product": {
+    "name": "Delivery & Ops Master",
+    "subtitle": "Sistema de Gestão de Entrega e Operações"
+  },
+  "nav": {
+    "monitor": "Monitoramento",
+    "management": "Gestão de Projetos",
+    "tools": "Ferramentas",
+    "other": "Outros"
+  },
+  "section": {
+    "monitor": "Visibilidade em tempo real das operações e status dos projetos",
+    "management": "Gestão completa do ciclo de vida de entregas, problemas e recursos",
+    "tools": "Utilitários e documentos de referência"
+  },
+  "desc": {
+    "project-map": "Distribuição geográfica e visão geral de status dos projetos no Brasil",
+    "weekly-report": "Navegação de relatórios diários e semanais e histórico",
+    "reports": "Geração de relatórios diários e histórico, navegação e estatísticas de relatórios semanais",
+    "kanban": "Quadro kanban de projetos, status geral de um relance",
+    "inspection": "Inspeção automatizada remota de plataformas e coleta de dados",
+    "materials": "Inventário de dispositivos, gestão de licenças e documentos",
+    "feedback": "Submissão de problemas do cliente e acompanhamento de progresso",
+    "license": "Ativação, vencimento e migração de licenças"
+  },
+  "badge": {
+    "active": "Ativo",
+    "soon": "Fase 2",
+    "plan": "Planejado"
+  },
+  "header": {
+    "greeting": "Olá",
+    "langLabel": "Idioma"
+  },
+  "footer": {
+    "copyright": "Hikvision · Equipe de Entrega e Operações"
+  },
+  "weekly": {
+    "title": "Relatório Semanal",
+    "treeTitle": "Histórico",
+    "treeCount": "{n} relatórios no total",
+    "latestLabel": "Mais Recente",
+    "noData": "Nenhum relatório disponível",
+    "loading": "Carregando...",
+    "selectPrompt": "Selecione um relatório",
+    "openNew": "Abrir em nova janela"
+  },
+  "reports": {
+    "title": "Relatórios",
+    "tabDaily": "Diário",
+    "tabWeekly": "Semanal",
+    "treeTitleDaily": "Histórico Diário",
+    "treeTitleWeekly": "Histórico Semanal",
+    "treeCount": "{n} registros no total",
+    "latestLabel": "Mais Recente",
+    "noDataDaily": "Nenhum relatório diário disponível",
+    "noDataWeekly": "Nenhum relatório semanal disponível",
+    "loading": "Carregando...",
+    "selectPrompt": "Selecione um relatório",
+    "openNew": "Abrir em nova janela",
+    "generatedAt": "Gerado em"
+  },
+  "map": {
+    "title": "Mapa de Projetos - Brasil",
+    "filterAll": "Todos",
+    "legendProjects": "Ativos",
+    "legendNone": "Não Coberto"
+  },
+  "kanban": {
+    "title": "Quadro Kanban"
+  }
+}

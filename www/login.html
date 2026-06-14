@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交维大师 - 登录</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #070d18;
+      overflow: hidden;
+    }
+
+    /* Animated background — deep navy with subtle color wash */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(31,73,125,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(46,125,50,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(33,102,178,0.12) 0%, transparent 70%),
+        linear-gradient(160deg, #070d18 0%, #0c1a30 40%, #0a2035 100%);
+    }
+
+    /* Floating orbs matching logo's cyan → pink neon palette */
+    .bg-particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-particles::before,
+    .bg-particles::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.07;
+      animation: float 14s ease-in-out infinite;
+    }
+
+    .bg-particles::before {
+      width: 350px; height: 350px;
+      background: linear-gradient(135deg, #00e5ff, #7b2ff7);
+      top: 8%; left: -8%;
+      filter: blur(40px);
+    }
+
+    .bg-particles::after {
+      width: 300px; height: 300px;
+      background: linear-gradient(135deg, #7b2ff7, #ff2d95);
+      bottom: 8%; right: -6%;
+      animation-delay: -7s;
+      animation-direction: reverse;
+      filter: blur(40px);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(35px, -25px) scale(1.06); }
+      66% { transform: translate(-25px, 18px) scale(0.94); }
+    }
+
+    /* Grid pattern overlay */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* Login card */
+    .login-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      margin: 20px;
+    }
+
+    /* ===== LOGO AREA — transparent PNG + subtle glow ===== */
+    .logo-area {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    /* Stable neon aura — no rotation, just subtle breathing glow */
+    .logo-glow-ring {
+      position: absolute;
+      inset: -20px -28px;
+      border-radius: 30% 70% 60% 40% / 50% 40% 60% 50%;
+      background: conic-gradient(
+        from 0deg,
+        rgba(0, 229, 255, 0.10),
+        rgba(123, 47, 247, 0.14),
+        rgba(255, 45, 149, 0.10),
+        rgba(0, 229, 255, 0.10)
+      );
+      filter: blur(28px);
+      opacity: 0;
+      animation: glowBreathe 6s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes glowBreathe {
+      0%, 100% { opacity: 0.45; transform: scale(0.97); }
+      50% { opacity: 0.75; transform: scale(1.01); }
+    }
+
+    /* Shield image — transparent PNG, no float, stable */
+    .logo-shield {
+      display: block;
+      width: 220px;
+      height: auto;
+      object-fit: contain;
+      /* Subtle glow built into the image via drop-shadow */
+      filter: drop-shadow(0 0 18px rgba(0, 229, 255, 0.18))
+              drop-shadow(0 0 40px rgba(123, 47, 247, 0.12));
+      transition: filter 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-shield:hover {
+      filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.28))
+              drop-shadow(0 0 56px rgba(123, 47, 247, 0.20));
+    }
+
+    /* Title & subtitle */
+    .logo-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+      text-shadow: 0 2px 12px rgba(33, 102, 178, 0.3);
+    }
+
+    .logo-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.38);
+      letter-spacing: 1.5px;
+      font-weight: 400;
+    }
+
+    .logo-subtitle span {
+      background: linear-gradient(90deg, #00e5ff, #7b2ff7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Form container - glass morphism */
+    .form-container {
+      position: relative;
+      background: rgba(255,255,255,0.038);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 32px 28px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.35),
+        0 2px 8px rgba(0,0,0,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    /* Alert messages */
+    .alert {
+      padding: 11px 15px;
+      border-radius: 9px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: slideDown 0.25s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert.error {
+      background: rgba(220,38,38,0.1);
+      border: 1px solid rgba(220,38,38,0.18);
+      color: #fca5a5;
+    }
+
+    .alert.success {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.18);
+      color: #86efac;
+    }
+
+    /* Form fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px;
+      font-size: 14px;
+      color: #fff;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255,255,255,0.22);
+    }
+
+    .form-group input:focus {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(0, 229, 255, 0.45);
+      box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08), 0 0 16px rgba(0, 229, 255, 0.06);
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #2166B2 0%, #1a4f8f 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.08) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 24px rgba(33,102,178,0.4), 0 0 16px rgba(33,102,178,0.15);
+    }
+
+    .btn-submit:hover:not(:disabled)::before { opacity: 1; }
+
+    .btn-submit:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      background: rgba(255,255,255,0.08);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Loading spinner inside button */
+    .btn-submit .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .btn-submit.loading .spinner { display: inline-block; }
+    .btn-submit.loading .btn-text { opacity: 0.85; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Server status indicator */
+    .server-status {
+      text-align: center;
+      margin-bottom: 14px;
+      font-size: 12px;
+      display: none;
+    }
+    .server-status.checking { display: block; color: rgba(255,255,255,0.45); }
+    .server-status.online  { display: block; color: rgba(34,197,94,0.7); }
+    .server-status.offline { display: block; color: rgba(251,146,60,0.8); }
+
+    /* Form disabled overlay */
+    .form-disabled {
+      position: relative;
+    }
+    .form-disabled::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(7,13,24,0.55);
+      border-radius: 18px;
+      z-index: 5;
+      cursor: not-allowed;
+    }
+
+    /* Toggle link */
+    .toggle-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.36);
+    }
+
+    .toggle-link a {
+      color: rgba(0, 229, 255, 0.75);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .toggle-link a:hover {
+      color: #00e5ff;
+      text-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+    }
+
+    /* Form toggle */
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.5px;
+    }
+
+    /* QR Code download section */
+    .qr-download {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .qr-download-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .qr-download-title .highlight {
+      color: rgba(0, 229, 255, 0.8);
+      font-weight: 600;
+    }
+
+    .qr-download-img {
+      width: 140px;
+      height: 160px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin: 0 auto;
+      display: block;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .qr-download-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 28px rgba(0, 229, 255, 0.15), 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .qr-download-hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-card { margin: 16px; }
+      .form-container { padding: 24px 20px; }
+      .logo-shield { width: 180px; }
+      .logo-title { font-size: 22px; letter-spacing: 2px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-layer"></div>
+  <div class="bg-particles"></div>
+  <div class="bg-grid"></div>
+
+  <div class="login-card">
+    <div class="logo-area">
+      <div class="logo-container">
+        <div class="logo-glow-ring"></div>
+        <img src="assets/logo-shield.png" alt="D&M Shield" class="logo-shield">
+      </div>
+      <div class="logo-title">交维大师</div>
+      <div class="logo-subtitle"><span>Delivery &amp; Ops Master</span></div>
+    </div>
+
+    <div class="form-container" id="formContainer">
+      <div id="server-status" class="server-status checking">⏳ 正在连接服务器…</div>
+      <div id="error-msg" class="alert error"></div>
+      <div id="success-msg" class="alert success"></div>
+
+      <!-- Login -->
+      <div id="panel-login" class="form-panel active">
+        <form id="loginForm">
+          <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="login-user" required placeholder="请输入用户名" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="login-pass" required placeholder="请输入密码" autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-submit" id="btn-login">
+            <span class="spinner"></span>
+            <span class="btn-text">登 录</span>
+          </button>
+        </form>
+        <div class="toggle-link">
+          没有账号？<a href="#" id="go-register">立即注册</a>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div id="panel-register" class="form-panel">
+        <form id="registerForm">
+          <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="reg-user" required placeholder="请输入用户名" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="reg-pass" required placeholder="请输入密码（至少6位）" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label>邮箱（可选）</label>
+            <input type="email" id="reg-email" placeholder="请输入邮箱" autocomplete="email">
+          </div>
+          <button type="submit" class="btn-submit" id="btn-register">
+            <span class="spinner"></span>
+            <span class="btn-text">注 册</span>
+          </button>
+        </form>
+        <div class="toggle-link">
+          已有账号？<a href="#" id="go-login">返回登录</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-footer">Hikvision &copy; 2026</div>
+
+    <div class="qr-download">
+      <div class="qr-download-title">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
+      <img src="assets/qrcode-shield-download.png" alt="下载交维大师APP" class="qr-download-img">
+      <div class="qr-download-hint">支持 Android · 中 / 英 / 葡萄萄牙语</div>
+    </div>
+  </div>
+
+<script>
+const API = window.location.origin;
+
+/* ---------- helpers ---------- */
+function showMsg(type, text) {
+  const el = document.getElementById(type + '-msg');
+  el.textContent = text;
+  el.style.display = 'flex';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function setBtnLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.classList.toggle('loading', loading);
+  btn.disabled = loading;
+}
+
+/* ---------- server connectivity check ---------- */
+async function checkServer() {
+  const statusEl = document.getElementById('server-status');
+  const container = document.getElementById('formContainer');
+
+  try {
+    const r = await fetch(API + '/api/data/manifest.json', { method: 'GET', cache: 'no-cache' });
+    if (r.ok) {
+      statusEl.className = 'server-status online';
+      statusEl.textContent = '✅ 服务器已连接';
+      container.classList.remove('form-disabled');
+      setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+    } else {
+      throw new Error('bad status');
+    }
+  } catch (e) {
+    statusEl.className = 'server-status offline';
+    statusEl.innerHTML = '⚠️ 无法连接服务器，请确认 <code>server.js</code> 已启动<br><span style="font-size:11px;opacity:0.6">提示：在 交维大师 目录运行 node server.js</span>';
+    container.classList.add('form-disabled');
+    // retry every 3s
+    setTimeout(checkServer, 3000);
+  }
+}
+
+/* ---------- panel toggle ---------- */
+document.getElementById('go-register').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('panel-login').classList.remove('active');
+  document.getElementById('panel-register').classList.add('active');
+  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('success-msg').style.display = 'none';
+});
+
+document.getElementById('go-login').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('panel-register').classList.remove('active');
+  document.getElementById('panel-login').classList.add('active');
+  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('success-msg').style.display = 'none';
+});
+
+/* ---------- login ---------- */
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  if (!username || !password) { showMsg('error', '用户名和密码不能为空'); return; }
+
+  setBtnLoading('btn-login', true);
+  try {
+    const r = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await r.json();
+    if (!r.ok) { showMsg('error', data.error || '登录失败'); setBtnLoading('btn-login', false); return; }
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    window.location.href = '/index.html';
+  } catch (err) {
+    showMsg('error', '无法连接服务器，请确认 server.js 已启动');
+    setBtnLoading('btn-login', false);
+  }
+});
+
+/* ---------- register ---------- */
+document.getElementById('registerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const username = document.getElementById('reg-user').value.trim();
+  const password = document.getElementById('reg-pass').value;
+  const email = document.getElementById('reg-email').value.trim();
+  if (!username || !password) { showMsg('error', '用户名和密码不能为空'); return; }
+  if (password.length < 6) { showMsg('error', '密码长度至少6位'); return; }
+
+  setBtnLoading('btn-register', true);
+  try {
+    const r = await fetch(API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email })
+    });
+    const data = await r.json();
+    if (!r.ok) { showMsg('error', data.error || '注册失败'); setBtnLoading('btn-register', false); return; }
+    showMsg('success', '注册成功！请登录');
+    setBtnLoading('btn-register', false);
+    setTimeout(() => {
+      document.getElementById('panel-register').classList.remove('active');
+      document.getElementById('panel-login').classList.add('active');
+    }, 1200);
+  } catch (err) {
+    showMsg('error', '无法连接服务器，请确认 server.js 已启动');
+    setBtnLoading('btn-register', false);
+  }
+});
+
+/* ---------- init ---------- */
+checkServer();
+</script>
+</body>
+</html>

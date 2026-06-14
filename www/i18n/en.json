@@ -1,0 +1,73 @@
+{
+  "product": {
+    "name": "Delivery & Ops Master",
+    "subtitle": "Delivery & Operations Management System"
+  },
+  "nav": {
+    "monitor": "Ops Monitoring",
+    "management": "Project Management",
+    "tools": "Tools",
+    "other": "Other"
+  },
+  "section": {
+    "monitor": "Real-time visibility into all project operations and status",
+    "management": "Full lifecycle management of deliverables, issues, and resources",
+    "tools": "Utilities and reference documents"
+  },
+  "desc": {
+    "project-map": "Brazil project geographic distribution and status overview",
+    "weekly-report": "Daily and weekly report browsing and history",
+    "reports": "Daily report generation and history, weekly report browsing and statistics",
+    "kanban": "Project kanban board, overall status at a glance",
+    "inspection": "Automated remote platform inspection and data collection",
+    "materials": "Device inventory, License and document management",
+    "feedback": "Customer issue submission and progress tracking",
+    "license": "License activation, expiry and migration management"
+  },
+  "badge": {
+    "active": "Live",
+    "soon": "Phase 2",
+    "plan": "Planned"
+  },
+  "header": {
+    "greeting": "Hello",
+    "langLabel": "Language"
+  },
+  "footer": {
+    "copyright": "Hikvision · Delivery & Ops Team"
+  },
+  "weekly": {
+    "title": "Weekly Report",
+    "treeTitle": "History",
+    "treeCount": "{n} reports total",
+    "latestLabel": "Latest",
+    "noData": "No report data available",
+    "loading": "Loading...",
+    "selectPrompt": "Select a report",
+    "openNew": "Open in new window"
+  },
+  "reports": {
+    "title": "Reports",
+    "tabDaily": "Daily",
+    "tabWeekly": "Weekly",
+    "treeTitleDaily": "Daily History",
+    "treeTitleWeekly": "Weekly History",
+    "treeCount": "{n} records total",
+    "latestLabel": "Latest",
+    "noDataDaily": "No daily report data",
+    "noDataWeekly": "No weekly report data",
+    "loading": "Loading...",
+    "selectPrompt": "Select a report",
+    "openNew": "Open in new window",
+    "generatedAt": "Generated at"
+  },
+  "map": {
+    "title": "Brazil Project Map",
+    "filterAll": "All",
+    "legendProjects": "Active",
+    "legendNone": "Not Covered"
+  },
+  "kanban": {
+    "title": "Kanban Board"
+  }
+}

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作日报 - 按项目分组</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #F7F8FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #2166B2;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .header-info {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .project-section {
+            margin-bottom: 32px;
+        }
+        .project-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2166B2;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #F5F9FF;
+            border-radius: 6px;
+            border-left: 4px solid #2166B2;
+        }
+        .project-count {
+            font-size: 12px;
+            color: #999;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10pt;
+        }
+        th, td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #BDD7EE;
+        }
+        th {
+            background: #1F497D;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 10pt;
+        }
+        td {
+            text-align: center;
+            color: #333;
+        }
+        td.td-desc {
+            text-align: left;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        tr:hover { background: #F5F9FF; }
+
+        /* 等级颜色 */
+        .level-高 { color: #D71920; font-weight: 600; }
+        .level-中 { color: #F5A623; font-weight: 600; }
+        .level-低 { color: #2166B2; font-weight: 600; }
+
+        /* 状态颜色 */
+        .status-待处理 { color: #e74c3c; font-weight: 500; }
+        .status-处理中 { color: #F5A623; font-weight: 500; }
+        .status-待客户确认 { color: #2166B2; font-weight: 500; }
+        .status-已关闭 { color: #27ae60; font-weight: 500; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; }
+            .project-section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>工作日报 - 按项目分组</h1>
+            <div class="header-info">
+                <div>生成时间：<span id="gen-time"></span></div>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        let issuesData = [];
+        const API_URL = '/api/data/issues.json';
+
+        // 加载数据
+        async function loadData() {
+            try {
+                const res = await fetch(API_URL + '?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                issuesData = await res.json();
+                if (!Array.isArray(issuesData)) issuesData = [];
+
+                // 按日期倒序排列
+                issuesData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+                // 按项目分组渲染
+                renderGrouped();
+            } catch (e) {
+                console.error('加载失败:', e);
+                document.getElementById('content').innerHTML = '<div class="loading" style="color:#e74c3c;">加载失败：' + e.message + '</div>';
+            }
+        }
+
+        // 按项目分组渲染
+        function renderGrouped() {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+
+            // 按项目分组
+            const groups = {};
+            issuesData.forEach(issue => {
+                const key = issue.project || '未知';
+                const name = issue.project_name || key;
+                if (!groups[key]) groups[key] = { name: name, issues: [] };
+                groups[key].issues.push(issue);
+            });
+
+            if (Object.keys(groups).length === 0) {
+                container.innerHTML = '<div class="loading">暂无数据</div>';
+                return;
+            }
+
+            // 渲染每个项目
+            Object.keys(groups).sort().forEach(key => {
+                const group = groups[key];
+                const section = document.createElement('div');
+                section.className = 'project-section';
+
+                const title = document.createElement('div');
+                title.className = 'project-title';
+                title.innerHTML = group.name + '<span class="project-count">（' + group.issues.length + ' 条）</span>';
+                section.appendChild(title);
+
+                let html = '<table><thead><tr>' +
+                    '<th style="width:10%;">问题单号</th>' +
+                    '<th style="width:6%;">等级</th>' +
+                    '<th style="width:10%;">当前状态</th>' +
+                    '<th style="width:18%;">问题描述</th>' +
+                    '<th style="width:25%;">实时进度反馈</th>' +
+                    '<th style="width:10%;">解决责任人</th>' +
+                    '<th style="width:12%;">预计/实际解决</th>' +
+                    '</tr></thead><tbody>';
+
+                group.issues.forEach(issue => {
+                    const levelClass = 'level-' + (issue.level || '');
+                    const statusClass = 'status-' + (issue.status || '');
+
+                    // 格式化时间线
+                    let timelineHtml = '';
+                    const tl = issue.timeline;
+                    if (Array.isArray(tl) && tl.length > 0) {
+                        timelineHtml = tl.map(t => {
+                            const d = t.date || '';
+                            const c = t.content || '';
+                            return d ? (c ? d + ': ' + c : d) : (c || '');
+                        }).filter(s => s).join('<br>');
+                    }
+
+                    // 预计/实际解决
+                    let resolveInfo = issue.closed_date || issue.eta || '';
+                    if (issue.eta && issue.closed_date && issue.eta !== issue.closed_date) {
+                        resolveInfo = issue.eta + ' / ' + issue.closed_date;
+                    }
+
+                    html += '<tr>' +
+                        '<td>' + (issue.id || '') + '</td>' +
+                        '<td class="' + levelClass + '">' + (issue.level || '') + '</td>' +
+                        '<td class="' + statusClass + '">' + (issue.status || '') + '</td>' +
+                        '<td class="td-desc">' + (issue.desc || '') + '</td>' +
+                        '<td class="td-desc">' + (timelineHtml || '') + '</td>' +
+                        '<td>' + (issue.solver || '') + '</td>' +
+                        '<td>' + resolveInfo + '</td>' +
+                        '</tr>';
+                });
+
+                html += '</tbody></table>';
+                section.innerHTML += html;
+                container.appendChild(section);
+            });
+
+            // 更新生成时间
+            document.getElementById('gen-time').textContent = new Date().toLocaleString('zh-CN');
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>

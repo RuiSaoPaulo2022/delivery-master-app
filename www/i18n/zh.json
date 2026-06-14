@@ -1,0 +1,73 @@
+{
+  "product": {
+    "name": "交维大师",
+    "subtitle": "交付与运维管理系统"
+  },
+  "nav": {
+    "monitor": "运维监控",
+    "management": "项目管理",
+    "tools": "工具集",
+    "other": "其他"
+  },
+  "section": {
+    "monitor": "项目全局态势感知，实时掌握各项目运行状态",
+    "management": "交付物料、客户问题与资源全生命周期管理",
+    "tools": "辅助工具与参考文档"
+  },
+  "desc": {
+    "project-map": "巴西项目地理分布与状态总览",
+    "weekly-report": "日报与周报浏览及历史查询",
+    "reports": "日报生成与历史查询，周报浏览与统计",
+    "kanban": "项目白板墙，整体状态一览",
+    "inspection": "自动化远程平台巡检与数据采集",
+    "materials": "设备台账、License与资料管理",
+    "feedback": "客户问题提交与进度跟踪",
+    "license": "License激活、到期与迁移管理"
+  },
+  "badge": {
+    "active": "已上线",
+    "soon": "第2期",
+    "plan": "规划中"
+  },
+  "header": {
+    "greeting": "你好",
+    "langLabel": "语言"
+  },
+  "footer": {
+    "copyright": "海康威视 · 交付运维团队"
+  },
+  "weekly": {
+    "title": "项目周报",
+    "treeTitle": "历史周报",
+    "treeCount": "共 {n} 期周报",
+    "latestLabel": "最新",
+    "noData": "暂无周报数据",
+    "loading": "加载中...",
+    "selectPrompt": "请选择周报",
+    "openNew": "在新窗口打开"
+  },
+  "reports": {
+    "title": "统计报告",
+    "tabDaily": "日报",
+    "tabWeekly": "周报",
+    "treeTitleDaily": "历史日报",
+    "treeTitleWeekly": "历史周报",
+    "treeCount": "共 {n} 条记录",
+    "latestLabel": "最新",
+    "noDataDaily": "暂无日报数据",
+    "noDataWeekly": "暂无周报数据",
+    "loading": "加载中...",
+    "selectPrompt": "请选择报告",
+    "openNew": "在新窗口打开",
+    "generatedAt": "生成时间"
+  },
+  "map": {
+    "title": "巴西项目地图",
+    "filterAll": "全部",
+    "legendProjects": "有项目",
+    "legendNone": "暂未覆盖"
+  },
+  "kanban": {
+    "title": "白板墙"
+  }
+}

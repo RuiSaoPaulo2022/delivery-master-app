@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统计报告</title>
+<script src="../config.js"></script>
+<script src="../i18n/i18n-data.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* HEADER - 绿色主题（项目管理板块） */
+.header{height:48px;background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.back-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.back-btn:hover{background:rgba(255,255,255,0.25)}
+.back-btn svg{width:16px;height:16px}
+.header-title{font-size:15px;font-weight:600;color:#fff;flex:1}
+.lang-dropdown{position:relative}
+.lang-select{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 26px 4px 8px;border-radius:6px;cursor:pointer;line-height:none}
+.lang-select:hover{background:rgba(255,255,255,0.25)}
+.lang-select option{color:#333;background:#fff}
+.lang-arrow{position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,0.7);font-size:9px}
+
+/* TABS */
+.tab-bar{height:40px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 16px;gap:4px;flex-shrink:0}
+.tab-item{padding:0 16px;height:28px;border-radius:6px;font-size:12px;color:#666;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;border:none;background:transparent}
+.tab-item:hover{background:#f5f7fa;color:#333}
+.tab-item.active{background:#e8f5e9;color:#2E7D32;font-weight:600}
+.tab-icon{width:14px;height:14px}
+
+/* BODY */
+.body{flex:1;display:flex;overflow:hidden}
+
+/* LEFT PANEL */
+.left-panel{width:260px;background:#fff;border-right:1px solid #e8e8e8;display:flex;flex-direction:column;flex-shrink:0}
+.panel-header{padding:12px 14px;border-bottom:1px solid #f0f0f0}
+.panel-title{font-size:13px;font-weight:600;color:#333;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:#2E7D32}
+.panel-count{font-size:11px;color:#999;margin-top:4px}
+.report-list{flex:1;overflow-y:auto;padding:6px}
+
+/* Project group (daily only) */
+.project-group{margin-bottom:8px}
+.project-header{font-size:11px;font-weight:600;color:#2E7D32;padding:8px 8px 4px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8f5e9;margin-bottom:2px}
+
+/* Refresh button */
+.refresh-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#2E7D32;transition:all .2s;margin-left:auto}
+.refresh-btn:hover{background:#e8f0fe}
+.refresh-btn svg{width:14px;height:14px}
+.refresh-btn.spinning svg{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Report item */
+.report-item{padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:all .15s;display:flex;align-items:center;gap:8px;border:1px solid transparent}
+.report-item:hover{background:#f5f7fa;border-color:#e8ecf4}
+.report-item.active{background:#e8f5e9;border-color:#2E7D32}
+.ri-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
+.report-item.active .ri-dot{background:#2E7D32}
+.ri-info{flex:1;min-width:0}
+.ri-date{font-size:12px;font-weight:500;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-range{font-size:10px;color:#999;margin-top:2px}
+.ri-meta{font-size:10px;color:#999;margin-top:1px}
+.ri-badge{font-size:9px;padding:1px 6px;border-radius:10px;background:#e6f7e6;color:#2e7d32;flex-shrink:0;font-weight:500}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.content-toolbar{height:auto;min-height:40px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
+.content-title{flex:1}
+.content-title-main{font-size:13px;font-weight:600;color:#333}
+.content-title-sub{font-size:11px;color:#999;margin-top:2px}
+.content-action{font-size:11px;color:#2E7D32;cursor:pointer;padding:4px 10px;border-radius:4px;background:#e8f5e9;transition:background .2s;border:none;white-space:nowrap}
+.content-action:hover{background:#d6e4f7}
+.content-frame{flex:1;width:100%;border:none;overflow:auto}
+.loading-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:13px}
+
+/* Generate panel (日报 Tab only) */
+.gen-panel{background:#f8fdf8;border:1px dashed #a5d6a7;border-radius:8px;padding:10px 12px;margin:8px 6px 4px;display:none}
+.gen-panel.visible{display:block}
+.gen-panel-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.gen-panel-icon{width:14px;height:14px;color:#2E7D32;flex-shrink:0}
+.gen-panel-title{font-size:12px;font-weight:600;color:#2E7D32}
+.gen-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.gen-controls label{font-size:11px;color:#666;white-space:nowrap}
+.gen-controls input[type="date"], .gen-controls select{padding:5px 8px;border:1px solid #bdd7ee;border-radius:6px;font-size:12px;font-family:inherit;color:#333;background:white;outline:none}
+.gen-controls input[type="date"]:focus, .gen-controls select:focus{border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.15)}
+.btn-generate{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#2E7D32;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-generate:hover{background:#256D28;box-shadow:0 2px 6px rgba(46,125,50,0.3)}
+.btn-generate:disabled{background:#A5D6A7;cursor:not-allowed;box-shadow:none}
+.btn-generate svg{flex-shrink:0}
+.gen-status{margin-top:6px;padding:0;font-size:11px;min-height:16px}
+.gen-status.success{color:#2E7D32;background:#E8F5E9;padding:6px 10px;border-radius:6px;border:1px solid #A5D6A7}
+.gen-status.error{color:#C62828;background:#FFEBEE;padding:6px 10px;border-radius:6px;border:1px solid #EF9A9A}
+.gen-status .view-link{color:#1565C0;text-decoration:underline;margin-left:6px;cursor:pointer}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite}
+
+@media(max-width:768px){.left-panel{width:200px}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="back-btn" onclick="history.back()" title="返回">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
+  </button>
+  <span class="header-title" id="pageTitle">统计报告</span>
+  <div class="lang-dropdown">
+    <select class="lang-select" id="langSelect"></select>
+    <span class="lang-arrow">&#9662;</span>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-item" id="tabDaily" onclick="switchTab('daily')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span id="tabDailyLabel">日报</span>
+  </button>
+  <button class="tab-item active" id="tabWeekly" onclick="switchTab('weekly')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+    <span id="tabWeeklyLabel">周报</span>
+  </button>
+</div>
+
+<div class="body">
+  <aside class="left-panel">
+    <div class="panel-header">
+      <div class="panel-title" id="treeTitle">历史周报</div>
+      <button class="refresh-btn" onclick="loadReportsData()" title="刷新数据">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </button>
+      <div class="panel-count" id="treeCount"></div>
+    </div>
+    <!-- 一键生成面板（仅日报Tab显示） -->
+    <div class="gen-panel" id="genPanel">
+      <div class="gen-panel-header">
+        <svg class="gen-panel-icon" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 3a2 2 0 114 0 2 2 0 01-4 0z" stroke="#2E7D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="gen-panel-title" id="genPanelTitle">日报一键生成</span>
+      </div>
+      <div class="gen-controls">
+        <label id="genProjectLabel">项目：</label>
+        <select id="gen-project">
+          <option value="PMES POC">PMES POC</option>
+          <option value="Para Detran">Para Detran</option>
+          <option value="PMBV">PMBV</option>
+          <option value="Para Segup">Para Segup</option>
+          <option value="SEAP">SEAP</option>
+          <option value="SESP">SESP</option>
+        </select>
+        <label id="genDateLabel">日期：</label>
+        <input type="date" id="gen-date" />
+        <button class="btn-generate" id="btn-generate" onclick="generateReport()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span id="btnGenText">生成日报</span>
+        </button>
+      </div>
+      <div class="gen-status" id="gen-status"></div>
+    </div>
+    <div class="report-list" id="reportList"></div>
+  </aside>
+
+  <main class="right-panel">
+    <div class="content-toolbar">
+      <div class="content-title">
+        <div class="content-title-main" id="contentTitle">请选择报告</div>
+        <div class="content-title-sub" id="contentSubtitle"></div>
+      </div>
+      <button class="content-action" id="btnOpen" style="display:none" onclick="openCurrent()">在新窗口打开</button>
+    </div>
+    <div id="placeholder" class="loading-placeholder">请选择报告</div>
+    <iframe class="content-frame" id="contentFrame" style="display:none"></iframe>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// 日报一键生成（PMES POC）
+// ============================================================
+function getTodayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function initGenPanel() {
+  document.getElementById('gen-date').value = getTodayStr();
+  // 标题固定为"日报一键生成"，项目选择器独立控制目标项目
+}
+
+function generateReport() {
+  var btn = document.getElementById('btn-generate');
+  var statusEl = document.getElementById('gen-status');
+  var dateVal = document.getElementById('gen-date').value;
+  var projectVal = document.getElementById('gen-project').value || 'PMES POC';
+
+  if (!dateVal) {
+    statusEl.className = 'gen-status error';
+    statusEl.textContent = currentLang === 'zh' ? '请选择日期' : 'Please select a date';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> ' + (currentLang === 'zh' ? '生成中...' : 'Generating...');
+  statusEl.className = 'gen-status';
+  statusEl.innerHTML = '<span style="color:#666;">' + (currentLang === 'zh' ? '正在执行生成脚本，请稍候...' : 'Running generation script...') + '</span>';
+
+  fetch('/api/generate/daily', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date: dateVal, project: projectVal }),
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.success) {
+      statusEl.className = 'gen-status success';
+      var viewText = currentLang === 'zh' ? '查看日报' : (currentLang === 'pt-BR' ? 'Ver relatório' : 'View report');
+      statusEl.innerHTML = (currentLang === 'zh' ? '日报生成成功！文件：' : 'Report generated! File: ') + data.htmlFile +
+        ' <a class="view-link" href="' + data.viewUrl + '" target="_blank">' + viewText + '</a>';
+      // 刷新列表数据（从 reports/reports.json 重新加载）
+      loadReportsData();
+    } else {
+      statusEl.className = 'gen-status error';
+      statusEl.textContent = (currentLang === 'zh' ? '生成失败：' : 'Generation failed: ') + (data.error || data.message || '');
+    }
+  })
+  .catch(function(err) {
+    statusEl.className = 'gen-status error';
+    statusEl.textContent = (currentLang === 'zh' ? '请求失败：' : 'Request failed: ') + err.message;
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 14 14" fill="none">' +
+      '<path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+      '</svg> ' + (document.getElementById('btnGenText') ? document.getElementById('btnGenText').textContent : (currentLang === 'zh' ? '生成日报' : 'Generate'));
+  });
+}
+
+// ============================================================
+// 动态加载 reports.json（需要 HTTP 服务器支持）
+// ============================================================
+var CFG = window.JW_CONFIG || {};
+var I18N = window.JW_I18N || {};
+var currentLang = (function(){
+  try { return localStorage.getItem('jw_lang') || 'zh'; } catch(e) { return 'zh'; }
+})();
+var currentTab = 'weekly';
+var currentReports = [];
+var currentReport = null;
+var currentReportFile = null;  // 跟踪当前已加载的报告文件，避免重复加载
+var pageInitialized = false;  // 标记页面是否已初始化（首次自动加载用）
+
+// 初始化数据（空，等待动态加载）
+window.DAILY_DATA = { reports: [] };
+window.WEEKLY_DATA = { reports: [] };
+
+// file:// 协议降级：内嵌 reports.json 数据副本（与 reports/reports.json 保持同步）
+var FALLBACK_REPORTS_DATA = {"daily":[],"weekly":[]};
+
+function _applyData(data, isFallback) {
+  window.DAILY_DATA = { reports: data.daily || [] };
+  window.WEEKLY_DATA = { reports: data.weekly || [] };
+  if (currentTab === 'daily') {
+    currentReports = window.DAILY_DATA.reports;
+  } else {
+    currentReports = window.WEEKLY_DATA.reports;
+  }
+  refreshUI();
+  if (isFallback) {
+    // 显示 file:// 降级提示
+    var banner = document.createElement('div');
+    banner.id = 'fallbackBanner';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#fff7e6;color:#d46b08;padding:8px 16px;font-size:12px;text-align:center;border-top:1px solid #ffd591;z-index:200;';
+    banner.innerHTML = '⚠️ 当前通过本地文件访问，数据可能不是最新。建议 <a href="#" onclick="window.open(\'http://localhost:8080/modules/reports.html\',\'_self\');return false;" style="color:#d46b08;text-decoration:underline;font-weight:600;">启动 HTTP 服务器</a> 获取最新报告。';
+    if (!document.getElementById('fallbackBanner')) {
+      document.body.appendChild(banner);
+    }
+  }
+  if (!pageInitialized && currentReports.length > 0) {
+    pageInitialized = true;
+    selectReport(currentReports[0]);
+  } else {
+    pageInitialized = true;
+  }
+}
+
+// 加载 reports.json
+function loadReportsData() {
+  var jsonUrl = 'reports/reports.json';
+
+  // 显示加载中
+  document.getElementById('reportList').innerHTML = '<div style="padding:20px;color:#999;font-size:12px">' + (t('reports.loading')||'加载中...') + '</div>';
+
+  fetch(jsonUrl)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+      return response.json();
+    })
+    .then(function(data) {
+      _applyData(data, false);
+    })
+    .catch(function(error) {
+      console.error('Failed to load reports.json:', error);
+      var isFileProtocol = (location.protocol === 'file:');
+      if (isFileProtocol && FALLBACK_REPORTS_DATA) {
+        // file:// 协议降级：使用内嵌数据
+        console.log('Using fallback embedded data for file:// protocol');
+        _applyData(FALLBACK_REPORTS_DATA, true);
+      } else {
+        var errorMsg = isFileProtocol
+          ? '请通过HTTP服务器访问（双击"启动交维大师.bat"）'
+          : '无法加载报告数据：' + error.message;
+        document.getElementById('reportList').innerHTML = '<div style="padding:20px;color:#999;font-size:12px">' + errorMsg + '</div>';
+        document.getElementById('placeholder').textContent = errorMsg;
+        document.getElementById('placeholder').style.display = 'flex';
+      }
+    });
+}
+
+function t(key) {
+  var dict = I18N[currentLang] || I18N['zh'] || {};
+  var parts = key.split('.');
+  var v = dict;
+  for (var i = 0; i < parts.length; i++) {
+    if (!v) return key;
+    v = v[parts[i]];
+  }
+  return v || key;
+}
+
+function getLabel(r) {
+  if (currentLang === 'en') return r.labelEn || r.label || r.date;
+  if (currentLang === 'pt-BR') return r.labelPt || r.label || r.date;
+  return r.label || r.date;
+}
+
+function getProjectName(r) {
+  if (currentLang === 'en') return r.projectEn || r.project || r.project;
+  if (currentLang === 'pt-BR') return r.projectPt || r.project || r.project;
+  return r.project || '';
+}
+
+function getWeekTitle(r) {
+  var range = '';
+  if (currentLang === 'en') range = r.weekRangeEn || r.weekRange || '';
+  else if (currentLang === 'pt-BR') range = r.weekRangePt || r.weekRange || '';
+  else range = r.weekRange || '';
+  var weekNum = r.weekNum || '';
+  if (weekNum && range) return weekNum + ' | ' + range;
+  return range || weekNum || getLabel(r);
+}
+
+function getGeneratedAt(r) {
+  if (currentLang === 'en') return r.generatedAtEn || r.generatedAt || '';
+  if (currentLang === 'pt-BR') return r.generatedAtPt || r.generatedAt || '';
+  return r.generatedAt || '';
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabDaily').className = 'tab-item' + (tab === 'daily' ? ' active' : '');
+  document.getElementById('tabWeekly').className = 'tab-item' + (tab === 'weekly' ? ' active' : '');
+  loadCurrentTab();
+}
+
+function loadCurrentTab() {
+  if (currentTab === 'daily') {
+    currentReports = DAILY_DATA.reports || [];
+  } else {
+    currentReports = WEEKLY_DATA.reports || [];
+  }
+  // 不再自动加载第一个报告，避免每次切换Tab都往浏览器历史记录推入条目
+  currentReport = null;
+  currentReportFile = null;
+  refreshUI();
+  // 首次进入页面时，自动加载第一个报告（仅一次）
+  if (!pageInitialized && currentReports.length > 0) {
+    pageInitialized = true;
+    selectReport(currentReports[0]);
+  }
+}
+
+function refreshUI() {
+  document.getElementById('pageTitle').textContent = t('reports.title') || '统计报告';
+  document.getElementById('tabDailyLabel').textContent = t('reports.tabDaily') || '日报';
+  document.getElementById('tabWeeklyLabel').textContent = t('reports.tabWeekly') || '周报';
+  var isDaily = (currentTab === 'daily');
+  document.getElementById('treeTitle').textContent = isDaily ? (t('reports.treeTitleDaily')||'历史日报') : (t('reports.treeTitleWeekly')||'历史周报');
+  document.getElementById('treeCount').textContent = (t('reports.treeCount')||'共 {n} 条记录').replace('{n}', currentReports.length);
+
+  var genPanel = document.getElementById('genPanel');
+  if (genPanel) genPanel.className = 'gen-panel' + (isDaily ? ' visible' : '');
+
+  if (currentReport) {
+    if (currentTab === 'weekly') {
+      document.getElementById('contentTitle').textContent = getWeekTitle(currentReport);
+      var gen = getGeneratedAt(currentReport);
+      document.getElementById('contentSubtitle').textContent = gen ? (t('reports.generatedAt') || '生成时间') + ': ' + gen : '';
+    } else {
+      document.getElementById('contentTitle').textContent = getProjectName(currentReport) + ' - ' + getLabel(currentReport);
+      document.getElementById('contentSubtitle').textContent = '';
+    }
+  } else {
+    document.getElementById('contentTitle').textContent = t('reports.selectPrompt')||'请选择报告';
+    document.getElementById('contentSubtitle').textContent = '';
+  }
+  document.getElementById('btnOpen').textContent = t('reports.openNew') || '在新窗口打开';
+
+  // 无数据提示
+  var placeholder = document.getElementById('placeholder');
+  if (currentReports.length === 0) {
+    placeholder.style.display = 'flex';
+    placeholder.textContent = isDaily ? (t('reports.noDataDaily')||'暂无日报数据') : (t('reports.noDataWeekly')||'暂无周报数据');
+    document.getElementById('contentFrame').style.display = 'none';
+  } else {
+    placeholder.style.display = 'none';
+  }
+
+  renderList();
+  buildLangSelect();
+}
+
+function renderList() {
+  var container = document.getElementById('reportList');
+  container.innerHTML = '';
+
+  if (currentTab === 'daily') {
+    // 按项目分组
+    var groups = {};
+    for (var i = 0; i < currentReports.length; i++) {
+      var r = currentReports[i];
+      var proj = getProjectName(r) || 'Other';
+      if (!groups[proj]) groups[proj] = [];
+      groups[proj].push(r);
+    }
+    var projNames = Object.keys(groups);
+    for (var p = 0; p < projNames.length; p++) {
+      var projName = projNames[p];
+      var projHeader = document.createElement('div');
+      projHeader.className = 'project-header';
+      projHeader.textContent = projName;
+      container.appendChild(projHeader);
+
+      var items = groups[projName];
+      for (var j = 0; j < items.length; j++) {
+        container.appendChild(buildReportItem(items[j]));
+      }
+    }
+  } else {
+    // 周报：平铺列表
+    for (var k = 0; k < currentReports.length; k++) {
+      container.appendChild(buildReportItem(currentReports[k]));
+    }
+  }
+}
+
+function buildReportItem(r) {
+  var item = document.createElement('div');
+  item.className = 'report-item' + (currentReport && currentReport.date === r.date && currentReport.file === r.file ? ' active' : '');
+  item.onclick = function() { selectReport(r); };
+
+  var dot = document.createElement('span');
+  dot.className = 'ri-dot';
+  item.appendChild(dot);
+
+  var info = document.createElement('div');
+  info.className = 'ri-info';
+
+  var dateEl = document.createElement('div');
+  dateEl.className = 'ri-date';
+  if (currentTab === 'weekly') {
+    dateEl.textContent = getWeekTitle(r);
+  } else {
+    dateEl.textContent = getLabel(r);
+  }
+  info.appendChild(dateEl);
+
+  var rangeEl = document.createElement('div');
+  rangeEl.className = 'ri-range';
+  if (currentTab === 'weekly') {
+    var gen = getGeneratedAt(r);
+    rangeEl.textContent = gen ? (t('reports.generatedAt') || '生成') + ': ' + gen : r.date;
+  } else {
+    rangeEl.textContent = r.date || '';
+  }
+  info.appendChild(rangeEl);
+
+  item.appendChild(info);
+
+  if (r.isLatest) {
+    var badge = document.createElement('span');
+    badge.className = 'ri-badge';
+    badge.textContent = t('reports.latestLabel') || '最新';
+    item.appendChild(badge);
+  }
+
+  return item;
+}
+
+function selectReport(r) {
+  // 同一报告不重复加载，避免往浏览器 history 推入多余条目
+  if (currentReportFile && r.file && currentReportFile === r.file) {
+    // 仅刷新高亮状态
+    renderList();
+    return;
+  }
+  currentReport = r;
+  currentReportFile = r.file;
+
+  if (currentTab === 'weekly') {
+    document.getElementById('contentTitle').textContent = getWeekTitle(r);
+    var gen = getGeneratedAt(r);
+    document.getElementById('contentSubtitle').textContent = gen ? (t('reports.generatedAt') || '生成时间') + ': ' + gen : '';
+  } else {
+    document.getElementById('contentTitle').textContent = getProjectName(r) + ' - ' + getLabel(r);
+    document.getElementById('contentSubtitle').textContent = '';
+  }
+  document.getElementById('btnOpen').style.display = 'inline-block';
+
+  var frame = document.getElementById('contentFrame');
+  var placeholder = document.getElementById('placeholder');
+  placeholder.style.display = 'none';
+  frame.style.display = 'block';
+  var file = r.file || '';
+  // 确保路径相对于服务器根目录（reports.json 中的路径以模块名开头，需加 / 前缀）
+  if (file && !file.startsWith('/') && !file.startsWith('http')) file = '/' + file;
+  frame.src = file;
+
+  frame.onload = function() {
+    try {
+      var doc = frame.contentDocument || frame.contentWindow.document;
+      if (!doc) return;
+      // 隐藏邮件头表格
+      var style = doc.createElement('style');
+      style.textContent = '.email-header-table{display:none!important}';
+      doc.head.appendChild(style);
+      var tbls = doc.querySelectorAll('table');
+      for (var i = 0; i < tbls.length; i++) {
+        var firstTd = tbls[i].querySelector('td');
+        if (firstTd && /发件人|收件人|抄送|主题|附件|From|To|Cc|Subject/i.test(firstTd.textContent||'')) {
+          tbls[i].style.display = 'none';
+        }
+      }
+    } catch(e) { /* cross-origin, silent */ }
+  };
+
+  renderList();
+}
+
+function openCurrent() {
+  if (currentReport && currentReport.file) {
+    window.open(currentReport.file, '_blank');
+  }
+}
+
+function buildLangSelect() {
+  var sel = document.getElementById('langSelect');
+  sel.innerHTML = '';
+  var langs = (CFG.languages || ['zh','en','pt-BR']);
+  var names = (CFG.languageNames || {'zh':'中文','en':'English','pt-BR':'Português'});
+  for (var i = 0; i < langs.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = langs[i];
+    opt.textContent = names[langs[i]] || langs[i];
+    if (langs[i] === currentLang) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = function() {
+    currentLang = this.value;
+    try { localStorage.setItem('jw_lang', currentLang); } catch(e) {}
+    refreshUI();
+  };
+}
+
+// 初始化
+(function(){
+  // 语言参数
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var langParam = params.get('lang');
+    if (langParam && ['zh','en','pt-BR'].indexOf(langParam) >= 0) {
+      currentLang = langParam;
+    }
+  } catch(e) {}
+  
+  document.title = (CFG.product && CFG.product.name ? CFG.product.name : '交维大师') + ' - ' + (t('reports.title')||'统计报告');
+
+  // 初始化生成面板
+  initGenPanel();
+
+  // 动态加载报告数据
+  loadReportsData();
+})();
+</script>
+</body>
+</html>

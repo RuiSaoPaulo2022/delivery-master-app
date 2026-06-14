@@ -1,0 +1,47 @@
+# Node
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Web assets (synced by cap sync, but keep source)
+# www/ is the built output for Capacitor
+
+# Android build outputs
+android/app/build/
+android/.gradle/
+android/**/*.apk
+android/**/*.ap_
+*.apk
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# ===== 数据安全：防止真实项目数据提交 =====
+# 日报 HTML（含真实数据，由用户自行生成）
+www/modules/daily-reports/*.html
+!www/modules/daily-reports/view.html
+!www/modules/daily-reports/view-grouped.html
+!www/modules/daily-reports/editable.html
+
+# 周报 HTML
+www/modules/weekly-reports/*.html
+!www/modules/weekly-reports/view.html
+
+# 工作计划数据（除样例文件外）
+www/modules/workplan/data/*.json
+!www/modules/workplan/data/000.json
+
+# 报告索引（动态生成）
+www/modules/reports.json
+www/modules/reports/reports.json
+www/modules/daily-reports.json

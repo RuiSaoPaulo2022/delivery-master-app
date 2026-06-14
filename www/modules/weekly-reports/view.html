@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周报系统 - 交维大师</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #F7F8FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 导航面包屑 */
+        .breadcrumb {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        .breadcrumb a { color: #2166B2; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* 页头 */
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #2166B2;
+        }
+        h1 { font-size: 18px; font-weight: 600; color: #333; }
+        .header-actions { display: flex; gap: 8px; }
+
+        /* 数据状态条 */
+        .status-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-fresh { background: #27ae60; }
+        .dot-stale { background: #F5A623; }
+        .dot-missing { background: #e74c3c; }
+
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .tab {
+            padding: 10px 20px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tab:hover { color: #2166B2; }
+        .tab.active {
+            color: #2166B2;
+            border-bottom-color: #2166B2;
+            font-weight: 600;
+        }
+
+        /* 内容卡片 */
+        .card {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            min-height: 500px;
+        }
+        .card.tab-card { border-radius: 0 10px 10px 10px; }
+
+        /* 按钮 */
+        .btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #1F497D; color: white; }
+        .btn-primary:hover { background: #163a66; }
+        .btn-success { background: #2166B2; color: white; }
+        .btn-success:hover { background: #1a5aa5; }
+        .btn-secondary { background: #5B9BD5; color: white; }
+        .btn-secondary:hover { background: #4a8ec9; }
+
+        /* 报告列表 */
+        .report-list { list-style: none; }
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+        .report-item:hover { background: #F5F9FF; }
+        .report-item:last-child { border-bottom: none; }
+        .report-name { color: #333; font-weight: 500; }
+        .report-date { color: #999; font-size: 12px; }
+        .report-size { color: #999; font-size: 12px; margin-left: 8px; }
+
+        /* 手动输入信息 */
+        .info-box {
+            background: #F5F9FF;
+            border: 1px solid #BDD7EE;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+        .info-box strong { color: #2166B2; }
+        .info-box code {
+            background: #E8EFF7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .loading { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/index.html">交维大师</a> &rsaquo; 周报系统
+        </div>
+
+        <div class="header">
+            <h1>周报系统</h1>
+            <div class="header-actions">
+                <a href="latest.html" class="btn btn-primary" target="_blank">打开最新周报</a>
+                <a href="/modules/daily-reports/view.html" class="btn btn-success">日报系统</a>
+                <a href="/modules/kanban.html" class="btn btn-secondary">白板墙</a>
+            </div>
+        </div>
+
+        <!-- 数据状态 -->
+        <div class="status-bar" id="status-bar">
+            <div class="loading">加载数据状态中...</div>
+        </div>
+
+        <!-- 选项卡 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('list')">报告列表</div>
+            <div class="tab" onclick="switchTab('preview')">最新周报预览</div>
+            <div class="tab" onclick="switchTab('data')">数据状态</div>
+        </div>
+
+        <!-- 报告列表 -->
+        <div class="card tab-card" id="tab-list">
+            <h3 style="font-size:14px;color:#333;margin-bottom:12px;">历史周报</h3>
+            <ul class="report-list" id="report-list">
+                <li class="loading">加载中...</li>
+            </ul>
+        </div>
+
+        <!-- 最新周报预览 -->
+        <div class="card tab-card" id="tab-preview" style="display:none;">
+            <iframe id="report-iframe" src="latest.html" style="width:100%;height:800px;border:1px solid #BDD7EE;border-radius:4px;"></iframe>
+        </div>
+
+        <!-- 数据状态 -->
+        <div class="card tab-card" id="tab-data" style="display:none;">
+            <div id="manifest-info">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/data';
+
+        // 选项卡切换
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.card.tab-card').forEach(c => c.style.display = 'none');
+            document.getElementById('tab-' + name).style.display = 'block';
+        }
+
+        // 加载数据状态
+        async function loadStatus() {
+            try {
+                const res = await fetch(API_BASE + '/manifest.json?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const mf = await res.json();
+                renderStatus(mf);
+                renderReportList();
+                renderDataInfo(mf);
+            } catch (e) {
+                document.getElementById('status-bar').innerHTML = '<span style="color:#e74c3c;">加载失败：' + e.message + '</span>';
+            }
+        }
+
+        function renderStatus(mf) {
+            const datasets = mf.datasets || {};
+            const now = new Date();
+            let html = '';
+            for (const [key, ds] of Object.entries(datasets)) {
+                const age = ds.last_refresh ? Math.floor((now - new Date(ds.last_refresh)) / (1000*60*60)) : 999;
+                const dotClass = age < 24 ? 'dot-fresh' : age < 168 ? 'dot-stale' : 'dot-missing';
+                html += '<div class="status-item">' +
+                    '<span class="status-dot ' + dotClass + '"></span>' +
+                    '<strong>' + key + '</strong> ' +
+                    '<span>(更新于 ' + (ds.last_refresh || '未知') + ')</span>' +
+                    '</div>';
+            }
+            document.getElementById('status-bar').innerHTML = html;
+        }
+
+        function renderReportList() {
+            const reports = [
+                { name: '周报 2026年第26周 (Week 26)', file: 'latest.html', date: '2026-06-08', size: '195 KB' },
+            ];
+            let html = '';
+            reports.forEach(r => {
+                html += '<li class="report-item">' +
+                    '<span class="report-name">' + r.name + '</span>' +
+                    '<span>' +
+                        '<span class="report-date">' + r.date + '</span>' +
+                        '<span class="report-size">' + r.size + '</span>' +
+                        ' <a href="' + r.file + '" target="_blank" class="btn btn-primary" style="font-size:11px;padding:3px 10px;">打开</a>' +
+                    '</span>' +
+                    '</li>';
+            });
+            document.getElementById('report-list').innerHTML = html || '<li class="loading">暂无历史报告</li>';
+        }
+
+        function renderDataInfo(mf) {
+            const ds = mf.datasets || {};
+            const mod = mf.modules || {};
+            let html = '<h3 style="font-size:14px;color:#333;margin-bottom:12px;">数据来源</h3>';
+            html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px;">';
+            html += '<tr style="background:#F5F9FF;"><th style="padding:6px 10px;text-align:left;border:1px solid #BDD7EE;">数据集</th><th style="padding:6px 10px;text-align:left;border:1px solid #BDD7EE;">来源</th><th style="padding:6px 10px;text-align:left;border:1px solid #BDD7EE;">最后更新</th></tr>';
+            for (const [key, d] of Object.entries(ds)) {
+                html += '<tr><td style="padding:6px 10px;border:1px solid #BDD7EE;font-weight:500;">' + key + '</td><td style="padding:6px 10px;border:1px solid #BDD7EE;font-size:11px;">' + (d.source || '') + '</td><td style="padding:6px 10px;border:1px solid #BDD7EE;">' + (d.last_refresh || '-') + '</td></tr>';
+            }
+            html += '</table>';
+
+            html += '<h3 style="font-size:14px;color:#333;margin-bottom:12px;">模块数据关联</h3>';
+            for (const [modName, modInfo] of Object.entries(mod)) {
+                html += '<div class="info-box"><strong>' + modName + '</strong> &rarr; 数据集：<code>' + (modInfo.datasets || []).join(', ') + '</code></div>';
+            }
+
+            html += '<div class="info-box" style="margin-top:16px;">';
+            html += '<strong>刷新流水线</strong><br><br>';
+            html += '<div><strong>日报刷新：</strong><br><code>' + (mf.refresh_pipeline?.daily || []).join('<br>') + '</code></div><br>';
+            html += '<div><strong>周报刷新：</strong><br><code>' + (mf.refresh_pipeline?.weekly || []).join('<br>') + '</code></div>';
+            html += '</div>';
+
+            document.getElementById('manifest-info').innerHTML = html;
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            loadStatus();
+        });
+    </script>
+</body>
+</html>
