@@ -9,14 +9,14 @@
   body {
     font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
-    min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    color:#fff; padding:20px 16px;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff; padding:32px 20px;
   }
-  .container { max-width:420px; width:100%; text-align:center; }
 
-  /* Language switcher */
+  /* Language switcher - top right */
   .lang-bar {
-    display:flex; justify-content:center; gap:6px; margin-top:16px; margin-bottom:20px;
+    position:fixed; top:16px; right:20px;
+    display:flex; gap:6px; z-index:99;
   }
   .lang-btn {
     font-size:12px; padding:4px 14px; border-radius:14px; cursor:pointer;
@@ -29,143 +29,218 @@
     color:#fff; font-weight:600;
   }
 
-  /* Logo — 保持原始比例，不强制正方形 */
-  .logo-area { margin-bottom:24px; }
-  .logo-area img {
-    width:90px; height:auto; /* 不设固定高度，保持盾形比例 */
-    filter:drop-shadow(0 6px 20px rgba(0,0,0,.35));
+  /* Main container - responsive grid */
+  .container {
+    max-width:760px; width:100%;
+    display:grid; gap:48px;
+    align-items:start;
   }
 
-  h1 { font-size:22px; font-weight:700; margin-bottom:6px; letter-spacing:.5px; line-height:1.3; }
-  .subtitle { font-size:13px; opacity:.65; margin-bottom:32px; line-height:1.5; }
+  /* === LEFT COLUMN === */
+  .left-col { text-align:center; }
+
+  .logo-area { margin-bottom:28px; }
+  /* LOGO 放大，保持盾形原始比例 */
+  .logo-area img {
+    width:130px; height:auto; /* 不设固定高度，保持比例 */
+    filter:drop-shadow(0 10px 30px rgba(0,0,0,.4));
+    animation: floatLogo 3s ease-in-out infinite;
+  }
+  @keyframes floatLogo {
+    0%,100% { transform:translateY(0); }
+    50% { transform:translateY(-6px); }
+  }
+
+  h1 { font-size:26px; font-weight:700; margin-bottom:8px; letter-spacing:.5px; line-height:1.3; }
+  h1 small { font-size:17px; font-weight:500; opacity:.65; }
+
+  .subtitle { font-size:14px; opacity:.55; margin-bottom:36px; letter-spacing:.3px; }
 
   /* Download button */
   .btn-download {
     display:inline-block; background:linear-gradient(135deg,#00C853,#69F0AE);
-    color:#000; font-size:17px; font-weight:700; padding:15px 48px;
-    border-radius:14px; text-decoration:none;
-    box-shadow:0 6px 24px rgba(0,200,83,.4);
-    transition:transform .15s,box-shadow .15s; animation:pulse 2s infinite;
+    color:#000; font-size:19px; font-weight:700; padding:16px 56px;
+    border-radius:16px; text-decoration:none; letter-spacing:.5px;
+    box-shadow:0 8px 32px rgba(0,200,83,.45), 0 0 60px rgba(0,200,83,.15);
+    transition:transform .15s,box-shadow .15s; animation:pulse 2.5s infinite;
   }
-  .btn-download:hover, .btn-download:active { transform:scale(1.04); box-shadow:0 8px 32px rgba(0,200,83,.55); }
+  .btn-download:hover, .btn-download:active { transform:scale(1.05); box-shadow:0 12px 40px rgba(0,200,83,.55), 0 0 80px rgba(0,200,83,.22); }
   @keyframes pulse {
-    0%,100% { box-shadow:0 6px 24px rgba(0,200,83,.4); }
-    50% { box-shadow:0 6px 28px rgba(0,200,83,.65); }
+    0%,100% { box-shadow:0 8px 32px rgba(0,200,83,.45), 0 0 60px rgba(0,200,83,.15); }
+    50% { box-shadow:0 8px 38px rgba(0,200,83,.65), 0 0 80px rgba(0,200,83,.3); }
   }
-
-  /* QR Code section */
-  .qr-section {
-    margin-top:36px; padding:20px; border-radius:16px;
-    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  }
-  .qr-section h3 { font-size:14px; opacity:.7; margin-bottom:12px; }
-  .qr-section img {
-    width:180px; height:180px; border-radius:10px;
-    box-shadow:0 4px 16px rgba(0,0,0,.25);
-  }
-  .qr-hint { font-size:11px; opacity:.45; margin-top:8px; }
 
   /* WeChat warning */
   .wechat-warning {
-    background:rgba(255,193,7,.12); border:1px solid rgba(255,193,7,.35);
-    border-radius:12px; padding:16px; margin-top:28px; text-align:left;
+    background:rgba(255,193,7,.08); border:1px solid rgba(255,193,7,.28);
+    border-radius:14px; padding:18px 22px; margin-top:32px; text-align:left;
   }
   .wechat-warning h3 {
-    color:#FFD54F; font-size:14px; margin-bottom:8px;
+    color:#FFD54F; font-size:14px; margin-bottom:10px;
     display:flex; align-items:center; gap:6px;
   }
   .wechat-warning p, .wechat-warning li {
-    font-size:13px; color:rgba(255,255,255,.85); line-height:1.7;
+    font-size:13px; color:rgba(255,255,255,.82); line-height:1.75;
   }
-  .wechat-warning ol { padding-left:18px; margin-top:6px; }
+  .wechat-warning ol { padding-left:18px; margin-top:8px; }
   .step-num {
     display:inline-flex; align-items:center; justify-content:center;
     width:18px; height:18px; border-radius:50%; background:#FFD54F; color:#000;
     font-size:11px; font-weight:700; margin-right:4px; flex-shrink:0;
   }
 
+  /* Features */
   .features { margin-top:32px; text-align:left; }
-  .features h3 { font-size:14px; opacity:.6; margin-bottom:10px; }
+  .features h3 { font-size:13px; opacity:.55; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; }
   .tag-row { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
   .tag {
-    font-size:12px; padding:5px 12px; border-radius:20px;
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+    font-size:13px; padding:6px 16px; border-radius:20px;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+    transition:all .2s;
+  }
+  .tag:hover { background:rgba(255,255,255,.13); transform:translateY(-1px); }
+
+  footer { text-align:center; margin-top:40px; font-size:11px; opacity:.35; letter-spacing:.3px; }
+
+  /* === RIGHT COLUMN - QR Code === */
+  .right-col {
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .qr-section {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    border-radius:18px; padding:28px 24px; text-align:center;
+    backdrop-filter:blur(10px);
+  }
+  .qr-section h3 { font-size:14px; opacity:.65; margin-bottom:16px; letter-spacing:.3px; }
+  .qr-section img {
+    width:200px; height:200px; border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,.3);
+    transition:transform .3s;
+  }
+  .qr-section img:hover { transform:scale(1.04); }
+  .qr-hint { font-size:11.5px; opacity:.42; margin-top:14px; line-height:1.6; }
+  .qr-platform-hint {
+    margin-top:18px; padding-top:16px; border-top:1px solid rgba(255,255,255,.06);
+    font-size:12px; opacity:.35;
   }
 
-  footer { margin-top:auto; padding:24px 0 12px; font-size:11px; opacity:.4; }
-
   #wechat-only { display:none !important; }
+
+  /* ========== 响应式：桌面端左右布局 (>768px) ========= */
+  @media (min-width:769px) {
+    body { padding:48px 28px; }
+    .container {
+      grid-template-columns: 1fr 260px;
+      align-items: center;
+      gap:52px;
+    }
+    .left-col { text-align:left; padding-left:8px; }
+    .logo-area { text-align:center; margin-bottom:28px; }
+    .tag-row { justify-content:flex-start; }
+  }
+
+  /* ========== 移动端：上下堆叠 (≤768px) ========= */
+  @media (max-width:768px) {
+    body { padding:24px 16px; justify-content:flex-start; padding-top:56px; }
+    .container { display:flex; flex-direction:column; align-items:center; gap:32px; }
+    .left-col, .right-col { width:100%; max-width:380px; }
+    .logo-area img { width:110px; }
+    h1 { font-size:22px; }
+    h1 small { font-size:15px; }
+    .btn-download { font-size:17px; padding:14px 44px; border-radius:14px; }
+    .qr-section img { width:180px; height:180px; }
+    .features .tag-row { justify-content:center; }
+    .lang-bar { top:10px; right:12px; }
+    .lang-btn { font-size:11px; padding:3px 11px; }
+  }
+
+  /* 超小屏幕适配 */
+  @media (max-width:380px) {
+    .logo-area img { width:90px; }
+    h1 { font-size:19px; }
+    .btn-download { font-size:16px; padding:13px 36px; }
+    .qr-section img { width:160px; height:160px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Language switcher -->
+<div class="lang-bar" id="langBar">
+  <button class="lang-btn active" data-lang="zh">中文</button>
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="pt">PT</button>
+</div>
+
 <div class="container">
 
-  <!-- Language switcher -->
-  <div class="lang-bar" id="langBar">
-    <button class="lang-btn active" data-lang="zh">中文</button>
-    <button class="lang-btn" data-lang="en">EN</button>
-    <button class="lang-btn" data-lang="pt">PT</button>
-  </div>
+  <!-- ===== 左栏：信息 + 下载 ===== -->
+  <div class="left-col">
 
-  <div class="logo-area">
-    <img src="./www/assets/logo-shield.png"
-         alt="Delivery Master"
-         onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/www/assets/logo-shield.png'">
-  </div>
-
-  <h1 i18n="title">Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7" i18n="titleSub">交维大师 · Android APP</small></h1>
-  <p class="subtitle" i18n="version">v20260614 · 中/英/葡 三语 · 离线可用</p>
-
-  <!-- Primary download button -->
-  <a id="download-btn" class="btn-download"
-     href="https://github.com/RuiSaoPaulo2022/delivery-master-app/releases/latest/download/app-debug.apk"
-     i18n="downloadBtn">下载安装 APP</a>
-
-  <!-- WeChat specific instructions -->
-  <div id="wechat-warning" class="wechat-warning">
-    <h3 i18n="wechatTitle">微信扫码用户请注意 / WeChat Users</h3>
-    <p i18n="wechatDesc">微信内置浏览器无法直接下载APK文件，请按以下步骤操作：</p>
-    <ol id="wechatSteps">
-      <li><span class="step-num">1</span><span i18n="step1">点击下方绿色按钮（如未开始下载）</span></li>
-      <li><span class="step-num">2</span><span i18n="step2">点击右上角 "..." 菜单</span></li>
-      <li><span class="step-num">3</span><span i18n="step3">选择 "在浏览器中打开"</span></li>
-      <li><span class="step-num">4</span><span i18n="step4">在浏览器中即可正常下载安装</span></li>
-    </ol>
-  </div>
-
-  <!-- QR Code for scan & share -->
-  <div class="qr-section">
-    <h3 i18n="qrTitle">扫码分享给同事 / Scan to Share</h3>
-    <img src="./qrcode-download.png"
-         alt="QR Code"
-         onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/qrcode-download.png'">
-    <p class="qr-hint" i18n="qrHint">微信扫码 → 在浏览器中打开 → 下载安装</p>
-  </div>
-
-  <div class="features">
-    <h3 i18n="featuresTitle">功能模块</h3>
-    <div class="tag-row">
-      <span class="tag" i18n="f1">项目地图</span>
-      <span class="tag" i18n="f2">周报浏览</span>
-      <span class="tag" i18n="f3">白板墙</span>
-      <span class="tag" i18n="f4">需求跟踪</span>
-      <span class="tag" i18n="f5">问题工单</span>
-      <span class="tag" i18n="f6">离线可用</span>
+    <div class="logo-area">
+      <img src="./www/assets/logo-shield.png"
+           alt="Delivery Master"
+           onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/www/assets/logo-shield.png'">
     </div>
-  </div>
 
-  <footer i18n="footer">Delivery Master © 2026 · Built by GitHub Actions</footer>
+    <h1 i18n="title">Delivery Master<br><small i18n="titleSub">交维大师 · Android APP</small></h1>
+    <p class="subtitle" i18n="version">v20260614 &middot; 中/英/葡 三语 &middot; 离线可用</p>
 
-</div>
+    <!-- Download button -->
+    <a id="download-btn" class="btn-download"
+       href="https://github.com/RuiSaoPaluo2022/delivery-master-app/releases/latest/download/app-debug.apk"
+       i18n="downloadBtn">下载安装 APP</a>
+
+    <!-- WeChat instructions -->
+    <div id="wechat-warning" class="wechat-warning">
+      <h3 i18n="wechatTitle">微信扫码用户请注意 / WeChat Users</h3>
+      <p i18n="wechatDesc">微信内置浏览器无法直接下载APK文件，请按以下步骤操作：</p>
+      <ol id="wechatSteps">
+        <li><span class="step-num">1</span><span i18n="step1">点击下方绿色按钮（如未开始下载）</span></li>
+        <li><span class="step-num">2</span><span i18n="step2">点击右上角 "..." 菜单</span></li>
+        <li><span class="step-num">3</span><span i18n="step3">选择 "在浏览器中打开"</span></li>
+        <li><span class="step-num">4</span><span i18n="step4">在浏览器中即可正常下载安装</span></li>
+      </ol>
+    </div>
+
+    <!-- Feature tags -->
+    <div class="features">
+      <h3 i18n="featuresTitle">功能模块</h3>
+      <div class="tag-row">
+        <span class="tag" i18n="f1">项目地图</span>
+        <span class="tag" i18n="f2">周报浏览</span>
+        <span class="tag" i18n="f3">白板墙</span>
+        <span class="tag" i18n="f4">需求跟踪</span>
+        <span class="tag" i18n="f5">问题工单</span>
+        <span class="tag" i18n="f6">离线可用</span>
+      </div>
+    </div>
+
+  </div><!-- /左栏 -->
+
+  <!-- ===== 右栏：二维码 ===== -->
+  <div class="right-col">
+    <div class="qr-section">
+      <h3 i18n="qrTitle">扫码分享 / Scan to Share</h3>
+      <img src="./qrcode-download.png"
+           alt="QR Code"
+           onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/qrcode-download.png'">
+      <p class="qr-hint" i18n="qrHint">微信扫码 → 浏览器中打开 → 下载安装</p>
+      <div class="qr-platform-hint" i18n="platformHint">Android only · 仅支持安卓</div>
+    </div>
+  </div><!-- /右栏 -->
+
+</div><!-- /container -->
+
+<footer i18n="footer">Delivery Master © 2026 &middot; Built by GitHub Actions</footer>
 
 <script>
 // === i18n 数据 ===
 var i18n = {
   zh: {
-    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">交维大师 · Android APP</small>',
+    title: 'Delivery Master<br><small>交维大师 · Android APP</small>',
     titleSub: '交维大师 · Android APP',
-    version: 'v20260614 · 中/英/葡 三语 · 离线可用',
+    version: 'v20260614 &middot; 中/英/葡 三语 &middot; 离线可用',
     downloadBtn: '下载安装 APP',
     wechatTitle: '微信扫码用户请注意 / WeChat Users',
     wechatDesc: '微信内置浏览器无法直接下载APK文件，请按以下步骤操作：',
@@ -173,21 +248,22 @@ var i18n = {
     step2: '点击右上角 "..." 菜单',
     step3: '选择 "在浏览器中打开"',
     step4: '在浏览器中即可正常下载安装',
-    qrTitle: '扫码分享给同事 / Scan to Share',
-    qrHint: '微信扫码 → 在浏览器中打开 → 下载安装',
+    qrTitle: '扫码分享 / Scan to Share',
+    qrHint: '微信扫码 → 浏览器中打开 → 下载安装',
+    platformHint: 'Android only · 仅支持安卓',
     featuresTitle: '功能模块',
     f1: '项目地图', f2: '周报浏览', f3: '白板墙',
     f4: '需求跟踪', f5: '问题工单', f6: '离线可用',
-    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    footer: 'Delivery Master © 2026 &middot; Built by GitHub Actions',
     wechatBtnText: '点击后请在浏览器中打开',
     iosTitle: 'iOS用户暂不支持',
     iosDesc: '本APP仅支持Android设备，iOS版本开发中敬请期待。',
     iosHint: '请使用Android手机扫码下载。'
   },
   en: {
-    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">Android APP</small>',
+    title: 'Delivery Master<br><small>Android APP</small>',
     titleSub: 'Android APP',
-    version: 'v20260614 · ZH/EN/PT · Works Offline',
+    version: 'v20260614 &middot; ZH/EN/PT &middot; Works Offline',
     downloadBtn: 'Download & Install APK',
     wechatTitle: 'WeChat Users Notice',
     wechatDesc: 'WeChat browser cannot download APK directly. Please follow these steps:',
@@ -197,19 +273,20 @@ var i18n = {
     step4: 'Download and install normally in your browser',
     qrTitle: 'Scan to Share with Colleagues',
     qrHint: 'Scan in WeChat → Open in Browser → Download Install',
+    platformHint: 'Android only',
     featuresTitle: 'Features',
     f1: 'Project Map', f2: 'Weekly Reports', f3: 'Kanban Board',
     f4: 'Demand Tracking', f5: 'Issue Tickets', f6: 'Works Offline',
-    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    footer: 'Delivery Master © 2026 &middot; Built by GitHub Actions',
     wechatBtnText: 'Tap then open in browser please',
     iosTitle: 'iOS Not Supported Yet',
     iosDesc: 'This app is for Android only. iOS version is under development.',
     iosHint: 'Please use an Android phone to scan and download.'
   },
   pt: {
-    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">APP Android</small>',
+    title: 'Delivery Master<br><small>APP Android</small>',
     titleSub: 'APP Android',
-    version: 'v20260614 · CN/EN/PT · Funciona Offline',
+    version: 'v20260614 &middot; CN/EN/PT &middot; Funciona Offline',
     downloadBtn: 'Baixar e Instalar APP',
     wechatTitle: 'Atenção Usuários WeChat',
     wechatDesc: 'O navegador WeChat não consegue baixar APK diretamente. Siga estes passos:',
@@ -219,10 +296,11 @@ var i18n = {
     step4: 'Baixe e instale normalmente no navegador',
     qrTitle: 'Escaneie para Compartilhar',
     qrHint: 'Escanear no WeChat → Abrir no navegador → Baixar e Instalar',
+    platformHint: 'Apenas Android',
     featuresTitle: 'Módulos',
     f1: 'Mapa de Projetos', f2: 'Relatórios Semanais', f3: 'Quadro Kanban',
     f4: 'Acompanhamento de Demandas', f5: 'Chamados', f6: 'Funciona Offline',
-    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    footer: 'Delivery Master © 2026 &middot; Built by GitHub Actions',
     wechatBtnText: 'Toque e depois abra no navegador',
     iosTitle: 'iOS Indisponível',
     iosDesc: 'Este app é apenas para Android. Versão iOS em desenvolvimento.',
@@ -237,29 +315,24 @@ function setLang(lang) {
 
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-BR' : 'en';
 
-  // 更新所有带 i18n 属性的元素
   document.querySelectorAll('[i18n]').forEach(function(el) {
     var key = el.getAttribute('i18n');
     if (data[key]) el.innerHTML = data[key];
   });
 
-  // 更新按钮状态
   document.querySelectorAll('.lang-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
 
-  // 存储偏好
   try { localStorage.setItem('dm_lang', lang); } catch(e) {}
 }
 
-// 初始化语言
 (function() {
   var saved = null;
   try { saved = localStorage.getItem('dm_lang'); } catch(e) {}
   var initial = (saved && i18n[saved]) ? saved : 'zh';
   setLang(initial);
 
-  // 绑定按钮事件
   document.getElementById('langBar').addEventListener('click', function(e) {
     if (e.target.classList.contains('lang-btn')) {
       setLang(e.target.dataset.lang);
