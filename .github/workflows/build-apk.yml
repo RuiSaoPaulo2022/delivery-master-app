@@ -1,15 +1,18 @@
-name: Build Android APK
+name: Build & Release Android APK
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:  # 允许手动触发
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # 需要写权限来创建Release和tag
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build & Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -51,9 +54,35 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Get APK info
-        run: |
-          echo "### Build Successful!" >> $GITHUB_STEP_SUMMARY
-          echo "APK file: app-debug.apk" >> $GITHUB_STEP_SUMMARY
-          echo "Download: Actions -> This build -> Artifacts -> app-debug-apk" >> $GITHUB_STEP_SUMMARY
-          ls -lh android/app/build/outputs/apk/debug/ >> $GITHUB_STEP_SUMMARY || true
+      # ===== Auto Publish to GitHub Releases =====
+      - name: Generate version tag
+        id: version
+        run: echo "tag=v$(date +'%Y%m%d')-build${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release with APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Delivery Master ${{ steps.version.outputs.tag }}"
+          body: |
+            ## Delivery Master (交维大师) Android APP
+
+            **Build #${{ github.run_number }}** | Commit: ${{ github.sha }}
+
+            ### 安装说明 / Instalação
+            - 📱 手机扫码下载 → 安装时允许"未知来源" → 打开即用
+            - 📲 Scan QR code → Allow "Unknown Sources" → Open and enjoy
+            - 离线可用 / Works offline / Funciona offline
+
+            ### 功能 / Features
+            - 项目地图 / Project Map
+            - 周报浏览 / Weekly Reports
+            - 白板墙 / Kanban Board
+            - 需求跟踪 / Demand Tracking
+            - 中/英/葡 三语切换 / CN/EN/PT trilingual
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
