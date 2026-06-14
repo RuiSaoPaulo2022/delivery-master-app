@@ -219,11 +219,16 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 <div class="alert" id="alertMsg"></div>
 
 <script>
-// ===== Auth =====
+// ===== Platform Detection =====
+var IS_NATIVE = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+
+// ===== Auth (skip in native APP - no server) =====
+if (!IS_NATIVE) {
 (function(){
   const token = localStorage.getItem('token');
   if(!token) window.location.href = '../login.html';
 })();
+}
 
 var ALL_DATA = null;
 var currentTab = 'demands';
@@ -248,7 +253,7 @@ function apiCall(url, options) {
       ...options?.headers
     }
   }).then(r => {
-    if(r.status === 401) { localStorage.clear(); window.location.href = '../login.html'; throw 'Unauthorized'; }
+    if(r.status === 401 && !IS_NATIVE) { localStorage.clear(); window.location.href = '../login.html'; throw 'Unauthorized'; }
     return r;
   });
 }

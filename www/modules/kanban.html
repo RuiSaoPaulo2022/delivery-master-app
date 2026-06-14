@@ -39,17 +39,17 @@
 
         /* =============== HEADER =============== */
         .header {
-            display: flex; align-items: center; gap: 16px;
-            padding: 12px 24px;
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            padding: 10px 16px;
             background: var(--header-bg);
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
         .header h1 {
-            font-size: 20px; font-weight: 700; margin-right: auto;
+            font-size: 18px; font-weight: 700; margin-right: auto;
             white-space: nowrap;
         }
-        .header-meta { display: flex; align-items: center; gap: 12px; }
+        .header-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         /* 文件柜 */
         .file-cabinet { position: relative; }
@@ -142,9 +142,11 @@
             flex-shrink: 0;
         }
         .col-header .col-title {
-            font-size: 14px; font-weight: 700;
-            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
             text-transform: uppercase; letter-spacing: 0.5px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            min-width: 0;
         }
         .col-header .col-dot {
             width: 10px; height: 10px; border-radius: 50%;
@@ -308,10 +310,10 @@
         .btn-row-right { display: flex; gap: 8px; }
 
         /* Header 操作按钮 */
-        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .btn-save, .btn-new, .btn-export {
-            padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
-            font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px;
+            padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+            font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;
             white-space: nowrap; transition: all 0.15s; color: var(--text);
         }
         .btn-save { background: rgba(46,204,113,0.2); border-color: rgba(46,204,113,0.4); }

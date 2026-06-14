@@ -254,7 +254,11 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 <div class="alert" id="alertMsg"></div>
 
 <script>
-// ===== Auth Check =====
+// ===== Platform Detection =====
+var IS_NATIVE = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+
+// ===== Auth Check (skip in native APP) =====
+if (!IS_NATIVE) {
 (function checkAuth() {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
@@ -262,6 +266,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
     window.location.href = '../login.html';
   }
 })();
+}
 
 // ===== Config =====
 var ALL_DATA = null;  // { _meta: {}, issues: [] }
@@ -285,7 +290,7 @@ function apiFetch(url, options) {
     ...options,
     headers
   }).then(function(r) {
-    if (r.status === 401) {
+    if (r.status === 401 && !IS_NATIVE) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '../login.html';

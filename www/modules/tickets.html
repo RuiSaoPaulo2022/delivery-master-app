@@ -205,7 +205,11 @@
 </div>
 
 <script>
-  // ===== Auth Check =====
+  // ===== Platform Detection =====
+  var IS_NATIVE = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+
+  // ===== Auth Check (skip in native APP) =====
+  if (!IS_NATIVE) {
   (function checkAuth() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -213,6 +217,7 @@
       window.location.href = '../login.html';
     }
   })();
+  }
   
   // ===== Config =====
   const API_BASE = window.location.origin;
@@ -241,7 +246,7 @@
       ...options,
       headers
     }).then(function(r) {
-      if (r.status === 401) {
+      if (r.status === 401 && !IS_NATIVE) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '../login.html';
@@ -255,7 +260,8 @@
   function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '../login.html';
+    if (!IS_NATIVE) window.location.href = '../login.html';
+    else window.location.href = '../index.html';
   }
   
   // ===== Load Tickets =====

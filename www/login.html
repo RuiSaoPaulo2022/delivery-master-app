@@ -488,13 +488,8 @@
       </div>
     </div>
 
-    <div class="login-footer">Hikvision &copy; 2026</div>
+    <div class="login-footer">&copy; 2026 Delivery Master</div>
 
-    <div class="qr-download">
-      <div class="qr-download-title">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
-      <img src="assets/qrcode-shield-download.png" alt="下载交维大师APP" class="qr-download-img">
-      <div class="qr-download-hint">支持 Android · 中 / 英 / 葡萄萄牙语</div>
-    </div>
   </div>
 
 <script>
@@ -575,7 +570,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     if (!r.ok) { showMsg('error', data.error || '登录失败'); setBtnLoading('btn-login', false); return; }
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    window.location.href = '/index.html';
+    window.location.href = 'index.html';
   } catch (err) {
     showMsg('error', '无法连接服务器，请确认 server.js 已启动');
     setBtnLoading('btn-login', false);

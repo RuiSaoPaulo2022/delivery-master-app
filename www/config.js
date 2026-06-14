@@ -13,9 +13,9 @@ window.JW_CONFIG = {
 
   // ===== 公司信息 =====
   company: {
-    name: "海康威视",
-    nameEn: "Hikvision",
-    namePt: "Hikvision"
+    name: "交付运维团队",
+    nameEn: "Delivery & Ops Team",
+    namePt: "Equipe de Entrega e Operações"
   },
 
   // ===== 区域信息 =====
