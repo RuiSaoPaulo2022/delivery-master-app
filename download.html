@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>下载交维大师 APP</title>
+<title>下载交维大师 APP | Download Delivery Master</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -12,17 +12,39 @@
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
     color:#fff; padding:20px 16px;
   }
-  .container { max-width:400px; width:100%; text-align:center; }
-  .logo-area { margin-top:40px; margin-bottom:30px; }
-  .logo-area img { width:80px; height:80px; border-radius:18px; box-shadow:0 8px 32px rgba(0,0,0,.3); }
-  h1 { font-size:22px; font-weight:700; margin-bottom:8px; letter-spacing:.5px; }
-  .subtitle { font-size:14px; opacity:.7; margin-bottom:36px; }
+  .container { max-width:420px; width:100%; text-align:center; }
+
+  /* Language switcher */
+  .lang-bar {
+    display:flex; justify-content:center; gap:6px; margin-top:16px; margin-bottom:20px;
+  }
+  .lang-btn {
+    font-size:12px; padding:4px 14px; border-radius:14px; cursor:pointer;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+    color:rgba(255,255,255,.6); transition:all .2s;
+  }
+  .lang-btn:hover { background:rgba(255,255,255,.12); color:#fff; }
+  .lang-btn.active {
+    background:rgba(33,150,243,.25); border-color:rgba(33,150,243,.5);
+    color:#fff; font-weight:600;
+  }
+
+  /* Logo — 保持原始比例，不强制正方形 */
+  .logo-area { margin-bottom:24px; }
+  .logo-area img {
+    width:90px; height:auto; /* 不设固定高度，保持盾形比例 */
+    filter:drop-shadow(0 6px 20px rgba(0,0,0,.35));
+  }
+
+  h1 { font-size:22px; font-weight:700; margin-bottom:6px; letter-spacing:.5px; line-height:1.3; }
+  .subtitle { font-size:13px; opacity:.65; margin-bottom:32px; line-height:1.5; }
 
   /* Download button */
   .btn-download {
     display:inline-block; background:linear-gradient(135deg,#00C853,#69F0AE);
-    color:#000; font-size:17px; font-weight:700; padding:16px 48px;
-    border-radius:14px; text-decoration:none; box-shadow:0 6px 24px rgba(0,200,83,.4);
+    color:#000; font-size:17px; font-weight:700; padding:15px 48px;
+    border-radius:14px; text-decoration:none;
+    box-shadow:0 6px 24px rgba(0,200,83,.4);
     transition:transform .15s,box-shadow .15s; animation:pulse 2s infinite;
   }
   .btn-download:hover, .btn-download:active { transform:scale(1.04); box-shadow:0 8px 32px rgba(0,200,83,.55); }
@@ -30,6 +52,18 @@
     0%,100% { box-shadow:0 6px 24px rgba(0,200,83,.4); }
     50% { box-shadow:0 6px 28px rgba(0,200,83,.65); }
   }
+
+  /* QR Code section */
+  .qr-section {
+    margin-top:36px; padding:20px; border-radius:16px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  }
+  .qr-section h3 { font-size:14px; opacity:.7; margin-bottom:12px; }
+  .qr-section img {
+    width:180px; height:180px; border-radius:10px;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
+  }
+  .qr-hint { font-size:11px; opacity:.45; margin-top:8px; }
 
   /* WeChat warning */
   .wechat-warning {
@@ -60,7 +94,6 @@
 
   footer { margin-top:auto; padding:24px 0 12px; font-size:11px; opacity:.4; }
 
-  /* Hidden by default, shown only in WeChat */
   #wechat-only { display:none !important; }
 </style>
 </head>
@@ -68,69 +101,193 @@
 
 <div class="container">
 
-  <div class="logo-area">
-    <img src="https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/www/assets/logo-shield.png"
-         alt="Delivery Master" onerror="this.style.display='none'">
+  <!-- Language switcher -->
+  <div class="lang-bar" id="langBar">
+    <button class="lang-btn active" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="pt">PT</button>
   </div>
 
-  <h1>Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">交维大师 · Android APP</small></h1>
-  <p class="subtitle">v20260614 &middot; 中/英/葡 三语 &middot; 离线可用</p>
+  <div class="logo-area">
+    <img src="./www/assets/logo-shield.png"
+         alt="Delivery Master"
+         onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/www/assets/logo-shield.png'">
+  </div>
+
+  <h1 i18n="title">Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7" i18n="titleSub">交维大师 · Android APP</small></h1>
+  <p class="subtitle" i18n="version">v20260614 · 中/英/葡 三语 · 离线可用</p>
 
   <!-- Primary download button -->
-  <a id="download-btn"
-     class="btn-download"
-     href="https://github.com/RuiSaoPaulo2022/delivery-master-app/releases/latest/download/app-debug.apk">
-    下载安装 APP
-  </a>
+  <a id="download-btn" class="btn-download"
+     href="https://github.com/RuiSaoPaulo2022/delivery-master-app/releases/latest/download/app-debug.apk"
+     i18n="downloadBtn">下载安装 APP</a>
 
   <!-- WeChat specific instructions -->
   <div id="wechat-warning" class="wechat-warning">
-    <h3>微信扫码用户请注意 / WeChat Users</h3>
-    <p>微信内置浏览器无法直接下载APK文件，请按以下步骤操作：</p>
-    <ol>
-      <li><span class="step-num">1</span>点击下方绿色按钮（如未开始下载）</li>
-      <li><span class="step-num">2</span>点击右上角 **...** 菜单</li>
-      <li><span class="step-num">3</span>选择 **在浏览器中打开**</li>
-      <li><span class="step-num">4</span>在浏览器中即可正常下载安装</li>
+    <h3 i18n="wechatTitle">微信扫码用户请注意 / WeChat Users</h3>
+    <p i18n="wechatDesc">微信内置浏览器无法直接下载APK文件，请按以下步骤操作：</p>
+    <ol id="wechatSteps">
+      <li><span class="step-num">1</span><span i18n="step1">点击下方绿色按钮（如未开始下载）</span></li>
+      <li><span class="step-num">2</span><span i18n="step2">点击右上角 "..." 菜单</span></li>
+      <li><span class="step-num">3</span><span i18n="step3">选择 "在浏览器中打开"</span></li>
+      <li><span class="step-num">4</span><span i18n="step4">在浏览器中即可正常下载安装</span></li>
     </ol>
   </div>
 
+  <!-- QR Code for scan & share -->
+  <div class="qr-section">
+    <h3 i18n="qrTitle">扫码分享给同事 / Scan to Share</h3>
+    <img src="./qrcode-download.png"
+         alt="QR Code"
+         onerror="this.src='https://raw.githubusercontent.com/RuiSaoPaulo2022/delivery-master-app/master/qrcode-download.png'">
+    <p class="qr-hint" i18n="qrHint">微信扫码 → 在浏览器中打开 → 下载安装</p>
+  </div>
+
   <div class="features">
-    <h3>功能模块</h3>
+    <h3 i18n="featuresTitle">功能模块</h3>
     <div class="tag-row">
-      <span class="tag">项目地图</span>
-      <span class="tag">周报浏览</span>
-      <span class="tag">白板墙</span>
-      <span class="tag">需求跟踪</span>
-      <span class="tag">问题工单</span>
-      <span class="tag">离线可用</span>
+      <span class="tag" i18n="f1">项目地图</span>
+      <span class="tag" i18n="f2">周报浏览</span>
+      <span class="tag" i18n="f3">白板墙</span>
+      <span class="tag" i18n="f4">需求跟踪</span>
+      <span class="tag" i18n="f5">问题工单</span>
+      <span class="tag" i18n="f6">离线可用</span>
     </div>
   </div>
 
-  <footer>Demo Master &copy; 2026 &middot; Built by GitHub Actions</footer>
+  <footer i18n="footer">Delivery Master © 2026 · Built by GitHub Actions</footer>
 
 </div>
 
 <script>
-// Detect WeChat and show warning + adjust button
+// === i18n 数据 ===
+var i18n = {
+  zh: {
+    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">交维大师 · Android APP</small>',
+    titleSub: '交维大师 · Android APP',
+    version: 'v20260614 · 中/英/葡 三语 · 离线可用',
+    downloadBtn: '下载安装 APP',
+    wechatTitle: '微信扫码用户请注意 / WeChat Users',
+    wechatDesc: '微信内置浏览器无法直接下载APK文件，请按以下步骤操作：',
+    step1: '点击下方绿色按钮（如未开始下载）',
+    step2: '点击右上角 "..." 菜单',
+    step3: '选择 "在浏览器中打开"',
+    step4: '在浏览器中即可正常下载安装',
+    qrTitle: '扫码分享给同事 / Scan to Share',
+    qrHint: '微信扫码 → 在浏览器中打开 → 下载安装',
+    featuresTitle: '功能模块',
+    f1: '项目地图', f2: '周报浏览', f3: '白板墙',
+    f4: '需求跟踪', f5: '问题工单', f6: '离线可用',
+    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    wechatBtnText: '点击后请在浏览器中打开',
+    iosTitle: 'iOS用户暂不支持',
+    iosDesc: '本APP仅支持Android设备，iOS版本开发中敬请期待。',
+    iosHint: '请使用Android手机扫码下载。'
+  },
+  en: {
+    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">Android APP</small>',
+    titleSub: 'Android APP',
+    version: 'v20260614 · ZH/EN/PT · Works Offline',
+    downloadBtn: 'Download & Install APK',
+    wechatTitle: 'WeChat Users Notice',
+    wechatDesc: 'WeChat browser cannot download APK directly. Please follow these steps:',
+    step1: 'Tap the green button below (if not downloading)',
+    step2: 'Tap the "..." menu at top right',
+    step3: 'Select "Open in Browser"',
+    step4: 'Download and install normally in your browser',
+    qrTitle: 'Scan to Share with Colleagues',
+    qrHint: 'Scan in WeChat → Open in Browser → Download Install',
+    featuresTitle: 'Features',
+    f1: 'Project Map', f2: 'Weekly Reports', f3: 'Kanban Board',
+    f4: 'Demand Tracking', f5: 'Issue Tickets', f6: 'Works Offline',
+    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    wechatBtnText: 'Tap then open in browser please',
+    iosTitle: 'iOS Not Supported Yet',
+    iosDesc: 'This app is for Android only. iOS version is under development.',
+    iosHint: 'Please use an Android phone to scan and download.'
+  },
+  pt: {
+    title: 'Delivery Master<br><small style="font-size:16px;font-weight:500;opacity:.7">APP Android</small>',
+    titleSub: 'APP Android',
+    version: 'v20260614 · CN/EN/PT · Funciona Offline',
+    downloadBtn: 'Baixar e Instalar APP',
+    wechatTitle: 'Atenção Usuários WeChat',
+    wechatDesc: 'O navegador WeChat não consegue baixar APK diretamente. Siga estes passos:',
+    step1: 'Toque no botão verde abaixo (se não baixar)',
+    step2: 'Toque no menu "..." no canto superior direito',
+    step3: 'Selecione "Abrir no Navegador"',
+    step4: 'Baixe e instale normalmente no navegador',
+    qrTitle: 'Escaneie para Compartilhar',
+    qrHint: 'Escanear no WeChat → Abrir no navegador → Baixar e Instalar',
+    featuresTitle: 'Módulos',
+    f1: 'Mapa de Projetos', f2: 'Relatórios Semanais', f3: 'Quadro Kanban',
+    f4: 'Acompanhamento de Demandas', f5: 'Chamados', f6: 'Funciona Offline',
+    footer: 'Delivery Master © 2026 · Built by GitHub Actions',
+    wechatBtnText: 'Toque e depois abra no navegador',
+    iosTitle: 'iOS Indisponível',
+    iosDesc: 'Este app é apenas para Android. Versão iOS em desenvolvimento.',
+    iosHint: 'Por favor use um celular Android para escanear e baixar.'
+  }
+};
+
+// === 语言切换逻辑 ===
+function setLang(lang) {
+  var data = i18n[lang];
+  if (!data) return;
+
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-BR' : 'en';
+
+  // 更新所有带 i18n 属性的元素
+  document.querySelectorAll('[i18n]').forEach(function(el) {
+    var key = el.getAttribute('i18n');
+    if (data[key]) el.innerHTML = data[key];
+  });
+
+  // 更新按钮状态
+  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  // 存储偏好
+  try { localStorage.setItem('dm_lang', lang); } catch(e) {}
+}
+
+// 初始化语言
+(function() {
+  var saved = null;
+  try { saved = localStorage.getItem('dm_lang'); } catch(e) {}
+  var initial = (saved && i18n[saved]) ? saved : 'zh';
+  setLang(initial);
+
+  // 绑定按钮事件
+  document.getElementById('langBar').addEventListener('click', function(e) {
+    if (e.target.classList.contains('lang-btn')) {
+      setLang(e.target.dataset.lang);
+    }
+  });
+})();
+
+// === 微信/iOS 检测 ===
 (function() {
   var isWechat = /MicroMessenger/i.test(navigator.userAgent);
 
   if (isWechat) {
     document.getElementById('wechat-warning').style.display = 'block';
     var btn = document.getElementById('download-btn');
-    btn.textContent = '点击后请在浏览器中打开';
+    var currentLang = localStorage.getItem('dm_lang') || 'zh';
+    btn.textContent = i18n[currentLang].wechatBtnText || i18n.zh.wechatBtnText;
     btn.style.background = 'linear-gradient(135deg, #FF9800, #FFB74D)';
   }
 
-  // Also show warning if on iOS (can't install APK)
   var isIOS = /(iPhone|iPad|iPod)/i.test(navigator.userAgent);
   if (isIOS) {
     document.getElementById('wechat-warning').style.display = 'block';
-    document.querySelector('#wechat-warning h3').textContent = 'iOS用户暂不支持';
-    document.querySelector('#wechat-warning p').textContent = '本APP仅支持Android设备，iOS版本开发中敬请期待。';
+    var currentLang = localStorage.getItem('dm_lang') || 'zh';
+    var d = i18n[currentLang] || i18n.zh;
+    document.querySelector('#wechat-warning h3').textContent = d.iosTitle;
+    document.querySelector('#wechat-warning p').textContent = d.iosDesc;
     document.querySelector('#wechat-warning ol').outerHTML =
-      '<p style="margin-top:8px;color:rgba(255,152,45,.9)">请使用Android手机扫码下载。</p>';
+      '<p style="margin-top:8px;color:rgba(255,152,45,.9)">' + d.iosHint + '</p>';
   }
 })();
 </script>
