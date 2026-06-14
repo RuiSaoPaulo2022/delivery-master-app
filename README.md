@@ -4,13 +4,13 @@
 
 ## 下载安装 / Download
 
-**用微信/手机浏览器扫码下载APK**
+**用微信/手机浏览器扫码下载**
 <br>Scan QR code with WeChat or mobile browser
 
-<img src="qrcode-download.png" width="280" />
+[![Download APP](qrcode-download.png)](https://ruisaopaulo2022.github.io/delivery-master-app/download.html)
 
 ### 安装步骤 / Installation
-1. 扫码打开下载页面 → 点击 **app-debug.apk** 下载
+1. 扫码打开下载页面 → 点击 **下载APP** 按钮
 2. 如在微信中打开 → 点右上角 **...** → **在浏览器中打开**
 3. 安装时允许 **"来自未知来源的应用"**
 4. 打开APP即可使用（完全离线可用）

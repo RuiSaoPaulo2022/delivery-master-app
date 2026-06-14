@@ -81,7 +81,9 @@ jobs:
             - 白板墙 / Kanban Board
             - 需求跟踪 / Demand Tracking
             - 中/英/葡 三语切换 / CN/EN/PT trilingual
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            download.html
           draft: false
           prerelease: false
         env:
