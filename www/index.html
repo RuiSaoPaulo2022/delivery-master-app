@@ -68,6 +68,7 @@ html,body{height:100%;overflow:hidden;background:#F7F8FA}
 .card-icon.box{background:#F3E5F5;color:#7B1FA2}
 .card-icon.chat{background:#E8EAF6;color:#303F9F}
 .card-icon.key{background:#FFF8E1;color:#F57F17}
+.card-icon.ticket{background:#FFF3E0;color:#E65100}
 .card-icon.flow{background:#E0F2F1;color:#00695C}
 .card-title{font-size:13px;font-weight:600;color:#333;margin-bottom:4px;line-height:1.3}
 .card-desc{font-size:11px;color:#999;line-height:1.4}
@@ -281,6 +282,42 @@ var BADGE_LABELS = {
   plan:{zh:'规划中',en:'Planned','pt-BR':'Planejado'}
 };
 
+var ROLE_LABELS = {
+  admin:{zh:'管理员',en:'Admin','pt-BR':'Admin',emoji:'👑'},
+  diamond:{zh:'钻石',en:'Diamond','pt-BR':'Diamante',emoji:'💎'},
+  gold:{zh:'黄金',en:'Gold','pt-BR':'Ouro',emoji:'🥇'},
+  silver:{zh:'白银',en:'Silver','pt-BR':'Prata',emoji:'🥈'}
+};
+
+// ===== RBAC =====
+function getCurrentUser() {
+  try { var raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
+}
+
+function hasPermission(user, perm) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  return (user.permissions || []).indexOf(perm) >= 0;
+}
+
+function getVisibleModules(user) {
+  var visible = CFG.modules.filter(function(m) {
+    return m.permission ? hasPermission(user, m.permission) : true;
+  });
+  if (user && user.role === 'admin') {
+    visible.push({
+      id:'admin', name:'管理后台', nameEn:'Admin Panel', namePt:'Painel Admin',
+      category:'management', icon:'key', url:'modules/admin.html',
+      badge:'active', permission:'admin:manage'
+    });
+  }
+  return visible;
+}
+
+// Add ticket icon
+ICONS.ticket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+
 function switchTab(tabId, el) {
   document.querySelectorAll('.tab-page').forEach(function(p){p.classList.remove('active')});
   document.querySelectorAll('.tab-item').forEach(function(t){t.classList.remove('active')});
@@ -291,8 +328,11 @@ function switchTab(tabId, el) {
 function renderMain() {
   var container = document.getElementById('mainContent');
   container.innerHTML = '';
+  var user = getCurrentUser();
+  if (!user) { window.location.replace('login.html'); return; }
+  var modules = getVisibleModules(user);
   var groups = {};
-  CFG.modules.forEach(function(m) {
+  modules.forEach(function(m) {
     var cat = m.category || 'other';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(m);
@@ -415,6 +455,16 @@ function switchLang() {
   refreshAll();
 }
 
+function updateUserProfile() {
+  var user = getCurrentUser();
+  if (!user) return;
+  var displayName = user.displayName || user.username || 'User';
+  var roleInfo = ROLE_LABELS[user.role] || ROLE_LABELS.silver;
+  document.getElementById('myName').textContent = displayName;
+  document.getElementById('myAvatar').textContent = displayName.charAt(0);
+  document.getElementById('myRole').textContent = roleInfo.emoji + ' ' + (roleInfo[currentLang] || roleInfo.en);
+}
+
 function refreshAll() {
   document.getElementById('headerTitle').textContent = t('product.name');
   document.getElementById('headerSub').textContent = t('product.subtitle');
@@ -424,6 +474,7 @@ function refreshAll() {
   document.getElementById('tabLabelReports').textContent = currentLang==='pt-BR'?'Relatório':'日报';
   document.getElementById('tabLabelTools').textContent = currentLang==='pt-BR'?'Ferramenta':'工具';
   document.getElementById('tabLabelMy').textContent = currentLang==='pt-BR'?'Perfil':'我的';
+  updateUserProfile();
   renderMain();
   buildLangSelect();
 }
@@ -435,12 +486,13 @@ function setupNative() {
 }
 
 (function init() {
+  var user = getCurrentUser();
+  if (!user) { window.location.replace('login.html'); return; }
   document.getElementById('headerTitle').textContent = t('product.name');
   document.getElementById('headerSub').textContent = t('product.subtitle');
-  document.getElementById('myName').textContent = CFG.team.lead;
-  document.getElementById('myAvatar').textContent = CFG.team.lead.charAt(0);
   document.getElementById('currentLangDisplay').textContent = CFG.languageNames[currentLang] || currentLang;
   document.title = t('product.name');
+  updateUserProfile();
   buildLangSelect();
   renderMain();
   renderReports();

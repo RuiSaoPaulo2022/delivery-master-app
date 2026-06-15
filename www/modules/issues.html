@@ -215,11 +215,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 
 <script src="../i18n/index.js"></script>
 <script>
-// ===== Platform Detection =====
-var IS_NATIVE = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
-
-// ===== Auth Check (skip in native APP) =====
-if (!IS_NATIVE) {
+// ===== Auth Check (always — APP also requires login) =====
 (function checkAuth() {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
@@ -227,7 +223,6 @@ if (!IS_NATIVE) {
     window.location.href = '../login.html';
   }
 })();
-}
 
 // ===== Config =====
 var ALL_DATA = null;
@@ -282,7 +277,7 @@ function apiFetch(url, options) {
     ...options,
     headers
   }).then(function(r) {
-    if (r.status === 401 && !IS_NATIVE) {
+    if (r.status === 401) { localStorage.clear(); window.location.href = '../login.html'; throw 'Unauthorized'; }
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '../login.html';

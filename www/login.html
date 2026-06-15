@@ -411,6 +411,57 @@
       color: rgba(255,255,255,0.3);
     }
 
+    /* Password strength indicator */
+    .pwd-strength {
+      margin-top: 6px;
+      font-size: 11px;
+      min-height: 16px;
+      transition: color 0.2s;
+    }
+    .pwd-strength.weak   { color: #fca5a5; }
+    .pwd-strength.medium { color: #fde68a; }
+    .pwd-strength.strong { color: #86efac; }
+
+    /* Change password modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7,13,24,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 28px 24px;
+      max-width: 380px;
+      width: 90%;
+      backdrop-filter: blur(28px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .modal-title {
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .modal-desc {
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
     /* Responsive */
     @media (max-width: 480px) {
       .login-card { margin: 16px; }
@@ -441,7 +492,7 @@
       <div id="error-msg" class="alert error"></div>
       <div id="success-msg" class="alert success"></div>
 
-      <!-- Login -->
+      <!-- Login (only panel, register removed — admin-only via API) -->
       <div id="panel-login" class="form-panel active">
         <form id="loginForm">
           <div class="form-group">
@@ -457,43 +508,71 @@
             <span class="btn-text">登 录</span>
           </button>
         </form>
-        <div class="toggle-link">
-          没有账号？<a href="#" id="go-register">立即注册</a>
-        </div>
-      </div>
-
-      <!-- Register -->
-      <div id="panel-register" class="form-panel">
-        <form id="registerForm">
-          <div class="form-group">
-            <label>用户名</label>
-            <input type="text" id="reg-user" required placeholder="请输入用户名" autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="reg-pass" required placeholder="请输入密码（至少6位）" autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label>邮箱（可选）</label>
-            <input type="email" id="reg-email" placeholder="请输入邮箱" autocomplete="email">
-          </div>
-          <button type="submit" class="btn-submit" id="btn-register">
-            <span class="spinner"></span>
-            <span class="btn-text">注 册</span>
-          </button>
-        </form>
-        <div class="toggle-link">
-          已有账号？<a href="#" id="go-login">返回登录</a>
-        </div>
       </div>
     </div>
 
     <div class="login-footer">&copy; 2026 Delivery Master</div>
 
+    <div class="qr-download">
+      <div class="qr-download-title">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
+      <img src="assets/qrcode-shield-download.png" alt="下载交维大师APP" class="qr-download-img">
+      <div class="qr-download-hint">支持 Android · 中 / 英 / 葡萄牙语</div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="modal-overlay" id="changePwdModal">
+    <div class="modal-box">
+      <div class="modal-title">🔒 首次登录 — 修改密码</div>
+      <div class="modal-desc">密码至少8位，需包含数字和字母</div>
+      <div id="modal-error" class="alert error" style="margin-top:12px"></div>
+      <form id="changePwdForm">
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="cpd-old" required placeholder="请输入当前密码" autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="cpd-new" required placeholder="至少8位，含数字+字母" autocomplete="new-password">
+          <div class="pwd-strength" id="pwdStrength"></div>
+        </div>
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input type="password" id="cpd-confirm" required placeholder="再次输入新密码" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-submit" id="btn-change-pwd">
+          <span class="spinner"></span>
+          <span class="btn-text">确认修改</span>
+        </button>
+      </form>
+    </div>
   </div>
 
 <script>
 const API = window.location.origin;
+
+/* ---------- SHA-256 client-side hash ---------- */
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ---------- Password strength check ---------- */
+function checkPwdStrength(pwd) {
+  if (!pwd || pwd.length < 8) return { level: 0, text: '' };
+  let score = 0;
+  if (pwd.length >= 8)  score++;
+  if (pwd.length >= 12) score++;
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+  if (score <= 2) return { level: 1, text: '弱 — 建议增加长度和特殊字符' };
+  if (score <= 3) return { level: 2, text: '中 — 可以更复杂' };
+  return { level: 3, text: '强' };
+}
 
 /* ---------- helpers ---------- */
 function showMsg(type, text) {
@@ -515,7 +594,6 @@ function setBtnLoading(btnId, loading) {
 async function checkServer() {
   const statusEl = document.getElementById('server-status');
   const container = document.getElementById('formContainer');
-
   try {
     const r = await fetch(API + '/api/data/manifest.json', { method: 'GET', cache: 'no-cache' });
     if (r.ok) {
@@ -530,29 +608,11 @@ async function checkServer() {
     statusEl.className = 'server-status offline';
     statusEl.innerHTML = '⚠️ 无法连接服务器，请确认 <code>server.js</code> 已启动<br><span style="font-size:11px;opacity:0.6">提示：在 交维大师 目录运行 node server.js</span>';
     container.classList.add('form-disabled');
-    // retry every 3s
     setTimeout(checkServer, 3000);
   }
 }
 
-/* ---------- panel toggle ---------- */
-document.getElementById('go-register').addEventListener('click', e => {
-  e.preventDefault();
-  document.getElementById('panel-login').classList.remove('active');
-  document.getElementById('panel-register').classList.add('active');
-  document.getElementById('error-msg').style.display = 'none';
-  document.getElementById('success-msg').style.display = 'none';
-});
-
-document.getElementById('go-login').addEventListener('click', e => {
-  e.preventDefault();
-  document.getElementById('panel-register').classList.remove('active');
-  document.getElementById('panel-login').classList.add('active');
-  document.getElementById('error-msg').style.display = 'none';
-  document.getElementById('success-msg').style.display = 'none';
-});
-
-/* ---------- login ---------- */
+/* ---------- login (SHA-256 hashed) ---------- */
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const username = document.getElementById('login-user').value.trim();
@@ -561,49 +621,84 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 
   setBtnLoading('btn-login', true);
   try {
+    // Client-side SHA-256 hash before sending
+    const hashedPwd = await sha256(password);
+
     const r = await fetch(API + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password: hashedPwd })
     });
     const data = await r.json();
     if (!r.ok) { showMsg('error', data.error || '登录失败'); setBtnLoading('btn-login', false); return; }
+
+    // Store complete token + user info
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    window.location.href = 'index.html';
+
+    // Check if first login (needChangePwd)
+    if (data.user.needChangePwd) {
+      setBtnLoading('btn-login', false);
+      document.getElementById('changePwdModal').classList.add('active');
+      document.getElementById('cpd-old').focus();
+    } else {
+      // Redirect to main page
+      window.location.href = '/index.html';
+    }
   } catch (err) {
     showMsg('error', '无法连接服务器，请确认 server.js 已启动');
     setBtnLoading('btn-login', false);
   }
 });
 
-/* ---------- register ---------- */
-document.getElementById('registerForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const username = document.getElementById('reg-user').value.trim();
-  const password = document.getElementById('reg-pass').value;
-  const email = document.getElementById('reg-email').value.trim();
-  if (!username || !password) { showMsg('error', '用户名和密码不能为空'); return; }
-  if (password.length < 6) { showMsg('error', '密码长度至少6位'); return; }
+/* ---------- change password (first login forced) ---------- */
+document.getElementById('cpd-new').addEventListener('input', function() {
+  const strength = checkPwdStrength(this.value);
+  const el = document.getElementById('pwdStrength');
+  if (strength.level === 0) { el.textContent = ''; el.className = 'pwd-strength'; return; }
+  el.textContent = strength.text;
+  el.className = 'pwd-strength ' + (strength.level === 1 ? 'weak' : strength.level === 2 ? 'medium' : 'strong');
+});
 
-  setBtnLoading('btn-register', true);
+document.getElementById('changePwdForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const oldPwd = document.getElementById('cpd-old').value;
+  const newPwd = document.getElementById('cpd-new').value;
+  const confirmPwd = document.getElementById('cpd-confirm').value;
+
+  if (!oldPwd || !newPwd || !confirmPwd) { showMsg('error', '所有字段必填'); return; }
+  if (newPwd !== confirmPwd) { showMsg('error', '两次输入的新密码不一致'); return; }
+  if (newPwd.length < 8) { showMsg('error', '新密码至少8位'); return; }
+  if (!/[a-zA-Z]/.test(newPwd) || !/[0-9]/.test(newPwd)) {
+    showMsg('error', '新密码必须包含数字和字母'); return;
+  }
+
+  setBtnLoading('btn-change-pwd', true);
   try {
-    const r = await fetch(API + '/api/auth/register', {
+    const hashedOld = await sha256(oldPwd);
+    const hashedNew = await sha256(newPwd);
+
+    const token = localStorage.getItem('token');
+    const r = await fetch(API + '/api/auth/change-password', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, email })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ oldPassword: hashedOld, newPassword: hashedNew })
     });
     const data = await r.json();
-    if (!r.ok) { showMsg('error', data.error || '注册失败'); setBtnLoading('btn-register', false); return; }
-    showMsg('success', '注册成功！请登录');
-    setBtnLoading('btn-register', false);
-    setTimeout(() => {
-      document.getElementById('panel-register').classList.remove('active');
-      document.getElementById('panel-login').classList.add('active');
-    }, 1200);
+    if (!r.ok) { showMsg('error', data.error || '修改失败'); setBtnLoading('btn-change-pwd', false); return; }
+
+    // Update stored token and user
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    showMsg('success', '密码修改成功，正在跳转...');
+    setTimeout(() => { window.location.href = '/index.html'; }, 800);
   } catch (err) {
-    showMsg('error', '无法连接服务器，请确认 server.js 已启动');
-    setBtnLoading('btn-register', false);
+    showMsg('error', '无法连接服务器');
+    setBtnLoading('btn-change-pwd', false);
   }
 });
 

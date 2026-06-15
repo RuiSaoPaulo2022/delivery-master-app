@@ -68,7 +68,8 @@ window.JW_CONFIG = {
       category: "monitor",
       icon: "map",
       url: "modules/project-map.html",
-      badge: "active"
+      badge: "active",
+      permission: "project-map:read"
     },
     {
       id: "kanban",
@@ -78,7 +79,8 @@ window.JW_CONFIG = {
       category: "monitor",
       icon: "dashboard",
       url: "modules/kanban.html",
-      badge: "active"
+      badge: "active",
+      permission: "kanban:read"
     },
     {
       id: "inspection",
@@ -88,7 +90,8 @@ window.JW_CONFIG = {
       category: "monitor",
       icon: "check",
       url: "#",
-      badge: "plan"
+      badge: "plan",
+      permission: "inspection:read"
     },
     {
       id: "weekly-reports",
@@ -98,7 +101,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "report",
       url: "modules/weekly-reports/view.html",
-      badge: "active"
+      badge: "active",
+      permission: "weekly-report:read"
     },
     {
       id: "reports",
@@ -109,6 +113,7 @@ window.JW_CONFIG = {
       icon: "chart",
       url: "modules/reports.html",
       badge: "active",
+      permission: "daily-report:read",
       desc: "工作日报生成与统计报告查看（日报 + 周报）"
     },
     {
@@ -119,7 +124,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "box",
       url: "#",
-      badge: "soon"
+      badge: "soon",
+      permission: "material:read"
     },
     {
       id: "demands",
@@ -129,7 +135,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "chart",
       url: "modules/demands.html",
-      badge: "active"
+      badge: "active",
+      permission: "demand:read"
     },
     {
       id: "feedback",
@@ -139,7 +146,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "chat",
       url: "modules/issues.html",
-      badge: "active"
+      badge: "active",
+      permission: "feedback:read"
     },
     {
       id: "tickets",
@@ -149,7 +157,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "ticket",
       url: "modules/tickets.html",
-      badge: "active"
+      badge: "active",
+      permission: "ticket:read"
     },
     {
       id: "license",
@@ -159,7 +168,8 @@ window.JW_CONFIG = {
       category: "management",
       icon: "key",
       url: "#",
-      badge: "soon"
+      badge: "soon",
+      permission: "license:read"
     }
   ],
 
