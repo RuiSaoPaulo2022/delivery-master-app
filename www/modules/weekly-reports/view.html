@@ -211,7 +211,16 @@
     </div>
 
     <script>
-        const API_BASE = '/api/data';
+        // 自动检测运行环境：WEB服务器 vs APP本地文件
+        const IS_APP = (function() {
+            try {
+                return typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+            } catch(e) {
+                return location.protocol === 'file:' || location.hostname === 'localhost';
+            }
+        })();
+        // APP模式使用本地文件路径，WEB模式使用服务端API
+        const API_BASE = IS_APP ? '../../_data' : '/api/data';
 
         // 选项卡切换
         function switchTab(name) {
@@ -221,7 +230,7 @@
             document.getElementById('tab-' + name).style.display = 'block';
         }
 
-        // 加载数据状态
+        // 加载数据状态（支持APP本地文件和服务端API双模式）
         async function loadStatus() {
             try {
                 const res = await fetch(API_BASE + '/manifest.json?t=' + Date.now());
@@ -231,7 +240,20 @@
                 renderReportList();
                 renderDataInfo(mf);
             } catch (e) {
-                document.getElementById('status-bar').innerHTML = '<span style="color:#e74c3c;">加载失败：' + e.message + '</span>';
+                console.warn('manifest加载失败:', e.message);
+                // 优雅降级：显示离线提示 + 静态报告列表
+                document.getElementById('status-bar').innerHTML =
+                    '<span style="color:#F5A623;">⚠️ ' +
+                    (IS_APP ? 'APP离线模式：部分数据不可用' : '数据连接失败') +
+                    '</span>';
+                renderReportList();
+                document.getElementById('report-list').innerHTML =
+                    '<li class="report-item"><span class="report-name">暂无周报数据</span></li>' +
+                    '<li style="padding:10px;font-size:11px;color:#999;">请通过 WEB 版（server.js）查看完整数据状态</li>';
+                document.getElementById('manifest-info').innerHTML =
+                    '<div style="padding:20px;color:#999;text-align:center;">' +
+                    '<p>数据状态需要 HTTP 服务器支持</p>' +
+                    '<p style="font-size:11px;margin-top:8px;">APP 离线模式下仅可浏览已缓存的报告</p></div>';
             }
         }
 

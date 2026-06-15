@@ -14,7 +14,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .back-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .back-btn:hover{background:rgba(255,255,255,0.25)}
 .back-btn svg{width:16px;height:16px}
-.header-title{font-size:15px;font-weight:600;color:#fff;flex:1}
+.header-title{font-size:15px;font-weight:600;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .header-spacer{flex:1}
 .btn-refresh{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;color:#fff}
 .btn-refresh:hover{background:rgba(255,255,255,0.25)}
@@ -29,16 +29,16 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .tab-item.active{background:#e8f5e9;color:#2E7D32;font-weight:600}
 
 /* TOOLBAR */
-.toolbar{height:48px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.toolbar{height:48px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;flex-wrap:wrap}
 .filter-group{display:flex;align-items:center;gap:6px}
 .filter-label{font-size:11px;color:#666;white-space:nowrap}
 .filter-select{appearance:none;-webkit-appearance:none;padding:4px 24px 4px 8px;border:1px solid #d0d5dd;border-radius:6px;font-size:11px;color:#333;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 6px center;cursor:pointer}
 .filter-select:focus{outline:none;border-color:#2E7D32}
-.count-badge{font-size:11px;color:#999;margin-left:auto}
+.count-badge{font-size:11px;color:#999;margin-left:auto;white-space:nowrap}
 
 /* STATS */
-.stats-bar{display:flex;gap:12px;padding:16px;flex-shrink:0}
-.stat-card{flex:1;background:#fff;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid #f0f0f0}
+.stats-bar{display:flex;gap:12px;padding:16px;flex-shrink:0;flex-wrap:wrap}
+.stat-card{flex:1;min-width:140px;background:#fff;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid #f0f0f0}
 .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
 .stat-icon.demand{background:#e8f5e9;color:#2E7D32}
 .stat-icon.defect{background:#fff3e0;color:#E65100}
@@ -56,8 +56,8 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .data-table tr:hover{background:#f8fafd}
 
 /* Action buttons */
-.action-btns{display:flex;gap:4px}
-.action-btn{padding:2px 8px;border:none;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s}
+.action-btns{display:flex;gap:4px;flex-shrink:0}
+.action-btn{padding:2px 8px;border:none;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
 .action-btn.edit{background:#e3f2fd;color:#1565c0}
 .action-btn.edit:hover{background:#bbdefb}
 .action-btn.delete{background:#fce4ec;color:#c62828}
@@ -124,19 +124,21 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 @media(max-width:768px){
   .stats-bar{flex-wrap:wrap;gap:8px}
   .stat-card{min-width:calc(50% - 4px);flex:0 0 auto}
-  .toolbar{flex-wrap:wrap;height:auto;padding:10px 12px;gap:8px}
+  .toolbar{height:auto;padding:10px 12px;gap:8px}
+  .header-title{font-size:13px}
+  .action-btns{flex-direction:column;gap:2px}
 }
 </style>
 </head>
 <body>
 
 <header class="header">
-  <button class="back-btn" onclick="history.back()" title="返回">
+  <button class="back-btn" onclick="history.back()" data-i18n="title" title="返回">
     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
   </button>
-  <span class="header-title">需求跟踪 — Demand Tracking</span>
+  <span class="header-title" id="pageTitle">需求跟踪 — Demand Tracking</span>
   <div class="header-spacer"></div>
-  <button class="btn-create" onclick="openCreateModal()">+ 新建需求</button>
+  <button class="btn-create" id="btnNewDemand" onclick="openCreateModal()">+ 新建需求</button>
   <button class="btn-refresh" onclick="loadData()" title="刷新数据">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
   </button>
@@ -218,6 +220,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 <!-- Alert -->
 <div class="alert" id="alertMsg"></div>
 
+<script src="../i18n/index.js"></script>
 <script>
 // ===== Platform Detection =====
 var IS_NATIVE = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
@@ -231,8 +234,42 @@ if (!IS_NATIVE) {
 }
 
 var ALL_DATA = null;
+var PROJECTS_DATA = null;
 var currentTab = 'demands';
 var API_BASE = '/api/data/demands.json';
+var lang = localStorage.getItem('lang') || 'zh';
+
+// ===== i18n helper =====
+function t(key) {
+  const keys = key.split('.');
+  let val = window.i18n?.[lang] || window.i18n?.['zh'] || {};
+  for (const k of keys) {
+    if (val === undefined || val === null) return key;
+    val = val[k];
+  }
+  return val || key;
+}
+
+// ===== Apply i18n to page =====
+function applyI18n() {
+  document.getElementById('pageTitle').textContent = t('demands.title');
+  document.getElementById('btnNewDemand').textContent = t('demands.btn_new_demand');
+  
+  // Tab buttons
+  const tabs = document.querySelectorAll('.tab-item');
+  if(tabs[0]) tabs[0].innerHTML = '📋 ' + t('demands.tab_demands');
+  if(tabs[1]) tabs[1].innerHTML = '📦 ' + t('demands.tab_custom');
+  
+  // Stats labels
+  document.querySelector('#statsBarDemands .stat-label:nth-of-type(1)').textContent = t('demands.stat_total');
+  document.querySelectorAll('#statsBarDemands .stat-label')[1]?.remove();
+  const labels = document.querySelectorAll('#statsBarDemands .stat-label');
+  // Rebuild stats labels properly
+  const statCards = document.querySelectorAll('#statsBarDemands .stat-card');
+  if(statCards[0]) statCards[0].querySelector('.stat-label').textContent = t('demands.stat_total');
+  if(statCards[1]) statCards[1].querySelector('.stat-label').textContent = t('demands.stat_defects');
+  if(statCards[2]) statCards[2].querySelector('.stat-label').textContent = t('demands.stat_progress');
+}
 
 // ===== Alert =====
 function showAlert(type, text) {
@@ -259,8 +296,21 @@ function apiCall(url, options) {
 }
 
 // ===== Init =====
+applyI18n();
+loadProjects();
 loadData();
 
+// ===== Load Projects from unified source =====
+function loadProjects() {
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      PROJECTS_DATA = data.projects;
+    })
+    .catch(() => { /* will fallback to data-driven */ });
+}
+
+// ===== Load Data =====
 function loadData() {
   document.getElementById('loading').style.display = 'flex';
   apiCall(API_BASE)
@@ -279,7 +329,7 @@ function loadData() {
         render();
         document.getElementById('loading').style.display = 'none';
       }).catch(e2 => {
-        document.getElementById('emptyText').textContent = '加载失败';
+        document.getElementById('emptyText').textContent = t('demands.load_failed');
         document.getElementById('loading').style.display = 'none';
         document.getElementById('emptyState').style.display = 'flex';
       });
@@ -294,16 +344,25 @@ function switchTab(tab) {
   render();
 }
 
-// ===== Filters =====
+// ===== Filters - use projects.json as primary source =====
 function initFilters() {
   if(!ALL_DATA) return;
-  const projects = new Set();
-  if(ALL_DATA.demands) ALL_DATA.demands.forEach(d => { if(d.project) projects.add(d.project); });
-  if(ALL_DATA.custom_orders) ALL_DATA.custom_orders.forEach(c => { if(c.project) projects.add(c.project); });
   
   const sel = document.getElementById('projectFilter');
-  sel.innerHTML = '<option value="all">全部项目</option>';
-  projects.forEach(p => sel.innerHTML += '<option value="' + p + '">' + p + '</option>');
+  sel.innerHTML = '<option value="all">' + t('demands.option_all') + '</option>';
+  
+  // Prefer projects.json unified list
+  if(PROJECTS_DATA && PROJECTS_DATA.length > 0) {
+    PROJECTS_DATA.forEach(p => {
+      sel.innerHTML += '<option value="' + p.id + '">' + p.name + '</option>';
+    });
+  } else {
+    // Fallback: extract from data
+    const projects = new Set();
+    if(ALL_DATA.demands) ALL_DATA.demands.forEach(d => { if(d.project) projects.add(d.project); });
+    if(ALL_DATA.custom_orders) ALL_DATA.custom_orders.forEach(c => { if(c.project) projects.add(c.project); });
+    projects.forEach(p => sel.innerHTML += '<option value="' + p + '">' + p + '</option>');
+  }
 }
 
 // ===== Render =====
@@ -328,11 +387,11 @@ function renderDemands() {
   document.getElementById('statDemandTotal').textContent = data.length;
   document.getElementById('statDefectTotal').textContent = data.filter(d => d.type === '缺陷').length;
   document.getElementById('statInProgress').textContent = data.filter(d => d.status === 'developing' || d.status === 'approving').length;
-  document.getElementById('countBadge').textContent = data.length + ' 条';
+  document.getElementById('countBadge').textContent = data.length + t('demands.count_suffix');
   
   // Table header
   document.getElementById('tableHeader').innerHTML = '<tr>' +
-    '<th>ID</th><th>描述</th><th>类型</th><th>状态</th><th>项目</th><th>记录日期</th><th>风险</th><th>操作</th></tr>';
+    '<th>ID</th><th>' + t('demands.th_description') + '</th><th>' + t('demands.th_type') + '</th><th>' + t('demands.th_status') + '</th><th>' + t('demands.th_project') + '</th><th>' + t('demands.th_record_date') + '</th><th>' + t('demands.th_risk') + '</th><th>' + t('demands.th_actions') + '</th></tr>';
   
   // Table body
   const tbody = document.getElementById('tableBody');
@@ -341,7 +400,7 @@ function renderDemands() {
   if(data.length === 0) {
     document.getElementById('dataTable').style.display = 'none';
     document.getElementById('emptyState').style.display = 'flex';
-    document.getElementById('emptyText').textContent = '暂无需求记录';
+    document.getElementById('emptyText').textContent = t('demands.empty_demands');
     return;
   }
   
@@ -355,10 +414,10 @@ function renderDemands() {
       '<td class="wrap-cell">' + (d.description || '') + '</td>' +
       '<td><span class="badge ' + (d.type === '缺陷' ? 'in_progress' : 'finished') + '">' + (d.type || '') + '</span></td>' +
       '<td><span class="badge ' + (d.status || '') + '">' + (d.status_raw || d.status || '') + '</span></td>' +
-      '<td>' + (d.project || '') + '</td>' +
+      '<td>' + getProjectName(d.project) + '</td>' +
       '<td>' + (d.record_date || '') + '</td>' +
       '<td class="risk-' + (d.risk_assessment?.risk_level || 'III') + '">' + (d.risk_assessment?.risk_level || '-') + '</td>' +
-      '<td><div class="action-btns"><button class="action-btn edit" onclick="openEditModal(\'' + (d.id || '') + '\')">编辑</button><button class="action-btn delete" onclick="deleteDemand(\'' + (d.id || '') + '\')">删除</button></div></td>';
+      '<td><div class="action-btns"><button class="action-btn edit" onclick="openEditModal(\'' + (d.id || '') + '\')">' + t('demands.btn_edit') + '</button><button class="action-btn delete" onclick="deleteDemand(\'' + (d.id || '') + '\')">' + t('demands.btn_delete') + '</button></div></td>';
     tbody.appendChild(tr);
   });
 }
@@ -368,9 +427,9 @@ function renderCustom() {
   const projectF = document.getElementById('projectFilter').value;
   if(projectF !== 'all') data = data.filter(c => c.project === projectF);
   
-  document.getElementById('countBadge').textContent = data.length + ' 条';
+  document.getElementById('countBadge').textContent = data.length + t('demands.count_suffix');
   document.getElementById('tableHeader').innerHTML = '<tr>' +
-    '<th>定制单号</th><th>描述</th><th>状态</th><th>项目</th><th>负责人</th><th>操作</th></tr>';
+    '<th>' + t('demands.th_order_id') + '</th><th>' + t('demands.th_description') + '</th><th>' + t('demands.th_status') + '</th><th>' + t('demands.th_project') + '</th><th>' + t('demands.th_owner') + '</th><th>' + t('demands.th_actions') + '</th></tr>';
   
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -378,7 +437,7 @@ function renderCustom() {
   if(data.length === 0) {
     document.getElementById('dataTable').style.display = 'none';
     document.getElementById('emptyState').style.display = 'flex';
-    document.getElementById('emptyText').textContent = '暂无定制单记录';
+    document.getElementById('emptyText').textContent = t('demands.empty_custom');
     return;
   }
   
@@ -391,104 +450,69 @@ function renderCustom() {
       '<td style="font-family:monospace;font-size:11px;color:#555">' + (c.order_id || '') + '</td>' +
       '<td class="wrap-cell">' + (c.description || '') + '</td>' +
       '<td><span class="badge ' + (c.status || '') + '">' + (c.status || '') + '</span></td>' +
-      '<td>' + (c.project || '') + '</td>' +
+      '<td>' + getProjectName(c.project) + '</td>' +
       '<td>' + (c.owner || '') + '</td>' +
-      '<td><div class="action-btns"><button class="action-btn edit" onclick="showAlert(\'error\',\'定制单编辑功能开发中\')">编辑</button></div></td>';
+      '<td><div class="action-btns"><button class="action-btn edit" onclick="showAlert(\'error\',\'' + t('demands.alert_custom_editing') + '\')">' + t('demands.btn_edit') + '</button></div></td>';
     tbody.appendChild(tr);
   });
 }
 
+// ===== Get Project Name from unified source =====
+function getProjectName(pid) {
+  if(!pid) return '-';
+  if(PROJECTS_DATA) {
+    const found = PROJECTS_DATA.find(p => p.id === pid || p.name === pid);
+    if(found) return found.name;
+  }
+  return pid;
+}
+
 // ===== CRUD =====
 function openCreateModal() {
-  if(currentTab === 'custom') { showAlert('error', '定制单暂不支持手动创建'); return; }
+  if(currentTab === 'custom') { showAlert('error', t('demands.alert_no_create_custom')); return; }
   
-  document.getElementById('modalTitle').textContent = '新建需求';
-  document.getElementById('modalBody').innerHTML = `
-    <input type="hidden" id="editId">
-    <div class="form-row">
-      <label class="form-label">类型 *</label>
-      <select class="form-select" id="editType">
-        <option value="需求">需求</option>
-        <option value="缺陷">缺陷</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label class="form-label">描述 *</label>
-      <textarea class="form-textarea" id="editDesc" placeholder="请输入需求描述"></textarea>
-    </div>
-    <div class="form-row">
-      <label class="form-label">项目 *</label>
-      <input class="form-input" type="text" id="editProject" placeholder="项目名称">
-    </div>
-    <div class="form-row">
-      <label class="form-label">状态</label>
-      <select class="form-select" id="editStatus">
-        <option value="approving">澄清中</option>
-        <option value="developing">开发中</option>
-        <option value="suspended">挂起</option>
-        <option value="cancelled">取消</option>
-        <option value="closed">定制完成关闭</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label class="form-label">风险等级</label>
-      <select class="form-select" id="editRisk">
-        <option value="">未评估</option>
-        <option value="I级">I级</option>
-        <option value="II级">II级</option>
-        <option value="III级">III级</option>
-      </select>
-    </div>
-  `;
+  document.getElementById('modalTitle').textContent = t('demands.modal_new');
+  document.getElementById('modalBody').innerHTML =
+    '<input type="hidden" id="editId">' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_type') + '</label><select class="form-select" id="editType"><option value="需求">' + t('demands.option_demand') + '</option><option value="缺陷">' + t('demands.option_defect') + '</option></select></div>' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_description') + '</label><textarea class="form-textarea" id="editDesc" placeholder="' + t('demands.placeholder_desc') + '"></textarea></div>' +
+    buildProjectSelectHTML('editProject', '') +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_status') + '</label><select class="form-select" id="editStatus"><option value="approving">' + t('demands.opt_status_approving') + '</option><option value="developing">' + t('demands.opt_status_developing') + '</option><option value="suspended">' + t('demands.opt_status_suspended') + '</option><option value="cancelled">' + t('demands.opt_status_cancelled') + '</option><option value="closed">' + t('demands.opt_status_closed') + '</option></select></div>' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_risk') + '</label><select class="form-select" id="editRisk"><option value="">' + t('demands.opt_risk_none') + '</option><option value="I级">' + t('demands.opt_risk_I') + '</option><option value="II级">' + t('demands.opt_risk_II') + '</option><option value="III级">' + t('demands.opt_risk_III') + '</option></select></div>';
   document.getElementById('modalOverlay').classList.add('active');
 }
 
 function openEditModal(id) {
-  if(currentTab === 'custom') { showAlert('error', '定制单编辑功能开发中'); return; }
+  if(currentTab === 'custom') { showAlert('error', t('demands.alert_custom_editing')); return; }
   if(!ALL_DATA || !ALL_DATA.demands) return;
   
   const d = ALL_DATA.demands.find(x => x.id === id);
-  if(!d) { showAlert('error', '记录不存在'); return; }
+  if(!d) { showAlert('error', t('demands.alert_not_exist')); return; }
   
-  document.getElementById('modalTitle').textContent = '编辑需求';
-  document.getElementById('modalBody').innerHTML = `
-    <input type="hidden" id="editId" value="${d.id || ''}">
-    <div class="form-row">
-      <label class="form-label">类型 *</label>
-      <select class="form-select" id="editType">
-        <option value="需求" ${d.type === '需求' ? 'selected' : ''}>需求</option>
-        <option value="缺陷" ${d.type === '缺陷' ? 'selected' : ''}>缺陷</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label class="form-label">描述 *</label>
-      <textarea class="form-textarea" id="editDesc">${d.description || ''}</textarea>
-    </div>
-    <div class="form-row">
-      <label class="form-label">项目 *</label>
-      <input class="form-input" type="text" id="editProject" value="${d.project || ''}">
-    </div>
-    <div class="form-row">
-      <label class="form-label">状态</label>
-      <select class="form-select" id="editStatus">
-        <option value="approving" ${d.status === 'approving' ? 'selected' : ''}>澄清中</option>
-        <option value="developing" ${d.status === 'developing' ? 'selected' : ''}>开发中</option>
-        <option value="suspended" ${d.status === 'suspended' ? 'selected' : ''}>挂起</option>
-        <option value="cancelled" ${d.status === 'cancelled' ? 'selected' : ''}>取消</option>
-        <option value="closed" ${d.status === 'closed' ? 'selected' : ''}>定制完成关闭</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label class="form-label">风险等级</label>
-      <select class="form-select" id="editRisk">
-        <option value="">未评估</option>
-        <option value="I级" ${d.risk_assessment?.risk_level === 'I级' ? 'selected' : ''}>I级</option>
-        <option value="II级" ${d.risk_assessment?.risk_level === 'II级' ? 'selected' : ''}>II级</option>
-        <option value="III级" ${d.risk_assessment?.risk_level === 'III级' ? 'selected' : ''}>III级</option>
-      </select>
-    </div>
-  `;
+  document.getElementById('modalTitle').textContent = t('demands.modal_edit');
+  document.getElementById('modalBody').innerHTML =
+    '<input type="hidden" id="editId" value="' + (d.id || '') + '">' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_type') + '</label><select class="form-select" id="editType"><option value="需求" ' + (d.type === '需求' ? 'selected' : '') + '>' + t('demands.option_demand') + '</option><option value="缺陷" ' + (d.type === '缺陷' ? 'selected' : '') + '>' + t('demands.option_defect') + '</option></select></div>' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_description') + '</label><textarea class="form-textarea" id="editDesc">' + (d.description || '') + '</textarea></div>' +
+    buildProjectSelectHTML('editProject', d.project || '') +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_status') + '</label><select class="form-select" id="editStatus"><option value="approving" ' + (d.status === 'approving' ? 'selected' : '') + '>' + t('demands.opt_status_approving') + '</option><option value="developing" ' + (d.status === 'developing' ? 'selected' : '') + '>' + t('demands.opt_status_developing') + '</option><option value="suspended" ' + (d.status === 'suspended' ? 'selected' : '') + '>' + t('demands.opt_status_suspended') + '</option><option value="cancelled" ' + (d.status === 'cancelled' ? 'selected' : '') + '>' + t('demands.opt_status_cancelled') + '</option><option value="closed" ' + (d.status === 'closed' ? 'selected' : '') + '>' + t('demands.opt_status_closed') + '</option></select></div>' +
+    '<div class="form-row"><label class="form-label">' + t('demands.label_risk') + '</label><select class="form-select" id="editRisk"><option value="">' + t('demands.opt_risk_none') + '</option><option value="I级" ' + (d.risk_assessment?.risk_level === 'I级' ? 'selected' : '') + '>' + t('demands.opt_risk_I') + '</option><option value="II级" ' + (d.risk_assessment?.risk_level === 'II级' ? 'selected' : '') + '>' + t('demands.opt_risk_II') + '</option><option value="III级" ' + (d.risk_assessment?.risk_level === 'III级' ? 'selected' : '') + '>' + t('demands.opt_risk_III') + '</option></select></div>';
   document.getElementById('modalOverlay').classList.add('active');
+}
+
+// Build project select from unified projects.json
+function buildProjectSelectHTML(id, selectedValue) {
+  let html = '<div class="form-row"><label class="form-label">' + t('demands.label_project') + '</label><select class="form-select" id="' + id + '">';
+  
+  if(PROJECTS_DATA && PROJECTS_DATA.length > 0) {
+    PROJECTS_DATA.forEach(p => {
+      html += '<option value="' + p.name + '" ' + (p.name === selectedValue || p.id === selectedValue ? 'selected' : '') + '>' + p.name + '</option>';
+    });
+  } else {
+    html += '<input class="form-input" type="text" id="' + id + '" placeholder="' + t('demands.placeholder_project') + '" value="' + selectedValue + '">';
+  }
+  html += '</select></div>';
+  return html;
 }
 
 function closeModal() {
@@ -500,49 +524,49 @@ function saveDemand() {
   
   const id = document.getElementById('editId').value;
   const desc = document.getElementById('editDesc').value.trim();
-  if(!desc) { showAlert('error', '描述不能为空'); return; }
+  if(!desc) { showAlert('error', t('demands.desc_empty')); return; }
   
   if(!ALL_DATA.demands) ALL_DATA.demands = [];
   
+  const projEl = document.getElementById('editProject');
+  const projectName = projEl ? (projEl.tagName === 'SELECT' ? projEl.value : projEl.value) : '';
+  
   if(id) {
-    // Update
     const idx = ALL_DATA.demands.findIndex(d => d.id === id);
-    if(idx === -1) { showAlert('error', '记录不存在'); return; }
+    if(idx === -1) { showAlert('error', t('demands.alert_not_exist')); return; }
     ALL_DATA.demands[idx] = {
       ...ALL_DATA.demands[idx],
       type: document.getElementById('editType').value,
       description: desc,
-      project: document.getElementById('editProject').value,
+      project: projectName,
       status: document.getElementById('editStatus').value,
       risk_assessment: { risk_level: document.getElementById('editRisk').value }
     };
   } else {
-    // Create
     const newId = 'MANUAL_' + Date.now();
     ALL_DATA.demands.push({
       id: newId,
       type: document.getElementById('editType').value,
       description: desc,
-      project: document.getElementById('editProject').value,
+      project: projectName,
       status: document.getElementById('editStatus').value,
       record_date: new Date().toISOString().split('T')[0],
       risk_assessment: { risk_level: document.getElementById('editRisk').value }
     });
   }
   
-  // Save
   apiCall(API_BASE, { method: 'POST', body: JSON.stringify(ALL_DATA) })
-    .then(() => { showAlert('success', '保存成功'); closeModal(); loadData(); })
-    .catch(e => showAlert('error', '保存失败: ' + e));
+    .then(() => { showAlert('success', t('demands.alert_save_success')); closeModal(); loadData(); })
+    .catch(e => showAlert('error', t('demands.alert_save_fail') + e));
 }
 
 function deleteDemand(id) {
-  if(!confirm('确定删除？')) return;
+  if(!confirm(t('demands.confirm_delete'))) return;
   if(!ALL_DATA.demands) return;
   ALL_DATA.demands = ALL_DATA.demands.filter(d => d.id !== id);
   apiCall(API_BASE, { method: 'POST', body: JSON.stringify(ALL_DATA) })
-    .then(() => { showAlert('success', '删除成功'); render(); })
-    .catch(e => showAlert('error', '删除失败: ' + e));
+    .then(() => { showAlert('success', t('demands.alert_delete_success')); render(); })
+    .catch(e => showAlert('error', t('demands.alert_delete_fail') + e));
 }
 </script>
 </body>

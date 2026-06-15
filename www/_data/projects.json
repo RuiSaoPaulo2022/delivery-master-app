@@ -1,0 +1,118 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-06-14",
+  "source": "交维大师项目地图",
+  "projects": [
+    {
+      "id": "rj-bwc",
+      "name": "RJ BWC I期",
+      "nameEn": "RJ BWC Phase I",
+      "namePt": "RJ BWC Fase I",
+      "state": "里约热内卢",
+      "status": "维护中-正常",
+      "bwcCount": 13708,
+      "dockCount": 566,
+      "category": "active"
+    },
+    {
+      "id": "para-detran",
+      "name": "Para Detran",
+      "nameEn": "Para Detran",
+      "namePt": "Para Detran",
+      "state": "帕拉州",
+      "status": "维护中-正常",
+      "bwcCount": 1120,
+      "dockCount": 35,
+      "category": "active"
+    },
+    {
+      "id": "para-segup",
+      "name": "Para Segup (SSS)",
+      "nameEn": "Para Segup (SSS)",
+      "namePt": "Para Segup (SSS)",
+      "state": "帕拉州",
+      "status": "维护中-风险",
+      "bwcCount": 1188,
+      "dockCount": 54,
+      "category": "risk"
+    },
+    {
+      "id": "pmbv",
+      "name": "PMBV",
+      "nameEn": "PMBV",
+      "namePt": "PMBV",
+      "state": "米纳斯吉拉斯",
+      "status": "维护中-重大风险",
+      "bwcCount": 396,
+      "dockCount": 96,
+      "category": "critical"
+    },
+    {
+      "id": "seap-pa-ma",
+      "name": "SEAP (PA+MA)",
+      "nameEn": "SEAP (PA+MA)",
+      "namePt": "SEAP (PA+MA)",
+      "state": "帕拉/马拉尼昂",
+      "status": "维护中-风险",
+      "bwcCount": 596,
+      "dockCount": 19,
+      "category": "risk"
+    },
+    {
+      "id": "sesp",
+      "name": "SESP",
+      "nameEn": "SESP",
+      "namePt": "SESP",
+      "state": "圣保罗州",
+      "status": "维护中-风险",
+      "bwcCount": 200,
+      "dockCount": 12,
+      "category": "risk"
+    },
+    {
+      "id": "mg-seplag",
+      "name": "MG SEPLAG",
+      "nameEn": "MG SEPLAG",
+      "namePt": "MG SEPLAG",
+      "state": "米纳斯吉拉斯",
+      "status": "交付中-风险",
+      "bwcCount": 635,
+      "dockCount": 42,
+      "category": "delivery-risk"
+    },
+    {
+      "id": "ebg-cwb",
+      "name": "EBG 项目（CWB等）",
+      "nameEn": "EBG Project (CWB etc.)",
+      "namePt": "Projeto EBG (CWB etc.)",
+      "state": "巴拉那州/圣卡塔琳娜",
+      "status": "POC-重大风险",
+      "bwcCount": 0,
+      "dockCount": 0,
+      "category": "poc"
+    },
+    {
+      "id": "banrisul",
+      "name": "Banrisul",
+      "nameEn": "Banrisul",
+      "namePt": "Banrisul",
+      "state": "南大河州",
+      "status": "交付中-正常",
+      "bwcCount": 0,
+      "dockCount": 0,
+      "category": "delivery-normal"
+    },
+    {
+      "id": "transalvador",
+      "name": "Transalvador",
+      "nameEn": "Transalvador",
+      "namePt": "Transalvador",
+      "state": "巴伊亚州",
+      "status": "维护中-风险",
+      "bwcCount": 96,
+      "dockCount": 3,
+      "category": "risk"
+    }
+  ],
+  "_note": "此文件为统一项目数据源，所有功能页面的项目下拉框均从此列表获取。不含PMES POC等海康内部测试数据。"
+}

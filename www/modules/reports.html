@@ -142,12 +142,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
       <div class="gen-controls">
         <label id="genProjectLabel">项目：</label>
         <select id="gen-project">
-          <option value="PMES POC">PMES POC</option>
-          <option value="Para Detran">Para Detran</option>
-          <option value="PMBV">PMBV</option>
-          <option value="Para Segup">Para Segup</option>
-          <option value="SEAP">SEAP</option>
-          <option value="SESP">SESP</option>
+          <!-- 项目列表将由 JS 动态加载（来自 _data/projects.json） -->
         </select>
         <label id="genDateLabel">日期：</label>
         <input type="date" id="gen-date" />
@@ -188,13 +183,40 @@ function getTodayStr() {
 function initGenPanel() {
   document.getElementById('gen-date').value = getTodayStr();
   // 标题固定为"日报一键生成"，项目选择器独立控制目标项目
+  loadProjects();
+}
+
+// 动态加载项目列表（来自 _data/projects.json）
+function loadProjects() {
+  var sel = document.getElementById('gen-project');
+  fetch('../_data/projects.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      sel.innerHTML = '';
+      (data.projects || []).forEach(function(p, i) {
+        var opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        if (i === 0) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(function() {
+      // 降级：保留原有项目列表（不含 PMES POC）
+      sel.innerHTML =
+        '<option value="Para Detran">Para Detran</option>' +
+        '<option value="PMBV">PMBV</option>' +
+        '<option value="Para Segup">Para Segup</option>' +
+        '<option value="SEAP">SEAP</option>' +
+        '<option value="SESP">SESP</option>';
+    });
 }
 
 function generateReport() {
   var btn = document.getElementById('btn-generate');
   var statusEl = document.getElementById('gen-status');
   var dateVal = document.getElementById('gen-date').value;
-  var projectVal = document.getElementById('gen-project').value || 'PMES POC';
+  var projectVal = document.getElementById('gen-project').value || '';
 
   if (!dateVal) {
     statusEl.className = 'gen-status error';
