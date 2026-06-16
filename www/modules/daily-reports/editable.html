@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作日报 - 可编辑</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #F7F8FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 3px solid #2166B2;
+        }
+        .toolbar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all .2s;
+        }
+        /* 蓝色渐变色系按钮 */
+        .btn-primary {
+            background: #1F497D;
+            color: white;
+        }
+        .btn-primary:hover { background: #163a66; }
+        .btn-success {
+            background: #2166B2;
+            color: white;
+        }
+        .btn-success:hover { background: #1a5aa5; }
+        .btn-secondary {
+            background: #5B9BD5;
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover { background: #4a8ec9; }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        .btn-danger:hover { background: #c0392b; }
+        button:hover { opacity: 0.9; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10pt;
+        }
+        th, td {
+            padding: 4px 6px;
+            vertical-align: middle;
+            border: 1px solid #BDD7EE;
+        }
+        th {
+            background: #1F497D;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 10pt;
+        }
+        td {
+            text-align: center;
+            color: #333;
+        }
+        td.td-desc, td.td-timeline {
+            text-align: left;
+        }
+        td[contenteditable="true"] { background: #fffde7; }
+        td[contenteditable="true"]:hover { background: #fff9c4; }
+        td[contenteditable="true"]:focus {
+            background: #fff59d;
+            outline: 2px solid #2166B2;
+            outline-offset: -2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .status-定位中 { background: #fff3cd; color: #856404; }
+        .status-开发中 { background: #cce5ff; color: #004085; }
+        .status-测试中 { background: #d4edda; color: #155724; }
+        .status-现场跟踪 { background: #e2e3e5; color: #383d41; }
+        .status-解决关闭 { background: #f8d7da; color: #721c24; }
+        .status-无效关闭 { background: #f8d7da; color: #721c24; }
+        .status-重复关闭 { background: #f8d7da; color: #721c24; }
+        .status-挂起 { background: #e2e3e5; color: #383d41; }
+        .status-转需求待实现 { background: #d1ecf1; color: #0c5460; }
+
+        #status-message {
+            margin-left: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .status-success { color: #2e7d32; }
+        .status-error { color: #c62828; }
+        .status-info { color: #2166B2; }
+
+        .empty-msg {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+
+        /* 下拉框样式 - 简约清爽 */
+        select {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #BDD7EE;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: inherit;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: border-color .2s;
+        }
+        select:focus {
+            outline: 2px solid #2166B2;
+            outline-offset: -2px;
+            border-color: #2166B2;
+        }
+        select:hover {
+            border-color: #2166B2;
+        }
+
+        /* 项目筛选区域 */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: #F7F8FA;
+            border-radius: 6px;
+            border: 1px solid #BDD7EE;
+        }
+        .filter-bar label {
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .filter-bar select {
+            width: auto;
+            min-width: 160px;
+        }
+        .filter-bar .count {
+            font-size: 12px;
+            color: #999;
+            margin-left: 8px;
+        }
+    </style>
+    <script src="../permission.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>工作日报（可编辑）</h1>
+
+        <div class="toolbar">
+            <button class="btn-primary" onclick="loadData()">刷新数据</button>
+            <button class="btn-success" data-permission="write" onclick="saveData()">保存更改</button>
+            <button class="btn-secondary" data-permission="write" onclick="addNewIssue()">新增问题</button>
+            <span id="status-message"></span>
+        </div>
+
+        <div class="filter-bar">
+            <label for="project-filter">筛选项目：</label>
+            <select id="project-filter" onchange="filterByProject()">
+                <option value="全部">全部</option>
+            </select>
+            <span class="count" id="filter-count"></span>
+        </div>
+
+        <table id="issues-table">
+            <thead>
+                <tr>
+                    <th style="width:9%;">项目</th>
+                    <th style="width:10%;">问题单号</th>
+                    <th style="width:6%;">等级</th>
+                    <th style="width:10%;">当前状态</th>
+                    <th style="width:22%;">问题描述</th>
+                    <th style="width:27%;">实时进度反馈</th>
+                    <th style="width:12%;">解决责任人</th>
+                    <th style="width:12%;">预计解决</th>
+                    <th style="width:50px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="issues-tbody">
+                <tr><td colspan="9" class="empty-msg">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let issuesData = [];
+        let filteredData = [];  // 筛选后的数据（存储原始索引）
+        let currentFilter = '全部';
+        let projectsMap = {};  // project key → project name 映射
+        const API_URL = '/api/data/issues.json';
+
+        // ========== 填充项目筛选下拉框 ==========
+        function populateProjectFilter() {
+            const select = document.getElementById('project-filter');
+            // 保留第一个"全部"选项
+            while (select.options.length > 1) select.remove(1);
+
+            const currentUser = getCurrentUser();
+
+            // 收集所有唯一的项目名（按权限过滤）
+            projectsMap = {};
+            issuesData.forEach(iss => {
+                const key = iss.project || '';
+                const name = iss.project_name || key || '未知';
+                if (key && !projectsMap[key]) {
+                    // 权限检查：admin 看全部，其他只看 allowedProjects
+                    if (currentUser && currentUser.role !== 'admin') {
+                        if (!currentUser.allowedProjects || currentUser.allowedProjects.indexOf(key) === -1) return;
+                    }
+                    projectsMap[key] = name;
+                }
+            });
+
+            // 按项目名排序后添加选项
+            Object.keys(projectsMap).sort().forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = projectsMap[key];
+                select.appendChild(opt);
+            });
+
+            // 恢复之前的选择
+            select.value = currentFilter;
+            if (select.value !== currentFilter) select.value = '全部';
+        }
+
+        // ========== 按项目筛选 ==========
+        function filterByProject() {
+            const select = document.getElementById('project-filter');
+            currentFilter = select.value;
+            renderTable();
+        }
+
+        // ========== 等级下拉框 ==========
+        function renderLevelSelect(level, index) {
+            const options = ['高', '中', '低'];
+            let html = '<select onchange="updateIssue(' + index + ', \'level\', this.value)">';
+            options.forEach(opt => {
+                const selected = (opt === level) ? ' selected' : '';
+                html += '<option value="' + opt + '"' + selected + '>' + opt + '</option>';
+            });
+            html += '</select>';
+            return html;
+        }
+
+        // ========== 状态下拉框 ==========
+        function renderStatusSelect(status, index) {
+            const options = ['定位中', '开发中', '测试中', '现场跟踪', '解决关闭', '已关闭', '无效关闭', '重复关闭', '挂起', '转需求待实现'];
+            let html = '<select onchange="updateIssue(' + index + ', \'status\', this.value)">';
+            options.forEach(opt => {
+                const selected = (opt === status) ? ' selected' : '';
+                html += '<option value="' + opt + '"' + selected + '>' + opt + '</option>';
+            });
+            html += '</select>';
+            return html;
+        }
+
+        // ========== ID 生成：日期 + 当天流水号 ==========
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0].replace(/-/g, '');
+        }
+
+        function getNextSerial(dateStr) {
+            // 从所有记录中找到该日期已有的最大流水号
+            const prefix = 'Defect-' + dateStr;
+            let maxNum = 0;
+            issuesData.forEach(iss => {
+                const id = (iss.id || '');
+                if (id.startsWith(prefix)) {
+                    const num = parseInt(id.slice(prefix.length), 10);
+                    if (!isNaN(num) && num > maxNum) maxNum = num;
+                }
+            });
+            return String(maxNum + 1).padStart(2, '0');
+        }
+
+        function newId() {
+            const dateStr = getTodayStr();
+            const serial = getNextSerial(dateStr);
+            return 'Defect-' + dateStr + serial;
+        }
+
+        // ========== 状态标签渲染 ==========
+        function renderStatus(status) {
+            const cls = 'status-' + status;
+            return '<span class="status-badge ' + cls + '">' + status + '</span>';
+        }
+
+        // ========== 时间线渲染（简化）==========
+        function renderTimeline(timeline) {
+            if (!timeline || !timeline.length) return '';
+            return timeline.filter(t => t.content).map(t => {
+                const date = t.date ? '[' + t.date + '] ' : '';
+                return date + t.content;
+            }).join('<br>');
+        }
+
+        // ========== 加载数据 ==========
+        async function loadData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                issuesData = await response.json();
+                if (!Array.isArray(issuesData)) issuesData = [];
+                populateProjectFilter();
+                renderTable();
+                showStatus('数据加载成功（' + issuesData.length + '条）', 'success');
+            } catch (err) {
+                showStatus('加载失败：' + err.message, 'error');
+                console.error(err);
+            }
+        }
+
+        // ========== 渲染表格 ==========
+        function renderTable() {
+            const tbody = document.getElementById('issues-tbody');
+            tbody.innerHTML = '';
+
+            // 根据筛选条件过滤
+            filteredData = [];
+            issuesData.forEach((issue, originalIndex) => {
+                if (currentFilter === '全部' || issue.project === currentFilter) {
+                    filteredData.push({ originalIndex: originalIndex, issue: issue });
+                }
+            });
+
+            if (!filteredData.length) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">暂无数据，请点击"新增问题"添加</td></tr>';
+                updateFilterCount();
+                return;
+            }
+
+            filteredData.forEach((item, displayIndex) => {
+                const { originalIndex, issue } = item;
+                const tr = document.createElement('tr');
+                tr.dataset.originalIndex = originalIndex;
+
+                const desc = (issue.desc || '').replace(/\n/g, '<br>');
+                const timelineHtml = renderTimeline(issue.timeline);
+                const levelSelect = renderLevelSelect(issue.level || '中', originalIndex);
+                const statusSelect = renderStatusSelect(issue.status || '定位中', originalIndex);
+
+                tr.innerHTML = ''
+                    + '<td>' + (issue.project_name || issue.project || '') + '</td>'
+                    + '<td contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'id\', this.innerText)">' + (issue.id || '') + '</td>'
+                    + '<td>' + levelSelect + '</td>'
+                    + '<td>' + statusSelect + '</td>'
+                    + '<td class="td-desc" contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'desc\', this.innerText)">' + desc + '</td>'
+                    + '<td class="td-timeline" contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'timeline_raw\', this.innerText)">' + timelineHtml + '</td>'
+                    + '<td contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'solver\', this.innerText)">' + (issue.solver || '') + '</td>'
+                    + '<td contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'eta\', this.innerText)">' + (issue.eta || '') + '</td>'
+                    + '<td class="td-delete-permission"><button class="btn-danger" onclick="deleteIssue(' + originalIndex + ')">删除</button></td>';
+                tbody.appendChild(tr);
+            });
+
+            updateFilterCount();
+            // Apply write permissions to dynamic elements (delete buttons + contenteditable)
+            applyWriteButtons(getCurrentUser(), 'issues:write');
+        }
+
+        // ========== 更新筛选计数 ==========
+        function updateFilterCount() {
+            const el = document.getElementById('filter-count');
+            if (currentFilter === '全部') {
+                el.textContent = '共 ' + issuesData.length + ' 条';
+            } else {
+                el.textContent = '显示 ' + filteredData.length + ' / ' + issuesData.length + ' 条';
+            }
+        }
+
+        // ========== 更新数据 ==========
+        function updateIssue(index, field, value) {
+            value = (value || '').trim();
+            if (field === 'timeline_raw') {
+                // 从文本解析时间线
+                const lines = value.split(/\n|<br>/i).filter(l => l.trim());
+                issuesData[index].timeline = lines.map(line => {
+                    const m = line.match(/^\[(\d{4}-\d{2}-\d{2})\]\s*(.*)$/);
+                    if (m) return { date: m[1], content: m[2], content_en: '' };
+                    return { date: '', content: line, content_en: '' };
+                });
+            } else {
+                issuesData[index][field] = value;
+            }
+            issuesData[index].updated_at = new Date().toISOString().split('T')[0];
+            showStatus('已修改（未保存）', 'info');
+        }
+
+        // ========== 保存数据 ==========
+        async function saveData() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(issuesData, null, 2)
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                showStatus('保存成功！', 'success');
+            } catch (err) {
+                showStatus('保存失败：' + err.message, 'error');
+                console.error(err);
+            }
+        }
+
+        // ========== 新增问题 ==========
+        function addNewIssue() {
+            const id = newId();
+            const today = new Date().toISOString().split('T')[0];
+
+            // 根据筛选条件确定项目
+            let projectKey = 'Para_Detran';
+            let projectName = 'Para Detran';
+            if (currentFilter !== '全部' && projectsMap[currentFilter]) {
+                projectKey = currentFilter;
+                projectName = projectsMap[currentFilter];
+            } else if (issuesData.length > 0) {
+                // 默认使用第一条记录的项目
+                projectKey = issuesData[0].project || 'Para_Detran';
+                projectName = issuesData[0].project_name || 'Para Detran';
+            }
+
+            issuesData.unshift({
+                id: id,
+                project: projectKey,
+                project_name: projectName,
+                level: '中',
+                status: '定位中',
+                desc: '',
+                desc_en: '',
+                timeline: [],
+                solver: '茹忆',
+                eta: '',
+                on_kanban: false,
+                kanban_status: '',
+                created_at: today,
+                updated_at: today
+            });
+            populateProjectFilter(); // 刷新项目列表（如果新增了项目）
+            renderTable();
+            showStatus('已新增：' + id + '（请编辑后保存）', 'info');
+        }
+
+        // ========== 删除问题 ==========
+        function deleteIssue(index) {
+            const issue = issuesData[index];
+            if (!confirm('确定删除 [' + (issue.id || '无ID') + '] 吗？')) return;
+            issuesData.splice(index, 1);
+            renderTable();
+            showStatus('已删除（请点击保存）', 'info');
+        }
+
+        // ========== 状态提示 ==========
+        function showStatus(message, type) {
+            const el = document.getElementById('status-message');
+            el.textContent = message;
+            el.className = 'status-' + type;
+            setTimeout(() => { el.textContent = ''; el.className = ''; }, 3000);
+        }
+
+        // 页面加载时自动加载
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

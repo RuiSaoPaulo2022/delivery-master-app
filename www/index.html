@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F497D">
+<title>交维大师</title>
+<script src="config.js"></script>
+<script src="i18n/i18n-data.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+  font-family:"DengXian","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+html,body{height:100%;overflow:hidden;background:#F7F8FA}
+:root{
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --tab-h:56px;
+}
+.header{
+  height:calc(56px + var(--sat));padding-top:var(--sat);
+  background:linear-gradient(135deg,#1F497D 0%,#163A63 100%);
+  display:flex;align-items:center;padding-left:16px;padding-right:16px;
+  box-shadow:0 2px 12px rgba(31,73,125,0.25);position:relative;z-index:100;flex-shrink:0;
+}
+.header-l{display:flex;align-items:center;gap:10px}
+.header-logo{width:36px;height:32px;display:flex;align-items:center;justify-content:center}
+.header-logo img{width:100%;height:100%;object-fit:contain}
+.header-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:0.3px}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-left:6px;padding-left:6px;border-left:1px solid rgba(255,255,255,0.25)}
+.header-spacer{flex:1}
+.lang-dropdown{position:relative}
+.lang-select{appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:12px;padding:4px 24px 4px 10px;border-radius:6px;cursor:pointer;outline:none}
+.lang-select option{color:#333;background:#fff}
+.lang-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,0.6);font-size:10px}
+
+.app-shell{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.page-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tab-h) + var(--sab) + 8px)}
+.main{padding:16px 16px 0}
+
+.section{margin-bottom:28px}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-icon svg{width:18px;height:18px}
+.section-icon.monitor{background:rgba(31,73,125,0.1);color:#1F497D}
+.section-icon.management{background:rgba(46,125,50,0.1);color:#2E7D32}
+.section-title{font-size:16px;font-weight:700;color:#333}
+.section-title .en{font-size:11px;font-weight:400;color:#999;margin-left:6px}
+.section-desc{font-size:12px;color:#888;margin-bottom:12px;margin-left:44px;line-height:1.5}
+.section-divider{height:2px;border-radius:1px;margin-bottom:14px}
+.section-divider.monitor{background:linear-gradient(90deg,#1F497D 0%,#5B9BD5 50%,transparent 100%)}
+.section-divider.management{background:linear-gradient(90deg,#2E7D32 0%,#81C784 50%,transparent 100%)}
+
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:#fff;border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;position:relative;border:1px solid rgba(0,0,0,0.04);text-decoration:none;color:inherit;display:block;transition:transform .15s ease;-webkit-user-select:none;user-select:none}
+.card:active{transform:scale(0.97);background:#f5f7fa}
+.card.disabled{opacity:0.45;cursor:default;pointer-events:none}
+.card-icon{width:40px;height:40px;margin:0 auto 10px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.card-icon svg{width:22px;height:22px}
+.card-icon.map{background:#E8F0FE;color:#1F497D}
+.card-icon.dashboard{background:#E3F2FD;color:#1565C0}
+.card-icon.check{background:#E0F7FA;color:#00838F}
+.card-icon.report{background:#E8F5E9;color:#2E7D32}
+.card-icon.doc{background:#F1F8E9;color:#558B2F}
+.card-icon.chart{background:#FFF3E0;color:#E65100}
+.card-icon.box{background:#F3E5F5;color:#7B1FA2}
+.card-icon.chat{background:#E8EAF6;color:#303F9F}
+.card-icon.key{background:#FFF8E1;color:#F57F17}
+.card-icon.ticket{background:#FFF3E0;color:#E65100}
+.card-icon.flow{background:#E0F2F1;color:#00695C}
+.card-title{font-size:13px;font-weight:600;color:#333;margin-bottom:4px;line-height:1.3}
+.card-desc{font-size:11px;color:#999;line-height:1.4}
+.card-badge{position:absolute;top:8px;right:8px;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge-active{background:#E8F5E9;color:#2E7D32}
+.badge-plan{background:#FFF3E0;color:#E65100}
+.badge-soon{background:#F5F5F5;color:#999}
+
+/* Module view overlay */
+.module-view{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:#F7F8FA;display:none;flex-direction:column}
+.module-view.open{display:flex}
+.module-view-header{height:calc(48px + var(--sat));padding-top:var(--sat);background:#1F497D;display:flex;align-items:center;padding-left:12px;padding-right:12px;flex-shrink:0}
+.module-view-back{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.module-view-back:active{background:rgba(255,255,255,0.3)}
+.module-view-title{flex:1;text-align:center;font-size:15px;font-weight:600;color:#fff;margin-right:36px}
+.module-view-frame{flex:1;border:none;width:100%}
+
+/* Bottom tab bar */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:calc(var(--tab-h) + var(--sab));padding-bottom:var(--sab);background:#fff;border-top:0.5px solid #E0E0E0;display:flex;z-index:150;box-shadow:0 -2px 10px rgba(0,0,0,0.06)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;-webkit-user-select:none;user-select:none;color:#999;font-size:10px;font-weight:500;transition:color .2s;-webkit-tap-highlight-color:transparent}
+.tab-item.active{color:#1F497D;font-weight:600}
+.tab-item svg{width:22px;height:22px}
+.tab-item.active svg{stroke:#1F497D}
+
+.tab-page{display:none;min-height:100%}
+.tab-page.active{display:block}
+
+/* Tools */
+.tools-list{padding:16px}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.tool-card{background:#fff;border-radius:12px;padding:20px 12px;text-align:center;cursor:pointer;border:1px solid rgba(0,0,0,0.04);-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.tool-card:active{transform:scale(0.96)}
+.tool-icon{width:40px;height:40px;border-radius:10px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+.tool-icon svg{width:22px;height:22px}
+.tool-name{font-size:12px;font-weight:600;color:#333}
+
+/* Settings */
+.settings-list{padding:16px}
+.settings-group{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.settings-item{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid #F0F0F0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.settings-item:last-child{border-bottom:none}
+.settings-item:active{background:#F8F9FA}
+.settings-item-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.settings-item-icon svg{width:18px;height:18px}
+.settings-item-label{flex:1;font-size:14px;color:#333}
+.settings-item-value{font-size:13px;color:#999}
+.settings-item-arrow{color:#CCC;font-size:14px}
+
+.footer{text-align:center;padding:16px;color:#bbb;font-size:11px;border-top:0.5px solid #eee}
+.page-content::-webkit-scrollbar{width:3px}
+.page-content::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <header class="header">
+    <div class="header-l">
+      <div class="header-logo"><img src="assets/logo-shield.png" alt="交维大师"></div>
+      <span class="header-title" id="headerTitle">交维大师</span>
+      <span class="header-sub" id="headerSub"></span>
+    </div>
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <div class="lang-dropdown">
+        <select class="lang-select" id="langSelect"></select>
+        <span class="lang-arrow">&#9662;</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <!-- Tab 1: Dashboard -->
+    <div class="tab-page active" id="tabDashboard">
+      <div class="main" id="mainContent"></div>
+      <div class="footer" id="footer"></div>
+    </div>
+    <!-- Tab 2: Reports -->
+    <div class="tab-page" id="tabReports">
+      <div class="main">
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon management">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+            </div>
+            <div class="section-title" id="reportsTitle">日报与统计</div>
+          </div>
+          <div class="section-divider management"></div>
+          <div id="reportsList" style="padding:12px 0"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Tab 3: Tools -->
+    <div class="tab-page" id="tabTools">
+      <div class="tools-list">
+        <div class="section-header" style="margin-bottom:14px">
+          <div class="section-icon monitor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <div class="section-title" id="toolsTitle">工具箱</div>
+        </div>
+        <div class="tools-grid" id="toolsGrid"></div>
+      </div>
+    </div>
+    <!-- Tab 4: My -->
+    <div class="tab-page" id="tabMy">
+      <div class="settings-list">
+        <div style="text-align:center;padding:24px 0 16px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#1F497D;margin:0 auto 12px;display:flex;align-items:center;justify-content:center">
+            <span id="myAvatar" style="font-size:24px;color:#fff;font-weight:600">将</span>
+          </div>
+          <div id="myName" style="font-size:16px;font-weight:600;color:#333">将军</div>
+          <div id="myRole" style="font-size:12px;color:#999;margin-top:4px">Senior Delivery Manager</div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-item" onclick="switchLang()">
+            <div class="settings-item-icon" style="background:#E8F0FE;color:#1F497D">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            </div>
+            <span class="settings-item-label" id="labelLang">语言切换</span>
+            <span class="settings-item-value" id="currentLangDisplay">中文</span>
+            <span class="settings-item-arrow">&#9656;</span>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-icon" style="background:#E8F5E9;color:#2E7D32">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="settings-item-label" id="labelServer">服务器配置</span>
+            <span class="settings-item-value" id="serverStatus">未连接</span>
+            <span class="settings-item-arrow">&#9656;</span>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-item">
+            <div class="settings-item-icon" style="background:#FFF3E0;color:#E65100">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </div>
+            <span class="settings-item-label" id="labelAbout">关于</span>
+            <span class="settings-item-value">v0.1.0</span>
+            <span class="settings-item-arrow">&#9656;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('tabDashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="4" rx="1"/><rect x="3" y="13" width="7" height="4" rx="1"/><rect x="14" y="10" width="7" height="7" rx="1"/></svg>
+      <span id="tabLabelHome">总览</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('tabReports',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+      <span id="tabLabelReports">日报</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('tabTools',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      <span id="tabLabelTools">工具</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('tabMy',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="tabLabelMy">我的</span>
+    </div>
+  </div>
+</div>
+
+<!-- Module view overlay -->
+<div class="module-view" id="moduleView">
+  <div class="module-view-header">
+    <button class="module-view-back" onclick="closeModule()">&#8592;</button>
+    <div class="module-view-title" id="moduleViewTitle"></div>
+  </div>
+  <iframe class="module-view-frame" id="moduleViewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
+<script>
+var CFG = window.JW_CONFIG;
+var I18N = window.JW_I18N;
+var currentLang = localStorage.getItem('jw_lang') || CFG.defaultLanguage;
+
+function t(key) {
+  var dict = I18N[currentLang] || I18N[CFG.defaultLanguage] || {};
+  var keys = key.split('.');
+  var v = dict;
+  for (var i = 0; i < keys.length; i++) { if (!v) return key; v = v[keys[i]]; }
+  return v || key;
+}
+
+var SECTION_ICONS = {
+  monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  management: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+};
+
+var ICONS = {
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  report:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>',
+  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="3" y="13" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="8" rx="1"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v14M4 7v10l8 4"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="0.8"/><circle cx="8" cy="14" r="1.5" fill="currentColor"/><circle cx="12" cy="14" r="1.5" fill="currentColor"/></svg>',
+  flow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8h12M4 8l4-4m-4 4l4 4M20 18H8m12 0l-4-4m4 4l-4 4" stroke-linecap="round"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><path d="M8 16l3-3 2 2 4-4"/></svg>'
+};
+
+var BADGE_LABELS = {
+  active:{zh:'已上线',en:'Active','pt-BR':'Ativo'},
+  soon:{zh:'第2期',en:'Phase 2','pt-BR':'Fase 2'},
+  plan:{zh:'规划中',en:'Planned','pt-BR':'Planejado'}
+};
+
+var ROLE_LABELS = {
+  admin:{zh:'管理员',en:'Admin','pt-BR':'Admin',emoji:'👑'},
+  diamond:{zh:'钻石',en:'Diamond','pt-BR':'Diamante',emoji:'💎'},
+  gold:{zh:'黄金',en:'Gold','pt-BR':'Ouro',emoji:'🥇'},
+  silver:{zh:'白银',en:'Silver','pt-BR':'Prata',emoji:'🥈'}
+};
+
+// ===== RBAC =====
+function getCurrentUser() {
+  try { var raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
+}
+
+function hasPermission(user, perm) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  return (user.permissions || []).indexOf(perm) >= 0;
+}
+
+function getVisibleModules(user) {
+  var visible = CFG.modules.filter(function(m) {
+    return m.permission ? hasPermission(user, m.permission) : true;
+  });
+  if (user && user.role === 'admin') {
+    visible.push({
+      id:'admin', name:'管理后台', nameEn:'Admin Panel', namePt:'Painel Admin',
+      category:'management', icon:'key', url:'modules/admin.html',
+      badge:'active', permission:'admin:manage'
+    });
+  }
+  return visible;
+}
+
+// Add ticket icon
+ICONS.ticket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab-page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.tab-item').forEach(function(t){t.classList.remove('active')});
+  document.getElementById(tabId).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function renderMain() {
+  var container = document.getElementById('mainContent');
+  container.innerHTML = '';
+  var user = getCurrentUser();
+  if (!user) { window.location.replace('login.html'); return; }
+  var modules = getVisibleModules(user);
+  var groups = {};
+  modules.forEach(function(m) {
+    var cat = m.category || 'other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(m);
+  });
+  ['monitor','management'].forEach(function(cat) {
+    if (!groups[cat]) return;
+    var section = document.createElement('div');
+    section.className = 'section';
+    var header = document.createElement('div');
+    header.className = 'section-header';
+    var iconDiv = document.createElement('div');
+    iconDiv.className = 'section-icon ' + cat;
+    iconDiv.innerHTML = SECTION_ICONS[cat] || '';
+    header.appendChild(iconDiv);
+    var title = document.createElement('div');
+    title.className = 'section-title';
+    title.innerHTML = t('nav.' + cat) + '<span class="en">' + (cat==='monitor'?'Operations':'Management') + '</span>';
+    header.appendChild(title);
+    section.appendChild(header);
+    var descText = t('section.' + cat);
+    if (descText && descText !== 'section.' + cat) {
+      var desc = document.createElement('div');
+      desc.className = 'section-desc';
+      desc.textContent = descText;
+      section.appendChild(desc);
+    }
+    var divider = document.createElement('div');
+    divider.className = 'section-divider ' + cat;
+    section.appendChild(divider);
+    var grid = document.createElement('div');
+    grid.className = 'card-grid';
+    groups[cat].forEach(function(mod) {
+      var disabled = (mod.url === '#');
+      var card = document.createElement('div');
+      card.className = 'card' + (disabled ? ' disabled' : '');
+      if (!disabled) card.onclick = function() { openModule(mod.url, mod.name, mod.nameEn); };
+      var cIcon = document.createElement('div');
+      cIcon.className = 'card-icon ' + (mod.icon || 'box');
+      cIcon.innerHTML = ICONS[mod.icon] || ICONS.box;
+      card.appendChild(cIcon);
+      var name = document.createElement('div');
+      name.className = 'card-title';
+      name.textContent = currentLang==='en' ? (mod.nameEn||mod.name) : currentLang==='pt-BR' ? (mod.namePt||mod.name) : mod.name;
+      card.appendChild(name);
+      var desc = document.createElement('div');
+      desc.className = 'card-desc';
+      desc.textContent = t('desc.' + mod.id) || '';
+      card.appendChild(desc);
+      if (mod.badge) {
+        var badge = document.createElement('span');
+        badge.className = 'card-badge badge-' + mod.badge;
+        badge.textContent = (BADGE_LABELS[mod.badge]||{})[currentLang] || mod.badge;
+        card.appendChild(badge);
+      }
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+  document.getElementById('footer').textContent = t('footer.copyright');
+}
+
+function openModule(url, name, nameEn) {
+  document.getElementById('moduleViewTitle').textContent = (currentLang==='en'&&nameEn)?nameEn:name;
+  // Pass current language to sub-pages via URL parameter
+  var sep = url.indexOf('?') >= 0 ? '&' : '?';
+  document.getElementById('moduleViewFrame').src = url + sep + 'lang=' + currentLang;
+  document.getElementById('moduleView').classList.add('open');
+}
+function closeModule() {
+  document.getElementById('moduleViewFrame').src = 'about:blank';
+  document.getElementById('moduleView').classList.remove('open');
+}
+
+function renderReports() {
+  var html = '<div style="text-align:center;padding:30px 20px;color:#999;font-size:14px">' +
+    '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5" style="margin-bottom:12px"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/></svg>' +
+    '<div>No reports yet</div></div>';
+  document.getElementById('reportsList').innerHTML = html;
+}
+
+function renderTools() {
+  var tools = [
+    {name:'巡检助手',icon:'check',color:'#E0F7FA',textColor:'#00838F'},
+    {name:'扫码查询',icon:'flow',color:'#E0F2F1',textColor:'#00695C'},
+    {name:'拍照上报',icon:'dashboard',color:'#E8F0FE',textColor:'#1F497D'},
+    {name:'数据同步',icon:'chart',color:'#F1F8E9',textColor:'#558B2F'},
+    {name:'导出报告',icon:'doc',color:'#FFF3E0',textColor:'#E65100'},
+    {name:'系统设置',icon:'key',color:'#F3E5F5',textColor:'#7B1FA2'}
+  ];
+  var html = '';
+  tools.forEach(function(tool) {
+    html += '<div class="tool-card"><div class="tool-icon" style="background:'+tool.color+';color:'+tool.textColor+'">'+(ICONS[tool.icon]||ICONS.check)+'</div><div class="tool-name">'+tool.name+'</div></div>';
+  });
+  document.getElementById('toolsGrid').innerHTML = html;
+}
+
+function buildLangSelect() {
+  var sel = document.getElementById('langSelect');
+  sel.innerHTML = '';
+  CFG.languages.forEach(function(lang) {
+    var opt = document.createElement('option');
+    opt.value = lang;
+    opt.textContent = CFG.languageNames[lang] || lang;
+    if (lang === currentLang) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.onchange = function() {
+    currentLang = this.value;
+    localStorage.setItem('jw_lang', currentLang);
+    refreshAll();
+  };
+}
+
+function switchLang() {
+  var langs = CFG.languages;
+  var idx = (langs.indexOf(currentLang) + 1) % langs.length;
+  currentLang = langs[idx];
+  localStorage.setItem('jw_lang', currentLang);
+  refreshAll();
+}
+
+function updateUserProfile() {
+  var user = getCurrentUser();
+  if (!user) return;
+  var displayName = user.displayName || user.username || 'User';
+  var roleInfo = ROLE_LABELS[user.role] || ROLE_LABELS.silver;
+  document.getElementById('myName').textContent = displayName;
+  document.getElementById('myAvatar').textContent = displayName.charAt(0);
+  document.getElementById('myRole').textContent = roleInfo.emoji + ' ' + (roleInfo[currentLang] || roleInfo.en);
+}
+
+function refreshAll() {
+  document.getElementById('headerTitle').textContent = t('product.name');
+  document.getElementById('headerSub').textContent = t('product.subtitle');
+  document.title = t('product.name');
+  document.getElementById('currentLangDisplay').textContent = CFG.languageNames[currentLang] || currentLang;
+  document.getElementById('tabLabelHome').textContent = currentLang==='pt-BR'?'Resumo':'总览';
+  document.getElementById('tabLabelReports').textContent = currentLang==='pt-BR'?'Relatório':'日报';
+  document.getElementById('tabLabelTools').textContent = currentLang==='pt-BR'?'Ferramenta':'工具';
+  document.getElementById('tabLabelMy').textContent = currentLang==='pt-BR'?'Perfil':'我的';
+  updateUserProfile();
+  renderMain();
+  buildLangSelect();
+}
+
+function setupNative() {
+  if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+    console.log('[APP] Native platform:', Capacitor.getPlatform());
+  }
+}
+
+(function init() {
+  var user = getCurrentUser();
+  if (!user) { window.location.replace('login.html'); return; }
+  document.getElementById('headerTitle').textContent = t('product.name');
+  document.getElementById('headerSub').textContent = t('product.subtitle');
+  document.getElementById('currentLangDisplay').textContent = CFG.languageNames[currentLang] || currentLang;
+  document.title = t('product.name');
+  updateUserProfile();
+  buildLangSelect();
+  renderMain();
+  renderReports();
+  renderTools();
+  setTimeout(setupNative, 300);
+})();
+</script>
+</body>
+</html>

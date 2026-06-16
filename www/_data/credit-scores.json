@@ -1,0 +1,22 @@
+[
+  {
+    "clientId": 1,
+    "clientName": "茹忆",
+    "currentScore": 10,
+    "maxScore": 10,
+    "status": "good",
+    "lastUpdated": "2026-06-16T00:04:49.065Z",
+    "updatedBy": "admin",
+    "updatedReason": "API测试重置"
+  },
+  {
+    "clientId": 2,
+    "clientName": "虾咪",
+    "currentScore": 10,
+    "maxScore": 10,
+    "status": "good",
+    "lastUpdated": "2026-06-15T23:00:00Z",
+    "updatedBy": "admin",
+    "updatedReason": "初始评分"
+  }
+]

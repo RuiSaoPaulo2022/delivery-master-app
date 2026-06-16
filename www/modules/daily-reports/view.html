@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作日报</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #F7F8FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #2E7D32;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .header-info {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* ====== 生成面板 ====== */
+        .gen-panel {
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+            border: 1px solid #A5D6A7;
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }
+        .gen-panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2E7D32;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gen-panel-title svg {
+            flex-shrink: 0;
+        }
+        .gen-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .gen-controls label {
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+        }
+        .gen-controls input[type="date"] {
+            padding: 7px 12px;
+            border: 1px solid #A5D6A7;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            color: #333;
+            background: white;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .gen-controls input[type="date"]:focus {
+            border-color: #2E7D32;
+            box-shadow: 0 0 0 2px rgba(46,125,50,0.15);
+        }
+        .btn-generate {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: #2E7D32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-generate:hover {
+            background: #256D28;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(46,125,50,0.3);
+        }
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+        .btn-generate:disabled {
+            background: #A5D6A7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-generate svg {
+            flex-shrink: 0;
+        }
+
+        /* 生成状态消息 */
+        .gen-status {
+            margin-top: 12px;
+            padding: 0;
+            font-size: 12px;
+            min-height: 20px;
+        }
+        .gen-status.success {
+            color: #2E7D32;
+            background: #E8F5E9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #A5D6A7;
+        }
+        .gen-status.error {
+            color: #C62828;
+            background: #FFEBEE;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #EF9A9A;
+        }
+        .gen-status .view-link {
+            color: #1565C0;
+            text-decoration: underline;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        /* 加载动画 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* ====== 日报列表 ====== */
+        .reports-section {
+            margin-bottom: 20px;
+        }
+        .reports-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        .reports-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .report-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #F5F5F5;
+            border: 1px solid #E0E0E0;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #555;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .report-chip:hover {
+            background: #E8F5E9;
+            border-color: #A5D6A7;
+            color: #2E7D32;
+        }
+        .report-chip .chip-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #9E9E9E;
+        }
+
+        /* ====== 原有筛选 + 表格 ====== */
+        .filter-bar {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-bar label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+        select {
+            padding: 6px 10px;
+            border: 1px solid #BDD7EE;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            outline: none;
+        }
+        select:focus { border-color: #2E7D32; }
+        .count {
+            font-size: 12px;
+            color: #999;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10pt;
+        }
+        th, td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #BDD7EE;
+        }
+        th {
+            background: #1F497D;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 10pt;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            text-align: center;
+            color: #333;
+        }
+        td.td-desc {
+            text-align: left;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        tr:hover { background: #F5F9FF; }
+
+        /* 等级颜色 */
+        .level-高 { color: #D71920; font-weight: 600; }
+        .level-中 { color: #F5A623; font-weight: 600; }
+        .level-低 { color: #1565C0; font-weight: 600; }
+
+        /* 状态颜色 */
+        .status-待处理 { color: #e74c3c; font-weight: 500; }
+        .status-处理中 { color: #F5A623; font-weight: 500; }
+        .status-待客户确认 { color: #1565C0; font-weight: 500; }
+        .status-已关闭 { color: #27ae60; font-weight: 500; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; }
+            .gen-panel, .reports-section, .filter-bar { display: none; }
+            th { background: #1F497D !important; color: white !important; }
+        }
+    </style>
+    <script src="../permission.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>工作日报</h1>
+            <div class="header-info">
+                <div>生成时间：<span id="gen-time"></span></div>
+            </div>
+        </div>
+
+        <!-- 一键生成面板 -->
+            <div class="gen-panel">
+                <div class="gen-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 3a2 2 0 114 0 2 2 0 01-4 0z" stroke="#2E7D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span data-i18n="daily_generate_title">日报一键生成</span>
+                </div>
+                <div class="gen-controls">
+                    <label for="gen-project">项目：</label>
+                    <select id="gen-project"></select>
+                    <label for="gen-date">日期：</label>
+                    <input type="date" id="gen-date" />
+                    <button class="btn-generate" id="btn-generate" onclick="generateReport()">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span data-i18n="generate_btn">生成日报</span>
+                    </button>
+                </div>
+                <div class="gen-status" id="gen-status"></div>
+            </div>
+
+        <!-- 已有日报列表 -->
+        <div class="reports-section">
+            <div class="reports-section-title">已生成日报</div>
+            <div class="reports-list" id="reports-list">
+                <span style="font-size:12px;color:#999;">加载中...</span>
+            </div>
+        </div>
+
+        <!-- 问题数据表格 -->
+        <div class="filter-bar">
+            <label for="project-filter">筛选项目：</label>
+            <select id="project-filter" onchange="filterByProject()">
+                <option value="全部">全部</option>
+            </select>
+            <span class="count" id="filter-count"></span>
+        </div>
+
+        <div id="table-container">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        let issuesData = [];
+        let filteredData = [];
+        let currentFilter = '全部';
+        let projectsMap = {};
+        const API_URL = '/api/data/issues.json';
+
+        // ====== 日报生成 ======
+
+        // 获取今日日期字符串（YYYY-MM-DD）
+        function getTodayStr() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+
+        // 设置日期输入默认值为今天
+        function initDatePicker() {
+            document.getElementById('gen-date').value = getTodayStr();
+        }
+
+        // 生成日报（通用项目）
+        async function generateReport() {
+            const btn = document.getElementById('btn-generate');
+            const statusEl = document.getElementById('gen-status');
+            const dateVal = document.getElementById('gen-date').value;
+            const projectVal = document.getElementById('gen-project').value || '';
+
+            if (!dateVal) {
+                showStatus('error', '请选择日期');
+                return;
+            }
+
+            // 禁用按钮，显示加载
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> 生成中...';
+            statusEl.className = 'gen-status';
+            statusEl.innerHTML = '<span style="color:#666;">正在执行 Python 脚本，请稍候...</span>';
+
+            try {
+                const res = await fetch('/api/generate/daily', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: dateVal, project: projectVal }),
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showStatus('success',
+                        '日报生成成功！文件：' + data.htmlFile +
+                        ' <a class="view-link" href="' + data.viewUrl + '" target="_blank">查看日报</a>'
+                    );
+                    // 刷新日报列表
+                    loadReportList();
+                } else {
+                    showStatus('error', '生成失败：' + (data.error || data.message || '未知错误'));
+                }
+            } catch (err) {
+                showStatus('error', '请求失败：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML =
+                    '<svg width="14" height="14" viewBox="0 0 14 14" fill="none">' +
+                    '<path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+                    '</svg> 生成日报';
+            }
+        }
+
+        function showStatus(type, html) {
+            const el = document.getElementById('gen-status');
+            el.className = 'gen-status ' + type;
+            el.innerHTML = html;
+        }
+
+        // ====== 日报列表 ======
+
+        // 加载项目列表（来自 _data/projects.json）
+        function loadProjects() {
+            const user = getCurrentUser();
+            fetch('../_data/projects.json')
+                .then(r => r.json())
+                .then(data => {
+                    const sel = document.getElementById('gen-project');
+                    sel.innerHTML = '';
+                    const allProjects = data.projects || [];
+                    const filtered = filterProjects(user, allProjects);
+                    filtered.forEach((p, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = p.name;
+                        opt.textContent = p.name;
+                        if (i === 0) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function loadReportList() {
+            fetch('/api/generate/daily?list=1&t=' + Date.now())
+                .then(r => r.json())
+                .then(data => {
+                    const listEl = document.getElementById('reports-list');
+                    if (!data.files || data.files.length === 0) {
+                        listEl.innerHTML = '<span style="font-size:12px;color:#999;">暂无日报</span>';
+                        return;
+                    }
+                    listEl.innerHTML = data.files.map(f => {
+                        return '<a class="report-chip" href="/modules/daily-reports/' + f + '" target="_blank">' +
+                            '<span class="chip-dot"></span>' + f.replace('.html', '').replace(/_/g, ' ') +
+                            '</a>';
+                    }).join('');
+                })
+                .catch(e => {
+                    document.getElementById('reports-list').innerHTML = '<span style="font-size:12px;color:#e74c3c;">加载失败</span>';
+                });
+        }
+
+        // ====== 问题数据表格（原有逻辑）======
+
+        async function loadData() {
+            try {
+                const res = await fetch(API_URL + '?t=' + Date.now());
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                issuesData = await res.json();
+                if (!Array.isArray(issuesData)) issuesData = [];
+
+                issuesData.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+                populateProjectFilter();
+                renderTable();
+
+                document.getElementById('gen-time').textContent = new Date().toLocaleString('zh-CN');
+            } catch (e) {
+                console.error('加载失败:', e);
+                document.getElementById('table-container').innerHTML =
+                    '<div class="loading" style="color:#e74c3c;">加载失败：' + e.message + '</div>';
+            }
+        }
+
+        function populateProjectFilter() {
+            const select = document.getElementById('project-filter');
+            while (select.options.length > 1) select.remove(1);
+
+            const currentUser = getCurrentUser();
+
+            projectsMap = {};
+            issuesData.forEach(iss => {
+                const key = iss.project || '';
+                const name = iss.project_name || key || '未知';
+                if (key && !projectsMap[key]) {
+                    // 权限检查：admin 看全部，其他只看 allowedProjects
+                    if (currentUser && currentUser.role !== 'admin') {
+                        if (!currentUser.allowedProjects || currentUser.allowedProjects.indexOf(key) === -1) return;
+                    }
+                    projectsMap[key] = name;
+                }
+            });
+
+            Object.keys(projectsMap).sort().forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = projectsMap[key];
+                select.appendChild(opt);
+            });
+
+            select.value = currentFilter;
+            if (select.value !== currentFilter) select.value = '全部';
+        }
+
+        function filterByProject() {
+            const select = document.getElementById('project-filter');
+            currentFilter = select.value;
+            renderTable();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('table-container');
+            container.innerHTML = '';
+
+            filteredData = [];
+            issuesData.forEach((issue, originalIndex) => {
+                if (currentFilter === '全部' || issue.project === currentFilter) {
+                    filteredData.push({ originalIndex: originalIndex, issue: issue });
+                }
+            });
+
+            if (filteredData.length === 0) {
+                container.innerHTML = '<div class="loading">暂无数据</div>';
+                updateFilterCount();
+                return;
+            }
+
+            let html = '<table><thead><tr>' +
+                '<th style="width:9%;">项目</th>' +
+                '<th style="width:10%;">问题单号</th>' +
+                '<th style="width:6%;">等级</th>' +
+                '<th style="width:10%;">当前状态</th>' +
+                '<th style="width:18%;">问题描述</th>' +
+                '<th style="width:25%;">实时进度反馈</th>' +
+                '<th style="width:10%;">解决责任人</th>' +
+                '<th style="width:12%;">预计/实际解决</th>' +
+                '</tr></thead><tbody>';
+
+            filteredData.forEach((item, idx) => {
+                const issue = item.issue;
+                const projectName = issue.project_name || issue.project || '';
+                const levelClass = 'level-' + (issue.level || '');
+                const statusClass = 'status-' + (issue.status || '');
+
+                let timelineHtml = '';
+                const tl = issue.timeline;
+                if (Array.isArray(tl) && tl.length > 0) {
+                    timelineHtml = tl.map(t => {
+                        const d = t.date || '';
+                        const c = t.content || '';
+                        return d ? (c ? d + ': ' + c : d) : (c || '');
+                    }).filter(s => s).join('<br>');
+                }
+
+                let resolveInfo = issue.closed_date || issue.eta || '';
+                if (issue.eta && issue.closed_date && issue.eta !== issue.closed_date) {
+                    resolveInfo = issue.eta + ' / ' + issue.closed_date;
+                }
+
+                html += '<tr>' +
+                    '<td>' + projectName + '</td>' +
+                    '<td>' + (issue.id || '') + '</td>' +
+                    '<td class="' + levelClass + '">' + (issue.level || '') + '</td>' +
+                    '<td class="' + statusClass + '">' + (issue.status || '') + '</td>' +
+                    '<td class="td-desc">' + (issue.desc || '') + '</td>' +
+                    '<td class="td-desc">' + (timelineHtml || '') + '</td>' +
+                    '<td>' + (issue.solver || '') + '</td>' +
+                    '<td>' + resolveInfo + '</td>' +
+                    '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            updateFilterCount();
+        }
+
+        function updateFilterCount() {
+            const el = document.getElementById('filter-count');
+            if (currentFilter === '全部') {
+                el.textContent = '共 ' + issuesData.length + ' 条';
+            } else {
+                el.textContent = '显示 ' + filteredData.length + ' / ' + issuesData.length + ' 条';
+            }
+        }
+
+        // ====== 初始化 ======
+        window.addEventListener('DOMContentLoaded', function() {
+            initDatePicker();
+            loadProjects();
+            loadReportList();
+            loadData();
+        });
+    </script>
+</body>
+</html>

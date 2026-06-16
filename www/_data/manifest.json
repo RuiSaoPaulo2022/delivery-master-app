@@ -1,0 +1,174 @@
+{
+  "_meta": {
+    "version": "0.2.0",
+    "updated": "__AUTO__",
+    "description": "交维大师统一数据清单 - 所有模块共享的数据索引"
+  },
+  "brand": {
+    "spec": "_data/brand-spec.json",
+    "version": "1.0.0",
+    "description": "交维大师输出文件视觉规范 — 所有HTML/Excel/邮件输出的唯一格式标准。PPT以海康母版为准。"
+  },
+  "schemas": {
+    "issues": "SCHEMA.md"
+  },
+  "datasets": {
+    "issues": {
+      "path": "_data/issues.json",
+      "api": "/api/data/issues.json",
+      "source": "Excel → extract_daily_report.py → sync_to_unified_data.py",
+      "records": 18,
+      "last_refresh": "2026-06-10 18:00",
+      "modules": ["daily-reports", "weekly-reports"]
+    },
+    "workplan": {
+      "path": "modules/workplan/index.json",
+      "api": "/api/data/workplan/index.json",
+      "source": "Excel → extract_workplan.py",
+      "records": 294,
+      "last_refresh": "2026-06-09",
+      "modules": ["kanban"]
+    },
+    "open_issues_summary": {
+      "path": "output/open_issues_summary.json",
+      "api": null,
+      "source": "Excel → extract_open_issues.py（需本地运行）",
+      "last_refresh": "2026-06-08",
+      "modules": ["weekly-reports"]
+    },
+    "aggregated_data": {
+      "path": "output/aggregated_data.json",
+      "api": null,
+      "source": "Excel → aggregate_weekly_data.py",
+      "last_refresh": "2026-06-03",
+      "modules": ["weekly-reports"]
+    },
+    "weekly_report_html": {
+      "path": "output/weekly_report_202662.html",
+      "api": null,
+      "source": "aggregated_data + weekly_manual_input → generate_weekly_report.py --headless",
+      "last_refresh": "2026-06-08",
+      "modules": ["weekly-reports"]
+    },
+    "inspection_data": {
+      "path": "scripts/inspection/output/inspection_{project}_latest.json",
+      "api": null,
+      "source": "run_inspection.py → HCP API + SSH + 人工录入 → JSON + HTML",
+      "last_refresh": null,
+      "modules": ["inspection"]
+    },
+    "weekly_manual_input": {
+      "path": "config/weekly_manual_input.json",
+      "api": null,
+      "source": "手动填写（按周更新）",
+      "last_refresh": "2026-06-08",
+      "modules": ["weekly-reports"]
+    }
+  },
+  "modules": {
+    "project-map": {
+      "category": "monitor",
+      "pages": {
+        "view": "modules/project-map.html"
+      },
+      "datasets": []
+    },
+    "kanban": {
+      "category": "monitor",
+      "pages": {
+        "view": "modules/kanban.html"
+      },
+      "datasets": ["workplan"]
+    },
+    "inspection": {
+      "category": "monitor",
+      "pages": {
+        "view": "#"
+      },
+      "datasets": ["inspection_data"],
+      "badge": "plan"
+    },
+    "weekly-reports": {
+      "category": "management",
+      "pages": {
+        "view": "modules/weekly-reports/view.html",
+        "edit_manual": "config/weekly_manual_input.json"
+      },
+      "datasets": ["issues", "open_issues_summary", "aggregated_data", "weekly_report_html", "weekly_manual_input"]
+    },
+    "daily-reports": {
+      "category": "management",
+      "status": "merged",
+      "mergedInto": "reports",
+      "pages": {
+        "view": "modules/daily-reports/view.html",
+        "view_grouped": "modules/daily-reports/view-grouped.html",
+        "edit": "modules/daily-reports/editable.html"
+      },
+      "note": "已合并到 reports 模块，保留文件仅供回溯"
+    },
+    "reports": {
+      "category": "management",
+      "badge": "active",
+      "pages": {
+        "view": "modules/reports.html"
+      },
+      "datasets": ["reports_index"],
+      "features": ["daily_list", "weekly_list", "pmes_generate"]
+    },
+    "materials": {
+      "category": "management",
+      "pages": {
+        "view": "#"
+      },
+      "datasets": [],
+      "badge": "soon"
+    },
+    "demands": {
+      "category": "management",
+      "pages": {
+        "view": "modules/demands.html"
+      },
+      "datasets": []
+    },
+    "feedback": {
+      "category": "management",
+      "pages": {
+        "view": "modules/issues.html"
+      },
+      "datasets": ["issues"]
+    },
+    "tickets": {
+      "category": "management",
+      "pages": {
+        "view": "modules/tickets.html"
+      },
+      "datasets": []
+    },
+    "license": {
+      "category": "management",
+      "pages": {
+        "view": "#"
+      },
+      "datasets": [],
+      "badge": "soon"
+    }
+  },
+  "refresh_pipeline": {
+    "daily": [
+      "python scripts/extract_daily_report.py --all",
+      "python scripts/sync_to_unified_data.py"
+    ],
+    "weekly": [
+      "python scripts/extract_open_issues.py",
+      "python scripts/aggregate_weekly_data.py --headless",
+      "python scripts/read_excel_manual.py",
+      "python scripts/generate_weekly_report.py --headless"
+    ],
+    "inspection": [
+      "python scripts/inspection/test_hcp_api.py (验证API连通性)",
+      "python scripts/inspection/run_inspection.py --project {project_id} --auto-only (数据采集)",
+      "python scripts/inspection/run_inspection.py --project {project_id} (完整巡检含人工录入)"
+    ]
+  }
+}

@@ -1,0 +1,2643 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Brazil Project Map - Universal</title>
+
+<script src="../assets/xlsx.full.min.js"></script>
+
+
+<style>
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff;overflow:hidden}
+
+
+
+/* Header */
+
+.header{background:rgba(0,0,0,0.3);padding:8px 20px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);height:64px;gap:16px}
+
+.header h1{font-size:1.3em;background:linear-gradient(90deg,#00d9ff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;flex-shrink:0}
+
+.stats-bar{display:flex;gap:20px;flex-shrink:0}
+
+.stat-item{text-align:center}
+
+.stat-value{font-size:1.3em;font-weight:bold;color:#00d9ff}
+
+.stat-label{font-size:0.7em;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+
+.header-spacer{flex:1}
+
+.filter-group{display:flex;flex-direction:column;gap:2px}
+
+.filter-group label{font-size:0.7em;color:#888;text-transform:uppercase}
+
+.filter-group select{background:rgba(0,0,0,0.5);color:#fff;border:1px solid rgba(0,217,255,0.5);padding:4px 8px;border-radius:5px;font-size:0.85em;cursor:pointer;outline:none;min-width:100px}
+
+.filter-group select:hover{border-color:#00d9ff;background:rgba(0,217,255,0.1)}
+
+.filter-group select option{background:#1a1a2e;color:#fff}
+
+.lang-select{background:rgba(0,0,0,0.5);color:#fff;border:1px solid rgba(0,217,255,0.5);padding:6px 10px;border-radius:5px;font-size:0.85em;cursor:pointer;outline:none}
+
+.lang-select option{background:#1a1a2e;color:#fff}
+
+.upload-btn{background:rgba(0,217,255,0.2);color:#00d9ff;border:1px solid rgba(0,217,255,0.5);padding:6px 12px;border-radius:5px;font-size:0.8em;cursor:pointer;transition:all 0.3s;white-space:nowrap}
+
+.upload-btn:hover{background:rgba(0,217,255,0.3)}
+
+/* Back button */
+.back-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,0.1);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;flex-shrink:0}
+.back-btn:hover{background:rgba(255,255,255,0.2)}
+.back-btn svg{width:16px;height:16px}
+
+
+/* Main layout */
+
+.main-container{display:flex;height:calc(100vh - 64px)}
+
+.map-section{flex:2;position:relative;display:flex;align-items:center;justify-content:center;padding:10px}
+
+.brazil-map{width:100%;height:100%;max-width:680px;max-height:680px}
+
+.brazil-map path{stroke:rgba(255,255,255,0.4);stroke-width:0.8;cursor:pointer;transition:fill 0.3s,stroke 0.3s}
+
+.brazil-map path:hover{stroke:#00d9ff;stroke-width:1.5;filter:drop-shadow(0 0 6px rgba(0,217,255,0.6))}
+
+.brazil-map path.selected-state{stroke:#00ff88;stroke-width:2;filter:drop-shadow(0 0 10px rgba(0,255,136,0.7))}
+
+
+
+/* Legend */
+
+.legend{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,0.7);padding:12px 16px;border-radius:10px;font-size:0.8em;display:flex;flex-direction:column;gap:4px}
+
+.legend-item{display:flex;align-items:center;gap:8px}
+
+.legend-color{width:14px;height:14px;border-radius:3px}
+
+
+
+/* Right panel */
+
+.project-panel{flex:1;background:rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;min-width:340px;max-width:420px}
+
+.panel-header{padding:12px 16px;background:rgba(0,217,255,0.08);border-bottom:1px solid rgba(0,217,255,0.2)}
+
+.panel-header h2{font-size:1.1em;color:#00d9ff;margin-bottom:8px}
+
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+
+.filter-btn{padding:4px 10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#888;border-radius:12px;cursor:pointer;font-size:0.75em;transition:all 0.2s}
+
+.filter-btn:hover,.filter-btn.active{background:#00d9ff;color:#000;border-color:#00d9ff}
+
+.filter-btn.all{border-color:#00ff88}
+
+.filter-btn.all.active{background:#00ff88}
+
+.reset-btn{padding:4px 10px;border:1px solid #e74c3c;background:rgba(231,76,60,0.15);color:#e74c3c;border-radius:12px;cursor:pointer;font-size:0.75em;display:none}
+
+.reset-btn:hover{background:#e74c3c;color:#fff}
+
+
+
+/* Project list */
+
+.project-list{flex:1;overflow-y:auto;padding:8px}
+
+.project-list::-webkit-scrollbar{width:5px}
+
+.project-list::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
+
+.project-list::-webkit-scrollbar-thumb{background:rgba(0,217,255,0.3);border-radius:3px}
+
+.project-card{background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;border-left:3px solid transparent}
+
+.project-card:hover{background:rgba(0,217,255,0.08);transform:translateX(4px)}
+
+.project-card.status-maintenance{border-left-color:#27ae60}
+
+.project-card.status-delivery{border-left-color:#f39c12}
+
+.project-card.status-poc{border-left-color:#3498db}
+
+.project-card.status-done{border-left-color:#9b59b6}
+
+.project-card.status-pending{border-left-color:#e74c3c}
+
+.card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+
+.card-name{font-weight:bold;font-size:0.9em;color:#fff}
+
+.card-state{font-size:0.7em;color:#888;background:rgba(255,255,255,0.08);padding:2px 7px;border-radius:8px}
+
+.card-info{font-size:0.78em;color:#aaa;display:flex;gap:12px}
+
+.card-info span{display:flex;align-items:center;gap:4px}
+
+.no-data{text-align:center;padding:40px 20px;color:#666;font-size:0.9em}
+
+
+
+/* Tooltip */
+
+.tooltip{position:fixed;z-index:100;background:rgba(10,10,30,0.95);border:1px solid rgba(0,217,255,0.4);border-radius:10px;padding:0;display:none;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+
+.tooltip-header{padding:10px 14px;font-weight:bold;font-size:1em;color:#00d9ff;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center}
+
+.tooltip-count{font-size:0.75em;color:#888;font-weight:normal}
+
+.tooltip-body{padding:8px 0;max-height:260px;overflow-y:auto}
+
+.tooltip-table{width:100%;border-collapse:collapse;font-size:0.8em}
+
+.tooltip-table th{padding:6px 10px;text-align:left;color:#888;font-weight:normal;font-size:0.75em;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)}
+
+.tooltip-table td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc}
+
+.tooltip-table tr:hover td{background:rgba(0,217,255,0.06)}
+
+.tooltip-empty{padding:16px;text-align:center;color:#666;font-size:0.8em}
+
+.tooltip-hint{padding:6px 14px 10px;text-align:center;font-size:0.7em;color:#555;border-top:1px solid rgba(255,255,255,0.05)}
+
+
+
+/* Detail Modal */
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
+
+.modal-overlay.active{display:flex}
+
+.modal{background:#12122a;border:1px solid rgba(0,217,255,0.3);border-radius:16px;width:90%;max-width:800px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 64px rgba(0,0,0,0.6);animation:modalIn 0.3s ease}
+
+@keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.modal-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+
+.modal-title{font-size:1.2em;font-weight:bold;color:#00d9ff}
+
+.modal-close{background:none;border:none;color:#888;font-size:1.4em;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all 0.2s}
+
+.modal-close:hover{color:#fff;background:rgba(255,255,255,0.1)}
+
+.modal-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 20px;gap:0}
+
+.modal-tab{padding:12px 20px;cursor:pointer;color:#888;font-size:0.9em;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+
+.modal-tab:hover{color:#fff}
+
+.modal-tab.active{color:#00d9ff;border-bottom-color:#00d9ff;background:rgba(0,217,255,0.05)}
+
+.modal-body{flex:1;padding:20px;overflow-y:auto}
+
+.modal-body::-webkit-scrollbar{width:5px}
+
+.modal-body::-webkit-scrollbar-track{background:rgba(255,255,255,0.03)}
+
+.modal-body::-webkit-scrollbar-thumb{background:rgba(0,217,255,0.3);border-radius:3px}
+
+.tab-panel{display:none;animation:fadeIn 0.3s ease}
+
+.tab-panel.active{display:block}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+
+
+/* Info grid in detail */
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.info-item{background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;border:1px solid rgba(255,255,255,0.06)}
+
+.info-item .label{font-size:0.75em;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+
+.info-item .value{font-size:0.95em;color:#fff;word-break:break-all}
+
+.info-item.full-width{grid-column:1/-1}
+
+.device-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:0.85em}
+
+.device-table th{background:rgba(0,217,255,0.15);padding:8px;text-align:left;color:#00d9ff;border-bottom:2px solid rgba(0,217,255,0.3)}
+
+.device-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);color:#ccc}
+
+.device-table tr:hover td{background:rgba(255,255,255,0.03)}
+
+
+
+/* Placeholder tabs */
+
+.placeholder-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;color:#555}
+
+.placeholder-icon{font-size:3em;margin-bottom:16px;opacity:0.4}
+
+.placeholder-text{font-size:1em;margin-bottom:8px}
+
+.placeholder-hint{font-size:0.8em;color:#444}
+
+
+
+/* Responsive */
+
+@media(max-width:900px){
+
+  .main-container{flex-direction:column}
+
+  .map-section{flex:none;height:50vh}
+
+  .project-panel{max-width:none;min-width:0;flex:1}
+
+  .header{flex-wrap:wrap;height:auto;padding:8px}
+
+  .header h1{font-size:1em}
+
+  .info-grid{grid-template-columns:1fr}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+
+<div class="header">
+
+  <button class="back-btn" onclick="if(window.parent!==window)window.parent.location.href='../index.html';else history.back()" title="����">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
+  </button>
+
+  <h1 id="mainTitle">Brazil Project Map</h1>
+
+  <div class="stats-bar">
+
+    <div class="stat-item"><div class="stat-value" id="statProjects">0</div><div class="stat-label" id="statProjectsLabel">Projects</div></div>
+
+    <div class="stat-item"><div class="stat-value" id="statDevices">0</div><div class="stat-label" id="statDevicesLabel">Devices</div></div>
+
+    <div class="stat-item"><div class="stat-value" id="statStates">0</div><div class="stat-label" id="statStatesLabel">States</div></div>
+
+  </div>
+
+  <div class="header-spacer"></div>
+
+  <div class="filter-group">
+
+    <label id="lblType">Type</label>
+
+    <select id="filterType" onchange="applyAllFilters()"><option value="all">All</option></select>
+
+  </div>
+
+  <div class="filter-group">
+
+    <label id="lblSolution">Solution</label>
+
+    <select id="filterSolution" onchange="applyAllFilters()"><option value="all">All</option></select>
+
+  </div>
+
+  <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+
+    <option value="zh-CN">中文</option>
+
+    <option value="en">English</option>
+
+    <option value="pt-BR">Português</option>
+
+  </select>
+
+  <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()">Upload Excel</button>
+
+  <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileUpload(event)">
+
+</div>
+
+
+
+<div class="main-container">
+
+  <div class="map-section" id="mapSection">
+
+    <svg class="brazil-map" viewBox="0 0 680 680" id="brazilMap"></svg>
+
+    <div class="legend" id="legend"></div>
+
+  </div>
+
+  <div class="project-panel">
+
+    <div class="panel-header">
+
+      <h2 id="panelTitle">Project List</h2>
+
+      <button class="reset-btn" id="btnReset" onclick="resetStateFilter()">�??? Show All</button>
+
+      <div class="filter-bar">
+
+        <button class="filter-btn all active" data-status="all" onclick="setStatusFilter('all',this)">All</button>
+
+        <button class="filter-btn" data-status="maintenance" onclick="setStatusFilter('maintenance',this)">Maintenance</button>
+
+        <button class="filter-btn" data-status="delivery" onclick="setStatusFilter('delivery',this)">Delivery</button>
+
+        <button class="filter-btn" data-status="poc" onclick="setStatusFilter('poc',this)">POC</button>
+
+      </div>
+
+    </div>
+
+    <div class="project-list" id="projectList">
+
+      <div class="no-data" id="noDataMsg">Please upload an Excel file or load default data</div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- Tooltip (state hover) -->
+
+<div class="tooltip" id="tooltip">
+
+  <div class="tooltip-header" id="ttHeader"></div>
+
+  <div class="tooltip-body" id="ttBody"></div>
+
+  <div class="tooltip-hint" id="ttHint">Double-click to filter</div>
+
+</div>
+
+
+
+<!-- Detail Modal -->
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+
+  <div class="modal">
+
+    <div class="modal-header">
+
+      <div class="modal-title" id="modalTitle"></div>
+
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+
+    </div>
+
+    <div class="modal-tabs">
+
+      <div class="modal-tab active" data-tab="tabInfo" onclick="switchTab('tabInfo',this)">Project Info</div>
+
+      <div class="modal-tab" data-tab="tabBOM" onclick="switchTab('tabBOM',this)">BOM</div>
+
+      <div class="modal-tab" data-tab="tabMilestone" onclick="switchTab('tabMilestone',this)">Milestone</div>
+
+      <div class="modal-tab" data-tab="tabVersion" onclick="switchTab('tabVersion',this)">Version Tree</div>
+
+      <div class="modal-tab" data-tab="tabRemarks" onclick="switchTab('tabRemarks',this)">Remarks</div>
+
+    </div>
+
+    <div class="modal-body">
+
+      <div class="tab-panel active" id="tabInfo"></div>
+
+      <div class="tab-panel" id="tabBOM"></div>
+
+      <div class="tab-panel" id="tabMilestone"></div>
+
+      <div class="tab-panel" id="tabVersion"></div>
+
+      <div class="tab-panel" id="tabRemarks"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+// ══════════════════════════════════════════�???
+
+// EMBEDDED DATA (no fetch needed)
+
+// ══════════════════════════════════════════�???
+
+const EMBEDDED_PROJECTS = [
+
+  {
+
+    "name": "Alieso",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "EBG",
+
+    "solution": "BWC EBG Solution",
+
+    "startDate": "TBD",
+
+    "endDate": "TBD",
+
+    "status": "maintenance",
+
+    "state": "SP",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 23
+
+      }
+
+    ],
+
+    "totalDevices": 23,
+
+    "remarks": "EBG项目",
+        "remarks_en": "EBG Project",
+        "remarks_pt": "Projeto EBG"
+
+  },
+
+  {
+
+    "name": "Detran (PA)",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2024-05",
+
+    "endDate": "2026-06",
+
+    "status": "maintenance",
+
+    "state": "PA",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 654
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 44
+
+      }
+
+    ],
+
+    "totalDevices": 698,
+
+    "remarks": "654台BWC, 44台Dock, eGOV+HCP平台迁移已完�?",
+        "remarks_en": "654 BWC, 44 Dock, eGOV+HCP platform migration completed",
+        "remarks_pt": "654 BWC, 44 Dock, migração de plataforma eGOV+HCP concluída"
+
+  },
+
+  {
+
+    "name": "SSS (Segup/SEAP/SESP)",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2024-06",
+
+    "endDate": "2026-12",
+
+    "status": "maintenance",
+
+    "state": "PA",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 1440
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 70
+
+      }
+
+    ],
+
+    "totalDevices": 1510,
+
+    "remarks": "1440台BWC, 70台Dock, 含Segup/SEAP/SESP三个机构",
+        "remarks_en": "1440 BWC, 70 Dock, covering 3 agencies: Segup/SEAP/SESP",
+        "remarks_pt": "1440 BWC, 70 Dock, cobrindo 3 órgãos: Segup/SEAP/SESP"
+
+  },
+
+  {
+
+    "name": "Minas Gerais SEPLAG",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2025-01",
+
+    "endDate": "2026-12",
+
+    "status": "delivery",
+
+    "state": "MG",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 635
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 42
+
+      }
+
+    ],
+
+    "totalDevices": 677,
+
+    "remarks": "635台BWC, 42台Dock, 设备部署进度50%",
+        "remarks_en": "635 BWC, 42 Dock, device deployment 50%",
+        "remarks_pt": "635 BWC, 42 Dock, implantação de dispositivos 50%"
+
+  },
+
+  {
+
+    "name": "Rondonia SESDEC",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2025-07",
+
+    "endDate": "2026-12",
+
+    "status": "delivery",
+
+    "state": "RO",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 550
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 9
+
+      }
+
+    ],
+
+    "totalDevices": 559,
+
+    "remarks": "550台BWC, 9台Dock, 交付�?",
+        "remarks_en": "550 BWC, 9 Dock, in delivery",
+        "remarks_pt": "550 BWC, 9 Dock, em entrega"
+
+  },
+
+  {
+
+    "name": "Pernambuco PMPE",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2025-04",
+
+    "endDate": "2026-06",
+
+    "status": "poc",
+
+    "state": "PE",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 20
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 2
+
+      }
+
+    ],
+
+    "totalDevices": 22,
+
+    "remarks": "50台BWC, 2台Dock, 交付�?",
+        "remarks_en": "50 BWC, 2 Dock, in delivery",
+        "remarks_pt": "50 BWC, 2 Dock, em entrega"
+
+  },
+
+  {
+
+    "name": "Espirito Santo PCES",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2025-08",
+
+    "endDate": "2026-12",
+
+    "status": "delivery",
+
+    "state": "ES",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 50
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 2
+
+      }
+
+    ],
+
+    "totalDevices": 52,
+
+    "remarks": "50台BWC, 2台Dock, 交付�?",
+        "remarks_en": "50 BWC, 2 Dock, in delivery",
+        "remarks_pt": "50 BWC, 2 Dock, em entrega"
+
+  },
+
+  {
+
+    "name": "RJ BWC I",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC RJ Solution",
+
+    "startDate": "2023-06",
+
+    "endDate": "2027-12",
+
+    "status": "maintenance",
+
+    "state": "RJ",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 13708
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 566
+
+      }
+
+    ],
+
+    "totalDevices": 14274,
+
+    "remarks": "最大BWC项目! 13708台BWC, 566台Dock",
+        "remarks_en": "Largest BWC project! 13708 BWC, 566 Dock",
+        "remarks_pt": "Maior projeto BWC! 13708 BWC, 566 Dock"
+
+  },
+
+  {
+
+    "name": "Bahia Transalvador",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2024-09",
+
+    "endDate": "2026-12",
+
+    "status": "maintenance",
+
+    "state": "BA",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 96
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 3
+
+      }
+
+    ],
+
+    "totalDevices": 99,
+
+    "remarks": "96台BWC, 3台Dock, HCP平台迁移进行�?",
+        "remarks_en": "96 BWC, 3 Dock, HCP platform migration in progress",
+        "remarks_pt": "96 BWC, 3 Dock, migração de plataforma HCP em andamento"
+
+  },
+
+  {
+
+    "name": "Roraima PMBV",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "2025-06",
+
+    "endDate": "2026-12",
+
+    "status": "maintenance",
+
+    "state": "RR",
+
+    "devices": [
+
+      {
+
+        "name": "BWC",
+
+        "qty": 491
+
+      },
+
+      {
+
+        "name": "Dock",
+
+        "qty": 104
+
+      }
+
+    ],
+
+    "totalDevices": 595,
+
+    "remarks": "491台BWC, 104台Dock, 设备配置问题, 客户整改迟缓, 重大风险",
+        "remarks_en": "491 BWC, 104 Dock, device config issues, client remediation slow, major risk",
+        "remarks_pt": "491 BWC, 104 Dock, problemas de configuração, correção lenta do cliente, risco maior"
+
+  },
+
+  {
+
+    "name": "RJSSC SafeCity",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "TBD",
+
+    "endDate": "TBD",
+
+    "status": "poc",
+
+    "state": "RJ",
+
+    "devices": [],
+
+    "totalDevices": 0,
+
+    "remarks": "POC进行�?, 设备数量待确�?",
+        "remarks_en": "POC in progress, device quantity to be confirmed",
+        "remarks_pt": "POC em andamento, quantidade de dispositivos a confirmar"
+
+  },
+
+  {
+
+    "name": "Parana SafeCity",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "TBD",
+
+    "endDate": "TBD",
+
+    "status": "poc",
+
+    "state": "PR",
+
+    "devices": [],
+
+    "totalDevices": 0,
+
+    "remarks": "POC进行�?, 设备数量待确�?",
+        "remarks_en": "POC in progress, device quantity to be confirmed",
+        "remarks_pt": "POC em andamento, quantidade de dispositivos a confirmar"
+
+  },
+
+  {
+
+    "name": "SJC SafeCity",
+
+    "oppId": "TBD",
+
+    "person": "TBD",
+
+    "type": "PBG",
+
+    "solution": "BWC Latam Solution",
+
+    "startDate": "TBD",
+
+    "endDate": "TBD",
+
+    "status": "poc",
+
+    "state": "SP",
+
+    "devices": [],
+
+    "totalDevices": 0,
+
+    "remarks": "POC进行�?, 设备数量待确�?",
+        "remarks_en": "POC in progress, device quantity to be confirmed",
+        "remarks_pt": "POC em andamento, quantidade de dispositivos a confirmar"
+
+  }
+
+];
+
+const EMBEDDED_SETTING = {
+
+  "types": [
+
+    "PBG",
+
+    "EBG"
+
+  ],
+
+  "solutions": [
+
+    "BWC Latam Solution",
+
+    "BWC RJ Solution",
+
+    "BWC EBG Solution",
+
+    "Mobile",
+
+    "SafeCity",
+
+    "Others"
+
+  ]
+
+};
+
+
+
+// ══════════════════════════════════════════�???
+
+// STATE SVG PATHS (27 Brazilian states)
+
+// ══════════════════════════════════════════�???
+
+const statePaths = {
+
+            'AC': { name: 'Acre', d: 'm 30.732574,238.03114 -2.08,-0.04 0.54,-1.81 -0.21,-0.83 -0.25,-0.49 -1.25,-0.7 -0.14,-0.45 0.27,-1.15 -0.77,-1.95 -1.09,-0.64 -5.6,-1.25 -7.34,-0.19 0.27,-0.56 2.49,-2.26 0.89,-1.23 0.29,-1.2 -0.22,-1.23 -0.68,-0.91 -0.83,-0.44 -1.68,-2.95 -0.77,-0.44 -0.9,-0.19 -1.13,-1.13 -0.92,-2.38 -2,-1.53 -0.98,-3.62 -0.87,-1.64 -1.88,-1.08 -0.08,-1.17 0.81,0.1 0.42,-0.52 0.07,-0.67 -0.2,-0.42 -2.12,-0.93 -0.36,-0.66 -2.16999996,-1.89 0.04,-0.37 0.62,-0.05 0.49999996,-1.32 -0.01,-1.31 3.01,-0.39 0.5,-0.39 -0.22,-1.35 -1.17,-1.57 0,0 17.95,7.48 23.66,5.66 12.14,3.14 26.44,14.17 28.509996,12.13 0,0 2.97,1.26 0,0 -0.3,0.48 -1.57,0.66 -2.09,1.59 -2.86,2.79 -1.65,0.86 -0.66,-0.18 -1.53,0.18 -0.05,0.56 -1.92,1.3 -2.08,0.99 -1.439996,1.83 -0.44,1.18 -0.61,0.28 -1.17,-0.75 -0.76,-0.13 -2.37,0.05 -0.68,0.26 -0.63,0.45 -0.36,0.86 -2.44,3.48 -3.77,1.25 -0.84,0.69 -1.94,0.51 -1.03,0.03 0.08,-2.11 -1.36,0.2 -3.55,-0.77 -5.24,-0.47 -5.09,0.38 -0.66,-0.58 -2.27,-0.17 -3.56,1.83 -2.73,0.62 -1.68,-0.67 -1.4,-1.44 -1.64,1.16 0.04,-17.55 0.05,-1.1 0.47,-0.71 0.07,-2.35 -0.26,-0.88 0.97,-1.18 0.48,-1.14 -1.16,0.2 -2.97,2.59 -1.6,1.01 -2.06,2.38 -1.95,0.67 -0.65,1.08 -1.81,0.99 z' },
+
+            'AL': { name: 'Alagoas', d: 'm 562.17257,230.56114 -0.2,-0.73 -1.42,-0.78 -0.45,0.09 -1.02,-0.29 -0.54,-1.4 0,0 1.32,-1.07 0.64,-1.09 2.17,-0.76 2.38,-3.29 0.09,-0.69 0.82,-0.6 1,1.22 1.67,0.3 1.08,-0.12 2.55,2.02 1.9,2.12 1.78,1.05 1.91,0.48 2.5,-0.65 3.14,0.29 1.17,-0.11 1.86,-1.06 1.16,0.05 1.81,-1.11 2.18,-2.29 0.12,-0.45 1.55,-1.24 2,-0.24 2.24,0.85 2.56,-1.29 1.47,-0.19 1.92,0.81 2.9,0.27 0.27,0.21 0,0 -2.78,4.96 -4.55,5.13 -3.58,3.58 -3.04,4.58 -3.33,2.88 -1,2.03 -1.32,1.79 0,0 -0.6,-1.31 -3.59,-2.23 -0.46,-0.03 -1.66,-0.79 -1.76,-1.45 -1.3,-2.45 -5.42,-3.07 -3.68,-0.95 z' },
+
+            'AP': { name: 'Amap�???', d: 'm 345.24257,99.961144 -0.94,-0.06 -0.77,0.339996 -1.3,0.12 -2.79,-0.679996 -1.45,-1.03 -0.43,-1.5 -1.87,-1.39 -0.11,-1.3 0.21,-0.69 -0.31,-1.58 -0.33,-0.47 -0.95,-0.19 -0.41,-0.94 0.08,-2.43 -2.93,-3.28 -0.78,0.36 -0.82,-0.19 -1.5,-3.48 0.13,-1.58 -0.59,-1.81 -0.62,-0.56 -0.67,-1.51 -0.19,-2.11 0.43,-3.14 -0.17,-0.33 -2.57,-0.73 -2.02,-2.26 -0.76,-2.83 0.19,-0.72 0.68,-0.23 -0.49,-1.18 -0.68,0.03 -2.84,-2.66 -0.94,0.14 -0.38,0.42 -1.33,0.14 -0.84,-0.27 -0.8,-0.98 -1.14,-0.84 -1.19,-0.12 -0.49,-1.28 -0.67,-0.8 -1.93,-1.05 -1.29,-0.49 -3.39,-0.37 -1.08,0.29 -1.17,-0.02 -0.31,-0.54 -0.24,-1.44 0.25,-4.54 0.62,-1.3 -0.37,-2.3 -0.62,-0.57 0,0 0.35,-0.21 0.99,0.3 -0.01,0.81 -0.29,0.18 0.34,0.97 1.47,-0.06 0.82,0.23 0.35,0.9 0.84,0.71 2.25,0.78 3.29,0.75 2.76,-1.78 0.35,-0.76 1.73,-1.17 0.83,-0.29 0.69,0.94 2.71,0.94 1.08,-0.12 1.72,-1.01 0.12,-0.42 0.32,0.03 1.46,1.3 -0.2,0.87 2.37,-0.17 0.51,0.5 0.95,0.17 0.62,-0.01 0.91,-0.48 1.67,-1.5 1.78,-1.1 1.75,-2.3 0.37,-1 -0.2,-0.54 3.13,-6.5 0.11,-1.82 1.11,-1.3 0.73,-0.19 3.6,-5.79 0.23,-1.15 0.84,-1.2 1.79,-1.55 0.63,-1.66 2.11,-1.14 0.47,-0.92 1.04,-0.58 0.56,1.46 0.88,1.36 -1.67,-4.8 -0.07,-1.29 0.18,-0.33 3.37,2.42 1.14,1.21 0.91,1.22 0.52,1.19 0.03,1.58 0.44,0.31 0.32,-0.48 0.38,-0.1 0.21,0.4 0.21,7.89 0.66,3.87 2.71,6.05 2.66,8.94 3.32,5 1.01,0.35 3.27,-0.08 2.78,0.94 1.29,0.85 0.77,2.65 -0.16,3.33 -1.29,0.96 -1.73,0.43 -0.38,0.33 1.79,-0.15 1.04,-0.42 0.28,0.23 0.12,0.59 -0.17,0.73 -5.03,4.06 -1.17,2.1 -2.15,1.41 -1.94,3.72 -2.91,3.5 -0.7,0.46 -0.94,-0.09 -1.45,0.52 -2.08,2.98 0,0 -1.34,0.07 -0.75,0.9 0,0 -1.47,1.68 -0.97,2.22 -1.12,1.87 -0.84,0.65 -3.01,3.45 -0.36,2.4 0.17,1.8 -1.95,1.81 -0.98,0.12 z' },
+
+            'AM': { name: 'Amazonas', d: 'm 166.08257,47.551144 0.72,0.78 0.75,0.34 0.61,0.01 1.13,-0.42 0.63,0.11 0.06,0.96 1.21,1.17 0.97,0.37 0.88,-0.21 1.36,0.11 1.95,0.95 0.49,0.66 -0.91,3.32 -0.71,1.5 2.73,3.74 1.66,4.76 0.19,2.26 0.87,1.12 0.05,0.45 -1.62,1.46 0.36,1.59 0.66,1.58 -0.77,3.04 -0.57,0.96 0.29,4.98 0.88,2.17 1.22,0.84 0.58,0.9 1.13,4.33 -0.06,0.58 -1.14,1.32 -1.84,-0.33 -0.14,1.14 5.01,4.42 0.52,0.04 1.96,1.31 1.48,1.649996 1.04,2.04 0.53,0.07 1.34,-0.42 2.36,1.04 -0.44,-2.11 0.75,-2.289996 0.25,-1.73 -0.37,-1.8 0.82,-2.97 1.02,-1.26 1.28,-0.69 2.09,-0.71 0.55,-0.89 1.6,-0.06 2.83,0.93 1.87,2.04 0.92,2.51 1.82,0.23 1.25,-0.46 1.41,-1.41 2.03,-0.55 0.42,-0.39 0.02,-0.53 -1.14,-1.41 -0.23,-0.73 0.11,-0.66 1.15,-2.64 0.07,-1.13 1.66,-3.03 2.33,-3.26 -0.03,-0.68 18.49,0.07 0,0 0.4,4.86 -0.43,1.45 0.18,2.27 0.24,0.68 1.7,0.85 0.18,0.41 -0.35,0.69 -0.05,2.11 1.83,1.99 0.36,0.19 0.7,-0.18 1.84,1.23 0.55,1.83 0.04,0.93 0.3,0.45 4.64,3.769996 4.58,2.54 0.63,0.9 1.35,1.09 1.88,0.67 2.37,1.31 2.26,0.65 1.36,0.15 1.32,0.82 0.08,0.61 1.27,1.34 2.7,1.44 1.1,2.17 1.87,0.79 0.85,-0.61 1.38,-0.35 0.19,0.48 -0.13,0.78 1.81,1.67 -29.9,64.24 -0.78,1.31 -1.45,1.13 -0.58,0.97 -0.03,1.13 0.82,2.33 0.38,0.57 1.07,0.58 1.58,1.56 0.64,1.26 0.15,1.96 0.57,0.57 0,0 -1.18,1.2 -0.2,0.61 -0.06,0.76 0.34,0.84 -0.27,1.01 -1.2,1.82 -0.86,0.64 -0.42,0.85 0.1,0.85 0.66,1.37 0.46,1.94 -1.38,4.22 -1.18,5.22 -1.21,0.73 -47.85,0.32 0,0 0.04,-0.7 -0.36,-0.38 -1.39,-0.28 -1.92,1.08 -0.54,1.74 -0.68,0.19 -3.24,-1.48 -0.68,-2.88 -0.62,-0.2 -0.98,0.13 -0.46,-0.21 -1.25,-3.27 -2.54,-0.98 -1.33,-1.27 -0.8,-1.91 -0.45,-0.49 -2.15,-1.13 -10.79,0.06 -1.38,2.56 -1.72,0.5 0.09,1.17 -0.26,0.22 -2.48,0.53 -1.19,1.59 -0.05,0.67 0.9,0.7 0.17,0.45 -0.36,1.02 -0.81,1.15 -2.06,1.21 -0.11,1.81 0.24,1.46 -3.87,-0.46 -2.13,0.38 -1.2,1.07 -1.79,-0.1 -0.84,-0.55 -0.46,-0.02 -1.75,1.26 -0.53,0.84 0.26,1.75 -2.54,3.16 -0.68,0.08 -0.68,-0.53 -0.64,-2.26 -0.38,-0.09 -1.84,1.02 -1.3,1.21 -1.37,0.39 -0.77,-0.13 -1.08,0.5 -0.41,0.53 -0.13,0.72 -1.22,0.79 -0.37,0.02 -2.31,-2.33 -0.72,-0.37 -2.87,0.33 -3.96,-0.26 0.16,1.29 -0.15,0.56 -1.55,1.81 -1.92,0.58 -3.26,2.56 0,0 -28.509996,-12.13 -26.44,-14.17 -12.14,-3.14 -23.66,-5.66 -17.95,-7.48 0,0 -0.07,-0.65 0.7,-2.92 1.22,-1.4 4.92,-3.47 2.26,-0.24 0.47,-0.3 0.98,-1.56 0.08,-1.03 -1.74,-4.49 0.38,-1.19 1.18,-2.19 1.28,-1.32 0.92,-1.25 0.42,-0.98 0.3,-1.74 -0.29,-1.32 0.67,-2.04 0.31,-2.31 0.73,-0.75 3.66,-1.63 2.19,-1.23 1.15,-1.04 0.44,-1.4 0.78,-0.37 1.41,-0.11 1.65,-0.93 3.54,-2.73 2.42,-0.43 1.51,0.29 4.19,-1.22 1.5,-0.77 1.82,-0.36 3.33,0.38 1.3,-1.59 0.63,-1.45 1.09,-0.61 2.14,0.2 0.64,0.54 1.32,-0.24 1.1,-0.74 1.71,0.12 0.31,0.53 -0.02,1.18 1.61,1.29 2.83,0.08 0.58,-0.4 0.46,-0.78 -0.11,-0.39 1.17,-4.92 6.7,-37.17 1.16,-2.92 -0.99,-4.959996 0.12,-0.26 -1.3,-1.05 -1.48,-2.75 -0.04,-0.49 0.65,-1.39 -0.52,-1.78 -0.37,-0.4 -1.7,-0.59 -3.03,-2.35 -1.94,-2.28 0.2,-11.51 3.89,-0.26 1.75,-1.17 3.5,-0.92 2.68,1.76 1.22,0.11 1.27,-0.43 -0.49,-1.69 0.3,-1.72 -1.37,-2.1 -0.57,-0.54 -1.15,-0.6 -1.51,0.53 -2.79,-0.61 -3.57,0.09 -0.06,-9.9 0.96,0.04 1.32,-0.58 2.28,-0.6 2.84,0.87 19.03,0.06 -0.46,-0.66 -0.79,-0.14 -0.38,-1.2 0.95,-1.93 1.43,0.4 0.61,1.52 0.87,1.32 0.66,0.35 0.83,0.01 1.61,-0.61 1.94,-2.09 0.32,-0.84 1.259996,-1.24 2.55,-1.39 1.29,0.46 1.17,2.58 1.62,1.99 0.74,1.3 0.66,1.78 0.23,1.55 -0.49,3.63 0.2,1.76 3.2,-0.75 8.31,7.06 0.79,0.28 2.5,0.21 2.3,-1 1.7,-1.7 2.11,-1.16 2.19,-0.11 0.56,0.29 0.77,1.08 -0.02,0.97 -1.11,1.7 0.37,0.98 0.58,0.27 1.33,-0.72 0.56,-0.91 0.23,-1.29 1,-1.16 0.47,-0.23 1,0.18 0.55,-0.18 0.41,-0.66 0.46,-2.31 0.51,-0.37 1.51,-0.36 2.93,-1.77 0.97,0.55 0.93,-0.29 1.6,-1.04 1.02,-1.61 2.11,-1.21 2.03,0.55 2.36,-1.65 0.55,-0.82 0.44,-2.66 -0.03,-1.29 0.77,-0.92 1.03,-0.42 1.74,-0.02 1.34,-0.39 2.06,-1.6 0.96,-0.37 2.28,-0.3 z' },
+
+            'BA': { name: 'Bahia', d: 'm 527.76257,365.59114 -0.36,-0.83 0.68,-1.35 -0.01,-0.53 -0.53,-1.04 -4.13,-3.05 -0.15,-0.51 0.22,-1.51 -0.57,-1.23 -0.65,0.24 -0.2,0.45 -0.34,0.18 -0.22,-0.25 0.53,-4.4 0.82,-3.3 0.82,-0.88 2.47,0.24 1.02,-0.71 0,-0.42 -0.56,-1.02 0.16,-2.65 4.96,-4.22 1.47,-3.08 -0.42,-1.17 -0.78,-1.02 -0.89,-0.06 -0.73,-0.38 -2.83,-2.47 -2.12,0.02 -2.19,-0.6 -2.27,-1.08 -2.73,-0.56 -1.98,-0.14 -1.32,0.99 -1.47,0.5 -2.61,-0.45 -0.57,0.21 -0.44,-3.96 -6.52,-6.2 -0.38,-0.18 -4.39,1.23 -1.53,-1.24 -0.51,0.21 -0.93,-0.22 -2.54,-1.22 -2.17,-1.62 -0.98,0.18 -4.35,-3.63 -1.1,-0.54 -2.73,-0.75 -1.77,0.25 -1.88,0.9 -0.81,1.12 -0.64,0.18 -5.33,-1.47 -0.61,-0.49 -0.26,-1.5 0.14,-0.89 1.29,-2.74 -0.86,-0.46 -2.28,-0.52 -2.18,-0.04 -1.2,-0.5 -1.79,-0.08 -3.83,1.58 -4.26,3.03 -0.64,1.11 -3.37,1.87 -2.02,0.4 -0.95,1.18 -1.81,1.55 -1.43,0.52 -1,-0.15 -1.85,2.58 -1.04,0.77 -2.13,-0.38 -0.72,0.13 -0.69,1 -1.34,0.92 -0.4,-0.24 1.43,-3.43 -0.51,-2.41 0,0 1.48,-1.97 0.25,-0.77 -0.23,-1.27 -0.67,-1.72 0.1,-0.67 0.71,-1.42 -0.05,-0.46 -3.21,-2.62 -1.69,-3.46 -0.62,-3.52 0.05,-1.55 1.2,-3.83 1.59,-1.03 0.23,-0.38 0.06,-0.94 -1.63,-0.84 -0.11,-0.33 0.48,-2.52 1.43,-1.06 -0.02,-0.37 -2.72,-2.46 0,0 -0.04,-0.93 1.36,-2.38 -0.04,-1.07 -0.17,-0.42 -1.46,-0.49 -0.94,-0.65 -0.35,-1.26 0.06,-2.92 0.19,-0.85 1.95,-1.67 1.14,-0.42 0.96,-0.72 -0.29,-0.63 -0.58,-0.52 -0.92,-0.29 -1.03,0.18 -0.35,-0.33 -0.09,-0.5 0.42,-0.96 2.04,-0.82 0.56,-0.45 -0.04,-0.76 -1.88,-0.98 -3.58,-0.67 -1.86,-1.96 -0.23,-0.92 0.5,-1.16 1.01,-0.73 1.52,-3.48 0.9,-0.61 1.01,-0.27 0.35,-0.38 -1.29,-1.8 0.19,-0.37 3.21,-2.62 3.82,-2.02 0.56,-0.47 0.22,-0.98 0.69,-0.65 0,0 2.33,-0.02 1.44,1.34 0.66,1.04 0.53,2.21 1.76,2.49 4.18,1.86 1.8,-0.52 2.11,0.18 0.33,-0.21 0.75,-1.45 1.14,-0.37 0.67,-0.87 1.17,-0.89 2.21,-0.75 1.33,0.17 1.48,0.53 1.35,-0.42 2.97,-2.42 2.95,-5.05 0.72,-0.86 0.24,-0.92 0.3,-2.56 -0.12,-1.16 -2.24,-4.43 0.05,-0.93 3.24,-1.65 1.95,-0.02 1.5,0.46 0.41,0.93 0.32,0.18 2.12,-0.43 1.39,-0.54 1.33,0.38 1.71,0.99 -0.13,0.65 0.19,0.29 0.82,0.28 3,-0.11 1.47,-0.64 1.7,-0.1 0.82,-1.22 1.51,-1.34 2.73,-0.34 0.77,-0.36 0.81,-0.98 2.17,0.01 0.62,0.63 0.31,0.05 1.86,-1.81 -0.1,-2.4 1.99,-0.38 0.79,0.18 1.05,-0.66 1.5,-2.31 0.46,-1.15 0,0 0.89,0.4 1.16,-0.27 2.2,0.29 2.82,1.39 0.44,0.51 -0.06,2.73 0.72,1.94 2.21,0.91 0.27,2 -0.92,1.68 1.83,0.62 0.96,-0.22 0.82,-0.92 2.87,-0.88 0.77,-3.58 0.5,-0.87 0.75,-0.16 0.78,0.53 0.63,0.05 2.39,-1.02 1.1,-1.24 0.17,-0.59 -0.25,-1.36 0.29,-0.25 2.24,-0.45 0.77,-2.05 1.65,-0.44 2.53,-1.46 0.59,-0.1 1.49,0.56 0.83,1.44 1.36,0.81 2.36,0.78 2.99,0.4 1.58,1.15 0.54,1.65 0.39,0.27 0.43,-0.15 0.29,-1.75 0.43,-0.44 1,-0.01 0.45,0.32 0.02,0.63 -0.62,0.88 0.45,0.83 0.5,0.37 2.1,0.86 0.02,0.94 1.22,3.05 0,0 0.54,1.4 1.02,0.29 0.45,-0.09 1.43,0.79 0.2,0.72 0,0 -0.67,1.16 0.21,2.14 1.28,2.5 1.99,1.95 0.75,1.15 -0.08,3.12 -0.66,1.62 -0.09,0.88 0.76,2.75 -0.3,0.58 -0.69,0.55 -2.55,1 -1.13,-0.75 -1.71,-0.01 -0.32,0.3 -0.59,1.58 0.02,0.77 0.95,1.6 1.1,0.66 0.52,1.49 1.43,1.51 0.15,0.39 -0.13,1.42 -0.34,0.39 0.12,0.42 0.59,0.52 1.93,0.92 0.48,0.71 0.54,0.34 1.55,0.64 2.89,-0.88 0,0 0.64,-0.02 0.36,0.41 -4.08,8.83 -3.83,5.19 -1.03,2.33 -5.03,5.74 -2.45,1.26 -0.87,-0.01 0.3,-1.43 0.37,-0.15 0.14,-1.1 -0.45,-1.93 -1.87,-0.25 -0.43,-1.3 -0.68,-0.75 -0.37,0.6 -0.46,2.33 -0.5,0.87 -0.55,0.38 -0.56,-0.29 -0.49,-1.74 0.11,-0.32 0.31,-0.13 -0.03,-0.39 -0.87,1.29 0.93,1.69 0.46,0.23 0.37,-0.15 1.15,0.26 -0.46,1.81 -1.21,1.15 -0.25,1.82 -1.25,0.97 -0.35,0.67 -0.2,0.84 0.18,0.85 -1.35,-0.39 -0.21,0.39 -0.36,2.52 0.36,-0.72 0.75,0.21 0.24,0.54 -0.23,0.41 0.06,0.62 0.3,0.3 0.33,1 -1.04,2.51 0.57,3.44 -0.55,0.49 -0.57,-0.22 -0.14,1.13 0.59,0.46 1.21,-1.72 -0.47,-2.21 0.82,-0.61 0.25,0.54 -0.06,1.76 -0.96,2.61 -0.74,5.43 -0.51,1.81 0.2,2.47 0.78,2.85 0.19,4.54 0.87,6.41 0.99,3.42 -2.21,6.66 -1.35,6.65 -0.47,1.01 -0.16,2.86 -1.06,3.72 -0.09,2.33 0.39,4.42 0.89,1.71 -2.24,2.98 -1.81,0.67 -0.94,0.64 -2.72,3.89 -0.57,2.04 0,0 -8.09,-5.14 -0.31,-0.53 z' },
+
+            'CE': { name: 'Cear�???', d: 'm 574.05257,157.11114 -4.89,1.59 -2.61,2.01 -3.3,6.69 -0.84,1.12 -0.87,0.57 -0.65,1.67 0.15,0.74 -1.4,2.44 -1.46,1.51 -0.57,1.1 -1.03,0.26 -0.78,-0.51 -0.51,0.07 -0.84,0.88 -1.41,2.25 -0.34,1.97 0.64,0.17 0.66,-0.38 0,0 -0.08,0.54 -0.84,1.15 -1.03,3 0.52,1.31 -0.66,1.31 -1.09,0.63 -0.17,0.38 -0.12,0.93 0.24,0.41 0.58,0.29 0.35,0.72 -0.02,1.66 1.24,0.89 0.69,0.08 0.34,1.19 -1.61,3.49 -1.19,1.12 0.17,0.25 0,0 -1.59,0.49 -1.07,0.83 -1.54,2.29 -1.65,0.05 -0.63,-1.64 -0.78,-0.57 -1.36,-0.48 -1.01,-1.07 -0.46,-0.99 -1.83,-0.83 -2.85,-1.9 -3.08,-0.42 -1.29,0.1 -2.14,0.8 -1.63,0.19 -0.89,-0.24 -4.93,-0.2 0,0 0.06,-1.32 -0.68,-0.68 -0.08,-0.97 1.14,-3.11 1.5,-2.25 0.01,-0.69 -0.77,-1.16 -2.56,-0.47 -1.31,-0.65 -1.01,-2.67 -1.05,-5.2 -0.76,-2.57 0.24,-0.45 -0.94,-8.16 -0.11,-0.38 -0.92,-0.69 0.8,-0.58 0.59,-1.58 -0.6,-2.99 -1,-2.01 0.48,-1.6 -0.79,-3.87 0.74,-1.36 0.02,-0.76 -1.36,-1.59 -0.44,-1.73 -3.15,-6.42 -1.8,-4.72 -0.29,-1.29 0.18,-1.46 1.58,-1.97 1.09,-1.85 0.11,-0.8 0,0 0.19,-0.14 -0.04,-0.62 -0.4,-0.66 0.65,-0.81 6.74,-0.22 2.89,-0.43 2.07,-0.66 7.4,0.79 2.12,1.12 1.94,1.5 4.12,2.18 1.46,0.52 4.82,3 1.21,0.2 2.22,2.29 2.99,2.11 2.57,0.72 2.44,2.91 1.22,0.61 2.96,3.81 4.16,3.08 1.46,2 1.04,0.99 1.5,0.82 1.15,0.03 2.37,0.92 0.79,0.67 z' },
+
+            'DF': { name: 'Distrito Federal', d: 'm 416.97257,334.13114 -14.69,-0.02 -0.52,-3.26 0.92,-1.83 0.38,-3.73 11.95,0.01 1.83,1.98 0.06,2.21 -0.59,1.19 -0.21,2.44 z' },
+
+            'ES': { name: 'Esp�rito Santo', d: 'm 501.89257,411.63114 -0.29,-0.14 0.44,-2.34 0.57,-1.3 -0.59,-3.12 0.16,-0.42 1.72,-2.06 5.15,0.03 0.55,-0.32 0.97,-3.24 1.11,-1.27 0.88,-2.29 0.24,-1.72 0.26,-0.44 1.24,-0.86 1.71,-2.09 0.54,-2.97 -0.29,-2.43 -1.27,-2.81 -1.1,-1.27 -0.52,-0.09 -0.45,0.29 -0.76,-0.28 -0.49,-0.71 0.43,-0.55 1.48,-0.09 0.8,0.35 0.97,0.03 0.95,-0.24 0.32,-0.42 -0.17,-1.72 -1.31,-0.35 -0.21,-0.41 0.3,-1.54 0.03,-1.92 -0.52,-0.66 -1.33,-0.67 -0.3,-0.7 1.17,-1.93 2.17,-1.31 0.31,-0.02 1.05,0.74 1.13,0.11 0.02,-0.81 -1.67,-2.27 1.34,0.13 2.18,-0.29 0.84,-0.61 1.08,-0.32 1.58,-0.08 2.54,0.81 0.91,0.55 0,0 0,0 0,0 0.3,0.53 8.1,5.14 0,0 -0.93,3.35 -0.31,2.86 0.12,3.59 0.72,6.15 -0.31,2.47 -1.49,3.18 -2.75,1.39 -0.55,0.6 -1.67,3.33 -0.98,3.8 -0.77,1.47 -0.83,-0.68 -0.88,-0.13 -0.29,1.28 1.35,0.52 -1.94,4.24 -3.45,3.84 -0.24,-0.27 -1.86,0.66 -0.8,1.23 -0.06,1.39 -0.42,1.25 -1.59,2.02 -0.29,1.13 0,0 -1.62,-1.06 -2.99,0.37 -4.34,-1.01 -2.5,-1.13 -0.67,-4.71 z' },
+
+            'GO': { name: 'Goi�s', d: 'm 416.97257,334.13114 -0.87,-1.01 0.21,-2.44 0.59,-1.19 -0.06,-2.21 -1.83,-1.98 -11.95,-0.01 -0.38,3.73 -0.92,1.83 0.52,3.26 14.69,0.02 0,0 0,0 0,0 -0.53,1.52 0.31,1.57 -0.68,1.59 -1.04,1.25 -0.41,1.47 0.85,1.21 0.85,0.34 1.42,1.03 1.65,4.56 0,0.6 -2.32,2.71 -3.24,3.01 -0.43,2.14 1.09,1.11 0.9,-0.47 1.58,0.57 0.47,0.61 0.18,1 -0.17,0.71 -0.73,0.9 -0.51,1.89 1.19,3.46 -3.09,2.06 -1.16,0.2 -0.86,0.9 -0.48,1.12 -4.89,2.74 -0.7,-0.77 -4.35,-1.86 -0.55,0.48 -0.58,0.09 -1.75,0.01 -1.48,-0.28 -3.86,0.16 -2.01,-0.89 -4.13,2.64 -2.91,2.92 -0.33,0 -1.31,-1.42 -1.52,-0.3 -3.19,1.64 -3.71,-0.62 -2.48,0.96 -2.23,0.54 -1.41,2.1 -1.21,2.46 0.06,1 -0.84,1.3 -0.82,0.28 -0.84,-0.16 -0.45,0.14 -0.94,0.74 -1.64,2.1 -0.57,1.9 0.56,0.61 -0.01,0.34 -0.36,0.23 -0.86,-0.46 0,0 -0.24,-0.45 -2.66,-2.24 -3.15,-0.61 -1.62,-1.55 -1.9,-0.43 -1.49,-0.04 -3.35,-1.34 -0.68,-0.85 -3.07,-1.56 -0.67,-0.61 -1.44,-0.71 -1.14,-0.17 -2.7,-1.68 -2.78,0.16 -3.8,-0.7 -0.13,-0.33 0.26,-0.84 0.57,-1.17 1.31,-1.76 -0.08,-0.42 -2.25,-0.9 -1.14,0.67 -0.66,-0.19 -0.28,-0.41 -0.23,-1.11 0.26,-2.58 -0.19,-1.77 0,0 -0.95,-2.2 -0.18,-3.43 -1.41,-2.19 -0.16,-0.71 0.4,-3.41 2.55,-3.85 0.38,-2.91 0.7,-0.77 2.02,-0.84 1.92,-1.77 1.25,-2.02 0.33,-1.95 0.5,-1.01 1.28,-1.04 0.82,-1.43 0.08,-1.54 1.75,-0.97 1.4,-2.62 2.65,-0.13 2.72,-0.86 0.32,-0.28 1.98,-4.19 0.71,-0.96 0.64,-4.1 0.38,-0.74 1.92,-1.94 1.65,-1.01 1.07,-0.26 1.23,0.68 1.21,-0.73 1.39,-1.43 0.84,-2.93 1.17,-2.87 -0.01,-0.8 -0.48,-1.14 0.58,-2.74 1.6,-3.09 -0.12,-5.18 1.21,-0.78 1.03,-2.63 2,-3.17 0.39,-1.07 -0.16,-2.72 0.35,-0.9 0.97,-0.86 0.27,-1.13 -0.08,-0.63 0,0 0.34,-0.45 0.2,-1.88 0.66,-1.23 1.81,-2.09 0.56,-0.3 -0.03,1.71 -1.22,1.88 -0.52,2.34 2.4,0.4 2.2,1.03 3.93,0.4 3.09,1.71 4.07,1.43 0.63,-0.23 1.63,-5.94 1.47,-2.39 1.18,-0.97 1.15,1.31 1.04,1.88 1.11,3.71 0.61,3.1 1.14,0.05 0.75,-0.75 0.3,-1 0.56,-0.54 2.76,0.34 4.53,-0.53 0.22,0.74 -0.56,1.56 3.13,1.47 3.35,0.68 0.69,-0.08 0.51,-3.3 0.55,0.03 1.51,2.62 0.46,0.24 1.78,-0.9 2.52,-2.08 4.53,-1 1.55,0 2.56,-1.1 1.74,-1.34 5.36,-1.42 0,0 2.72,2.46 0.02,0.38 -1.43,1.06 -0.48,2.52 0.1,0.33 1.63,0.84 -0.06,0.94 -0.23,0.38 -1.59,1.03 -1.19,3.83 -0.05,1.55 0.62,3.52 1.7,3.46 3.21,2.62 0.05,0.47 -0.72,1.42 -0.1,0.67 0.67,1.72 0.23,1.28 -0.25,0.77 -1.48,1.97 0,0 -1,1.01 -3.23,-0.34 -0.9,-1.76 -2.42,-1.48 -1.17,1.49 0.58,3.77 -0.57,0.54 -0.4,0.13 -2.78,-1.14 -1.17,0.23 -0.37,0.28 -0.72,3.18 0.72,0.1 0.49,1.16 -0.57,0.94 -0.73,0.7 0.04,1.9 0.42,0.61 0.53,0.19 0.69,4.26 -0.53,0.53 -3.36,0.9 -2.29,1.51 z' },
+
+            'MA': { name: 'Maranh�o', d: 'm 458.83257,129.18114 -0.04,0.33 -2.04,2.15 -0.43,0.17 -0.04,1.44 1.97,-1.7 0.68,-1.21 2.12,-1.58 0.89,-1.14 1.03,-6.33 1.15,-0.7 1.11,-0.12 1.67,-0.92 0.65,-0.13 0.46,0.12 0.08,1.63 -0.2,0.45 -1.42,1.87 -3.21,1.75 -0.03,0.72 0.73,0.12 0.45,-0.81 1.15,-0.31 0.22,0.83 -0.59,0.51 0.25,0.3 4.21,-4.97 0.86,0.33 2.58,-0.93 4.04,0.43 -0.46,-2.41 0.61,-0.23 2.42,0.08 1.78,0.38 2.63,1.05 1.04,0.11 2.15,1.38 1.4,0.03 1.26,1.3 1.89,1.32 2.5,0.58 1.16,-0.19 0.56,0.76 0.34,0.05 1.59,-0.09 2.46,0.66 0.26,-0.9 -0.67,-0.47 1.67,-0.38 0.57,0.11 -0.09,0.42 0,0 -0.46,1.43 0.23,0.72 0.63,0.54 -0.38,1.53 -1.79,2.27 -4.13,3.97 -3.32,0.46 -0.8,-0.16 -2.92,3.4 0.04,1.8 -0.88,1.83 -1.89,1.85 -0.82,1.98 -0.64,0.17 -0.77,1.05 0.36,1.92 1.23,0.83 0.38,1.28 -0.28,1.46 -1.14,2.87 1.58,2.81 0.55,2.98 -0.11,2.43 -0.21,0.55 -4.1,4.42 -0.17,2.48 0.12,2.11 0.51,2.3 1.78,2.04 1.61,0.91 0.17,0.5 0.13,0.84 -0.39,2.2 -0.29,0.44 -0.12,1.21 -0.5,1.46 -1.21,1.31 -2.29,0.29 -0.65,-0.28 -0.83,0.04 -2.43,0.86 -1.52,0.11 -2.5,-1.82 -1.01,-0.21 -1.46,0.19 -1.01,0.6 -1.12,0.26 -0.23,-0.3 -0.84,0.24 -0.5,0.22 -1.9,1.91 0.01,0.46 -0.63,0.87 -2.01,2 -2.34,0.91 -2.87,2.56 -1.33,0.53 -1.05,0.04 -1.7,1.53 -1.08,0.36 -2.61,0.32 -2.72,0.76 -2.13,1.95 -0.98,2.97 -0.39,2.97 -0.63,2.32 -1.45,2.74 -0.3,0.22 -0.34,0.82 -0.13,1.52 -1.2,2.48 -1.7,1.4 -0.73,2 0.71,1.94 0.47,3.18 1.73,3.06 -0.04,0.52 -0.76,1.4 -0.13,6.36 -1.15,2.45 -0.26,1.06 -0.05,1.92 0,0 -1.28,-0.66 -0.61,-0.82 -0.82,-0.45 -0.99,-0.29 -1.78,0.2 -0.71,-0.18 -1.35,-2 -0.99,-2.86 -2.13,-1.62 -0.14,-1.65 1.64,-1.81 -0.08,-0.53 -3.88,-1.95 -0.62,-1.05 -0.06,-1.66 -0.75,-1.59 -0.94,-0.69 -2.08,-0.28 -0.2,-0.42 0.26,-0.71 2.63,-2.54 -0.37,-1.31 0.73,-2.68 0.69,-1.43 0.57,-0.55 1.34,-0.54 3.39,-0.35 -0.39,-1.35 0.64,-3.25 -0.08,-1.76 -1.8,-1.21 -4.27,0.94 -2.15,1.34 -2.27,-3.02 -0.91,-0.85 -3,-4.15 -0.88,0.07 -0.84,-1.44 0.61,-1.19 -0.11,-0.88 -0.25,-0.34 -1.37,-0.24 -0.42,0.27 -1.93,-1.33 0.18,-0.71 1.76,-0.66 1.75,-2.04 0.25,-1.59 -0.28,-1 0.31,-2.36 1.77,-6.16 0.01,-0.43 -0.68,-1.14 -0.23,-1.08 0.21,-3.72 -0.64,-1.5 -0.47,-3.49 -0.84,-1.03 -3.4,-1.44 -1.22,-0.02 -0.28,-0.32 -0.08,-1.03 -0.59,-0.69 -1.74,-0.29 -0.96,0.52 -1.4,-0.09 -2.78,-1.51 -0.86,-0.06 -1.96,0.53 -2.62,1.85 -0.53,0.64 0,0 -0.49,-0.08 14.71,-11.83 2.35,0.23 1.17,-0.92 1.55,-2.17 0.43,-1.15 1.55,-1.17 0.62,-2.88 1.12,-0.46 2.44,-2.32 0.47,-1.21 0.29,-1.9 1.6,-4.69 1.96,-1.54 1.48,-1.76 0.83,-1.45 0.46,-1.28 -0.18,-1.82 0.79,-0.81 -1.04,-1.58 3.68,-3.09 -0.13,-1.64 0.5,-2.38 1.74,-1.57 0.36,-0.71 0.9,-3.02 0.08,-1.61 -0.43,-0.53 -0.99,0.16 -0.27,-0.49 0.05,-0.62 1.14,-0.15 0.57,-0.74 0.71,-4.39 -0.16,-1.38 0.47,-1.03 0.77,-0.45 0,0 0.63,0 0.24,-0.24 -0.06,-0.54 0.34,-0.749996 0.58,-0.53 1.34,0.98 0.45,1.839996 1.19,0.12 0.77,-1.36 0.61,2.93 0.99,0.04 0.29,-0.49 0.07,-0.94 0.85,-0.04 1.69,0.53 0.5,0.69 -1.43,1.7 0.67,0.7 0.02,0.55 1.21,-2.04 0.49,-1.54 0.45,0 0.4,1.02 0,0.58 -0.87,0.92 -0.27,0.99 0.08,2.71 0.26,0.33 0.47,0.12 0.58,-0.14 0.96,-0.93 -0.47,-1 0.14,-0.6 1.32,-1.43 1.05,-0.25 2.13,0.59 1.5,-1.11 0.05,0.92 -0.36,0.21 -1.13,1.53 0.59,0.58 0.1,-0.37 1.25,-0.6 0.58,0.79 -0.14,1.21 1.63,1.75 0.86,-0.44 1.58,0.67 0.77,2.4 -0.11,0.95 -2.19,2.73 -0.38,0.89 0.1,0.66 0.6,-1.03 1.75,-1.68 0.83,-0.03 0.87,0.81 0.52,1.89 -0.27,1.23 -0.97,0.19 -1.03,0.91 -1.16,1.49 0.07,0.77 -1.16,2.35 -0.62,3.52 0.21,0.34 0.87,0.23 z' },
+
+            'MT': { name: 'Mato Grosso', d: 'm 207.22257,296.31114 1.47,-1.43 4.11,-2.57 0.52,-2.45 1.43,-3.78 0.93,-1.08 1.64,-0.53 0.43,-0.41 0.58,-0.84 0.52,-2.25 1.66,-2.01 0.56,-2.24 0.07,-1.71 -0.58,-1.49 0.04,-2.05 -1.53,-3.34 -0.9,0.03 -0.58,-0.51 -0.43,-3.25 0.14,-1.32 1.36,-1.08 1.4,-1.75 0.17,-0.75 -1.41,-3.59 -1.07,-0.43 -1.11,-0.11 -3.5,0.09 -1.22,-1.11 0.24,-0.56 -17.16,-0.05 0.9,-9 -1.5,-2.75 -0.27,-1.76 0.03,-0.8 1,-3.52 -0.38,-1.93 0.94,-1.67 -0.83,-2.27 -0.15,-1.39 -0.26,-0.61 -0.78,-0.47 -0.06,-0.35 1.29,-4.99 0.76,-1.42 -0.6,-1.24 -1.4,-0.97 0,0 47.85,-0.32 1.21,-0.73 1.18,-5.22 1.38,-4.22 -0.46,-1.94 -0.66,-1.37 -0.1,-0.85 0.42,-0.85 0.86,-0.64 1.2,-1.82 0.27,-1.01 -0.34,-0.84 0.06,-0.76 0.2,-0.61 1.18,-1.2 0,0 1.17,1.08 2.45,4.06 0.4,1.76 1.37,3.96 1.32,1.93 0.77,1.62 -0.23,2.44 0.48,2.4 0.73,2.2 1.53,1.11 3,2.75 3.38,1.7 0.23,0.94 -0.04,1.1 0.23,0.49 0.95,0.4 0.82,-0.17 1.63,0.45 0.54,0.72 0.2,1.08 0.35,0.32 1.37,-0.45 3.69,1.49 34.04,2.42 62.97,3.48 0,0 -0.65,1.02 -0.56,1.89 -1.1,1.25 -0.44,3.14 -0.43,0.85 -0.37,0.27 -1.94,5.29 -0.54,2.97 -0.04,2.95 -1.88,5.99 0.06,0.86 1.39,1.34 -0.16,0.87 -0.82,0.89 -0.05,0.5 1.1,2.25 -0.47,3.31 0.01,1.57 0.52,0.58 0.44,3.05 -0.74,2.76 0.98,3.34 0.96,0.51 0.8,0.02 0,0 0.08,0.63 -0.27,1.13 -0.97,0.86 -0.35,0.9 0.16,2.72 -0.39,1.07 -2,3.17 -1.03,2.63 -1.21,0.78 0.12,5.18 -1.6,3.09 -0.58,2.74 0.48,1.14 0.01,0.8 -1.17,2.87 -0.84,2.93 -1.39,1.43 -1.21,0.73 -1.23,-0.68 -1.07,0.26 -1.65,1.01 -1.92,1.94 -0.38,0.74 -0.64,4.1 -0.71,0.96 -1.98,4.19 -0.32,0.28 -2.72,0.86 -2.65,0.13 -1.4,2.62 -1.75,0.97 -0.08,1.54 -0.82,1.43 -1.28,1.04 -0.5,1.01 -0.33,1.95 -1.25,2.02 -1.92,1.77 -2.02,0.84 -0.7,0.77 -0.38,2.91 -2.55,3.85 -0.4,3.41 0.16,0.71 1.41,2.19 0.18,3.43 0.95,2.2 0,0 -1.55,0.31 -1.17,-0.57 -0.87,-0.08 -2.66,0.08 -0.57,0.57 -4.62,-0.27 -1.74,-1.27 -1.3,-0.11 -0.15,-0.53 0.19,-0.46 1.66,-2.83 1.8,-0.7 1.23,-6.61 -1.34,0.13 -5.62,6.01 -1.01,-0.06 -2.13,0.88 -0.99,-0.04 -0.24,-0.25 -0.3,-1.37 -1.59,-1.04 -2.44,-0.07 -1.43,0.61 -0.49,0.85 -1.26,0.8 -4.52,0.63 -1.24,-0.57 -1.26,-1.11 -3.03,-1.16 -0.78,-1.02 -0.27,-0.86 -0.65,-0.35 -2.62,-0.47 -2.79,-1.25 -0.76,-1.15 -1.27,-0.2 -2.02,0.49 -1.35,1.25 -1.66,0.51 -0.77,-0.34 -1.56,0.22 -2.59,-0.03 -1.4,1.45 -0.09,1.17 -2.02,2.95 -2.05,2 -5.62,1.97 -2.15,-1.52 -1.02,-1.1 -0.7,-0.2 0,0 -0.66,-0.67 -0.32,-0.8 0.54,-0.71 -2.44,-2.15 -1.28,0.63 -0.52,-0.05 -1.17,-0.68 -0.45,-0.7 -2.02,-1.41 -1.89,-0.76 -0.3,-0.32 -0.3,-1.12 -0.23,-2.93 -0.61,-1.77 -0.19,-3.66 0.88,-1.64 1.14,-1.09 0.34,-1.78 -0.05,-1.89 -0.96,0.06 -0.4,0.6 -0.38,0.16 -26.86,-1.08 -1.05,-12.65 -5.37,-6.13 4.88,-0.06 -0.35,-7.55 -2.64,-5.32 -0.49,-1.97 0.26,-1.06 0.61,-0.55 0.65,-1.28 -1.44,-2.93 -3.11,-1.04 z' },
+
+            'MS': { name: 'Mato Grosso do Sul', d: 'm 359.21257,400.07114 -0.4,2.46 -0.28,0.4 -1.5,0.78 -1.32,0.04 -0.47,0.22 -1.22,1.03 -1.99,2.68 -0.73,0.65 -1.01,0.3 -0.62,1.68 -0.16,2.93 -2.59,3.64 -0.96,0.52 -0.23,0.38 0.31,1.93 -0.08,0.95 -1.21,2.34 -2,2.26 0.35,0.85 -0.28,1.21 -1.44,1.03 -0.4,1.21 -1.73,1.69 -1.26,2.44 -1.95,1.87 -7.56,4.53 -1.26,1.14 -0.74,1.54 -0.84,1.08 0,0 -5.41,2.27 -1.11,0.82 -0.93,2.33 0.02,1.15 -1.45,3.56 -0.67,0.68 -1.66,1.01 -1.11,0.32 -0.33,0.35 -1.57,7.92 -0.36,0.82 -2.38,1.56 0,0 -2.55,-2.33 -3.41,-1.89 -3.99,1.97 -0.68,0.75 -1.66,0.49 -2.58,0.43 -2.36,-0.46 -1.01,-0.65 -0.47,-4.27 -0.32,-0.7 -0.9,-0.95 -0.23,-2.47 0.51,-1.34 -0.64,-0.79 -0.09,-0.44 0,-2.87 -0.89,-1.97 -0.6,-2.74 -0.05,-0.72 0.59,-1.36 0.02,-1.61 -1.57,-1.09 -0.38,-0.8 -0.16,-2.16 -1.65,-1.82 -2.17,-0.26 -1.51,0.31 -1.83,-0.29 -2.46,-1.96 -0.56,-1.49 -1.54,0.33 -2.17,2.74 -1,-0.6 -1.72,0.81 -1.08,0.16 -1.74,-0.69 -2.56,-0.49 -3.46,0.23 -3.66,-0.71 -0.48,-0.91 -1.99,-0.13 -0.89,0.52 -2.5,-0.88 0.91,-7.27 -0.43,-2.38 0.6,-1.42 0.98,-1.46 0.6,-6.03 -0.66,-2.33 -0.05,-1.73 -0.76,-0.96 -0.43,-0.09 -0.49,0.65 -0.64,-3.26 -0.79,-1.87 -1.21,-2.02 -0.35,-1.83 4.03,-2.3 0.76,-0.88 -4.2,-3.86 5.38,-11.42 1.12,-0.06 -0.28,-2.13 -0.74,-0.13 3.23,-10.33 0.66,-1.16 -3.09,-5.85 0.03,-1.91 0,0 0.7,0.2 1.02,1.1 2.15,1.52 5.62,-1.97 2.05,-2 2.02,-2.95 0.09,-1.17 1.4,-1.45 2.59,0.03 1.56,-0.22 0.77,0.34 1.66,-0.51 1.35,-1.25 2.02,-0.49 1.27,0.2 0.76,1.15 2.79,1.25 2.62,0.47 0.65,0.35 0.27,0.86 0.78,1.02 3.03,1.16 1.26,1.11 1.24,0.57 4.52,-0.63 1.26,-0.8 0.49,-0.85 1.43,-0.61 2.44,0.07 1.59,1.04 0.3,1.37 0.24,0.25 0.99,0.04 2.13,-0.88 1.01,0.06 5.62,-6.01 1.34,-0.13 -1.23,6.61 -1.8,0.7 -1.66,2.83 -0.19,0.46 0.15,0.53 1.3,0.11 1.74,1.27 4.62,0.27 0.57,-0.57 2.66,-0.08 0.87,0.08 1.17,0.57 1.55,-0.31 0,0 0.19,1.77 -0.26,2.58 0.23,1.11 0.28,0.41 0.66,0.19 1.14,-0.67 2.25,0.9 0.08,0.42 -1.31,1.76 -0.57,1.17 -0.26,0.84 0.13,0.33 3.8,0.7 2.78,-0.16 2.7,1.68 1.14,0.17 1.44,0.71 0.67,0.61 3.07,1.56 0.68,0.85 3.35,1.34 1.49,0.04 1.9,0.43 1.62,1.55 3.15,0.61 2.66,2.24 0.24,0.45 0,0 -0.58,0.25 -0.99,4.18 0.59,3.21 z' },
+
+            'MG': { name: 'Minas Gerais', d: 'm 527.76257,365.59114 -0.91,-0.55 -2.54,-0.81 -1.58,0.08 -1.08,0.32 -0.84,0.61 -2.18,0.29 -1.34,-0.13 1.67,2.27 -0.02,0.81 -1.13,-0.11 -1.05,-0.74 -0.31,0.02 -2.17,1.31 -1.17,1.93 0.3,0.7 1.33,0.67 0.52,0.66 -0.03,1.92 -0.3,1.54 0.21,0.41 1.31,0.35 0.17,1.72 -0.32,0.42 -0.95,0.24 -0.97,-0.03 -0.8,-0.35 -1.48,0.09 -0.43,0.55 0.49,0.71 0.76,0.28 0.45,-0.29 0.52,0.09 1.1,1.27 1.27,2.81 0.29,2.43 -0.54,2.97 -1.71,2.09 -1.24,0.86 -0.26,0.44 -0.24,1.72 -0.88,2.29 -1.11,1.27 -0.97,3.24 -0.55,0.32 -5.15,-0.03 -1.72,2.06 -0.16,0.42 0.59,3.12 -0.57,1.3 -0.44,2.34 0.29,0.14 0,0 -2.53,2.35 -1.24,0.27 -0.56,0.5 0.74,0.7 -2.36,6.05 -1.9,3.71 -0.09,0.75 1.44,0.13 0.29,0.61 -0.21,0.52 -2.53,0.98 -9.51,4.53 -1.37,0.2 0.02,-0.46 -0.49,-0.17 -2.53,-0.27 -0.57,0.06 -1.62,0.94 -1.25,0.16 -3.2,0.08 -0.36,-0.32 -0.51,0.08 -4.1,1.78 -1.05,0.77 -1.71,0.77 -0.5,-0.28 -2.59,0.17 -2.91,1.34 -2.42,0.74 -0.68,0.49 0,0 -1.25,0.73 -2.2,0.22 -1.93,1.02 -1.23,1.24 -1.79,0.67 -2.38,0.25 -2.34,-0.08 -0.01,-0.49 0.35,-0.49 -0.09,-0.35 -1.19,0.33 -0.18,2.3 0.24,0.23 -0.05,0.84 -0.75,0.98 -1.3,0.32 -0.57,-0.43 -3.61,1 -0.19,-0.53 -2.01,0.24 -1.12,-0.25 -2.03,-3.31 1.22,-0.71 -0.52,-1.71 -1.8,-0.83 -1.79,-1.23 -0.71,-1.61 0.53,-1.56 0.19,-3.45 -0.26,-2.94 1.86,-2.72 0.7,-2.18 0.05,-1.27 -0.23,-0.37 -3.7,-1.32 -1,0.05 -0.28,0.36 -0.78,0.31 -1.61,0.05 0.03,-0.85 -0.83,-1.99 -1.3,-1.79 -0.37,-2.21 -0.31,-0.62 -0.79,-0.74 0.19,-1.94 1.52,-2.03 0.06,-0.56 -0.4,-1.55 -1.88,-1.21 -0.58,-0.61 0.29,-2.37 0.57,-1.01 -0.2,-1.04 -3.27,-3.35 -1.3,0.29 -0.85,0.64 -1.65,-0.78 -2.38,0.11 -0.31,0.61 0.2,0.46 -0.44,0.99 -2.78,0.68 -1.11,-0.43 -1.51,-1.45 -1.01,1.25 -8.18,0.68 -0.46,0.48 -0.48,1.19 0.27,2.54 -0.41,0.44 -1.19,-0.52 -0.01,-2.78 -0.25,-0.96 -0.36,-0.39 -0.56,-0.05 -0.26,0.19 -0.41,1.13 -0.67,0.94 -0.54,0.32 -0.62,-0.02 -1.21,-2.1 -0.33,-1.42 0.14,-0.91 -1.68,-0.79 -2.18,-1.42 -1.99,0.59 -1.62,-0.22 -1.67,0.35 -4.29,-0.96 -2.55,-0.08 -1.73,-1.55 -0.75,-0.14 -1.5,0.61 -1.43,1.69 -1.92,0.37 -2.15,1.11 -1.22,1.13 0,0 0.31,-2.62 -0.59,-3.21 0.99,-4.18 0.58,-0.25 0,0 0.86,0.46 0.36,-0.23 0.01,-0.34 -0.56,-0.61 0.57,-1.9 1.64,-2.1 0.94,-0.74 0.45,-0.14 0.84,0.16 0.82,-0.28 0.84,-1.3 -0.06,-1 1.21,-2.46 1.41,-2.1 2.23,-0.54 2.48,-0.96 3.71,0.62 3.19,-1.64 1.52,0.3 1.31,1.42 0.33,0 2.91,-2.92 4.13,-2.64 2.01,0.89 3.86,-0.16 1.48,0.28 1.75,-0.01 0.58,-0.09 0.55,-0.48 4.35,1.86 0.7,0.77 4.89,-2.74 0.48,-1.12 0.86,-0.9 1.16,-0.2 3.09,-2.06 -1.19,-3.46 0.51,-1.89 0.73,-0.9 0.17,-0.71 -0.18,-1 -0.47,-0.61 -1.58,-0.57 -0.9,0.47 -1.09,-1.11 0.43,-2.14 3.24,-3.01 2.32,-2.71 0,-0.6 -1.65,-4.56 -1.42,-1.03 -0.85,-0.34 -0.85,-1.21 0.41,-1.47 1.04,-1.25 0.68,-1.59 -0.31,-1.57 0.53,-1.52 1.27,-0.12 2.29,-1.51 3.36,-0.9 0.53,-0.53 -0.69,-4.26 -0.53,-0.19 -0.42,-0.61 -0.04,-1.9 0.73,-0.7 0.57,-0.94 -0.49,-1.16 -0.72,-0.1 0.72,-3.18 0.37,-0.28 1.17,-0.23 2.78,1.14 0.4,-0.13 0.57,-0.54 -0.58,-3.77 1.17,-1.49 2.42,1.48 0.9,1.76 3.23,0.34 1,-1.01 0,0 0.51,2.41 -1.43,3.44 0.4,0.23 1.34,-0.91 0.7,-1 0.72,-0.13 2.13,0.38 1.04,-0.77 1.85,-2.57 0.99,0.15 1.43,-0.53 1.81,-1.55 0.95,-1.17 2.02,-0.41 3.37,-1.86 0.64,-1.11 4.27,-3.03 3.82,-1.58 1.8,0.09 1.2,0.5 2.18,0.03 2.28,0.53 0.85,0.46 -1.29,2.74 -0.15,0.89 0.26,1.49 0.61,0.5 5.33,1.46 0.64,-0.17 0.81,-1.12 1.88,-0.89 1.77,-0.26 2.73,0.75 1.1,0.54 4.35,3.64 0.98,-0.18 2.17,1.62 2.53,1.22 0.93,0.22 0.51,-0.21 1.53,1.24 4.39,-1.23 0.38,0.18 6.52,6.2 0.44,3.96 0.57,-0.21 2.61,0.45 1.47,-0.5 1.32,-0.99 1.99,0.15 2.73,0.56 2.26,1.08 2.19,0.61 2.12,-0.03 2.83,2.47 0.73,0.38 0.89,0.07 0.78,1.02 0.42,1.17 -1.47,3.08 -4.96,4.22 -0.15,2.65 0.56,1.02 0,0.42 -1.02,0.71 -2.48,-0.24 -0.82,0.88 -0.82,3.3 -0.53,4.4 0.22,0.25 0.35,-0.19 0.2,-0.45 0.64,-0.24 0.58,1.23 -0.22,1.51 0.15,0.51 4.14,3.06 0.53,1.04 0.01,0.53 -0.68,1.35 z' },
+
+            'PA': { name: 'Par�???', d: 'm 371.29257,235.50114 -62.97,-3.48 -34.04,-2.42 -3.69,-1.49 -1.37,0.45 -0.35,-0.31 -0.2,-1.09 -0.55,-0.72 -1.63,-0.45 -0.82,0.17 -0.95,-0.39 -0.23,-0.5 0.04,-1.1 -0.23,-0.94 -3.38,-1.7 -3,-2.76 -1.54,-1.11 -0.72,-2.2 -0.48,-2.39 0.23,-2.44 -0.77,-1.63 -1.33,-1.93 -1.37,-3.95 -0.39,-1.76 -2.45,-4.06 -1.18,-1.08 0,0 -0.57,-0.56 -0.15,-1.96 -0.64,-1.26 -1.59,-1.56 -1.07,-0.58 -0.37,-0.57 -0.83,-2.34 0.03,-1.13 0.58,-0.97 1.45,-1.13 0.78,-1.31 29.9,-64.24 -1.81,-1.67 0.13,-0.78 -0.19,-0.48 -1.39,0.35 -0.85,0.61 -1.87,-0.78 -1.1,-2.17 -2.69,-1.45 -1.27,-1.34 -0.08,-0.6 -1.32,-0.82 -1.37,-0.15 -2.25,-0.65 -2.38,-1.31 -1.88,-0.67 -1.35,-1.09 -0.63,-0.9 -4.58,-2.54 -4.64,-3.769996 -0.3,-0.44 -0.04,-0.93 -0.55,-1.83 -1.84,-1.23 -0.7,0.19 -0.36,-0.2 -1.83,-1.98 0.05,-2.11 0.35,-0.69 -0.18,-0.41 -1.69,-0.85 -0.24,-0.68 -0.18,-2.27 0.43,-1.45 -0.4,-4.86 0,0 -1.59,-16.97 0,0 0.75,0.32 0.43,0.58 -0.02,0.48 0.45,0.4 0.92,0.28 1.37,-0.71 0.47,-0.81 2.71,0.23 0.81,-1.05 -0.54,-1.81 1.79,-0.36 1.41,-1.63 2.64,1.01 1.88,0.03 0.54,-1.52 3.33,-1.62 1.97,0.39 1.16,-0.11 0.49,-0.25 1.2,-1.48 0.4,-1.4 1.46,-1.1 0.86,-0.11 0.65,0.46 2.11,-1.13 0.41,0.11 0.37,0.99 0.73,0.45 2.03,0.48 1.61,0.25 0.56,-0.6 1.67,-0.39 0.78,0.28 0.82,-0.01 0.86,-0.34 2.24,0.3 4.67,1.38 0.96,-0.14 1,-0.87 -0.03,-2.28 -2.07,-2.5 -1.24,-0.63 0.49,-1.68 1.31,-1.45 0.28,-1.11 0.31,-0.17 0.71,0.19 0.83,0.76 2.35,1.11 11.62,-2.33 1.57,1.69 1.02,0.06 0.44,-0.29 0,0 0.62,0.57 0.37,2.3 -0.62,1.3 -0.25,4.54 0.24,1.44 0.31,0.54 1.17,0.02 1.08,-0.29 3.39,0.37 1.29,0.49 1.93,1.05 0.67,0.8 0.49,1.28 1.19,0.12 1.14,0.84 0.8,0.98 0.84,0.27 1.33,-0.14 0.38,-0.42 0.94,-0.14 2.84,2.66 0.68,-0.03 0.49,1.18 -0.68,0.23 -0.19,0.72 0.76,2.83 2.02,2.26 2.57,0.73 0.17,0.33 -0.43,3.14 0.19,2.11 0.67,1.51 0.62,0.56 0.59,1.81 -0.13,1.58 1.5,3.48 0.82,0.19 0.78,-0.36 2.93,3.28 -0.08,2.43 0.41,0.94 0.95,0.19 0.33,0.47 0.31,1.58 -0.21,0.69 0.11,1.3 1.87,1.39 0.43,1.5 1.45,1.03 2.79,0.679996 1.3,-0.12 0.77,-0.339996 0.94,0.06 0,0 -0.53,0.739996 0.29,1.59 -0.17,0.53 -1.29,1.11 -1.39,0.17 -0.5,-0.18 -0.84,-0.79 -0.66,-0.15 -3.38,1.58 -0.37,0.54 -1.6,0.72 -0.63,-0.02 -1.55,0.59 0.04,0.58 6.46,-1.06 0.88,0.66 0.13,0.46 0,0.66 -0.62,0.5 0.3,0.36 0.63,-0.2 0.86,-1 1.02,-0.01 0.53,-0.27 0.6,0.12 1.07,-0.42 1.14,-0.57 3.28,-2.34 1.5,-0.35 1.84,-0.81 3.16,-1.84 0.54,-0.999996 0.67,-0.52 2.09,-1.01 0.66,-0.72 -0.25,-0.67 0.21,-0.41 1.13,-0.28 1.09,0.06 0.41,0.21 0.38,3.799996 -0.52,2.58 0.33,1.62 0.81,1.6 1.31,1.35 0.3,1.64 -0.12,0.47 -1.84,1.84 -0.47,0.13 -0.87,-0.52 -1.82,-0.52 -1.26,-0.31 -0.93,0.14 -2.13,-1.04 -0.26,-1.12 -0.88,-0.53 -2.28,3.82 -0.61,2.37 0.68,2.97 0.48,0.64 0.92,0.62 -1.01,-1.14 -0.43,-2.69 0.12,-0.52 2.57,-4.22 2.31,1.18 0.11,0.45 2.53,2.45 -0.25,2.02 -0.74,0.55 0.4,2.33 0.52,1.13 1.12,0.75 0.74,0.15 0.52,0.49 -0.34,-0.64 -0.77,-0.24 -1.2,-1.04 -0.22,-0.68 0.34,-4.2 0.82,-1.19 1.43,0.73 0.83,1.2 -0.09,0.79 1.2,0.86 0.25,-0.29 -1,-1.26 -0.92,-2.1 0,-0.44 2.26,-2.32 1.62,0.09 1.93,0.64 0.34,0.56 -0.61,0.59 0.32,0.28 0.48,0.03 1.03,-0.17 1.33,-0.9 4.09,-0.96 0.77,0.2 1.74,1.06 3.17,-0.42 1.07,-0.41 1.02,-1.01 0.98,-0.59 1.74,-0.51 0.77,0.07 0.06,0.75 -2.04,4.02 -0.24,1.5 -0.46,1.07 -0.83,1.03 -0.01,0.88 0.58,1.42 -0.32,2.47 0.88,-1.19 0.01,-1.4 1.54,-3 1.13,-3.19 1.12,-1.56 0.27,-0.27 0.76,-0.05 0.58,-0.35 1.82,-0.23 0.88,-1.35 1.51,-1.69 1.36,-2.26 0.52,-0.46 0.79,0.49 0.62,-0.46 1.62,2.34 1.19,0.59 -0.05,-0.74 -0.35,-0.75 0.62,-1.01 3.51,-0.51 -1.03,-0.32 -3.51,0.46 -0.31,-0.21 0.29,-2.43 0.51,-0.29 0.67,0.38 1.02,0.11 1.07,-3.099996 -0.68,-1.39 0.03,-0.68 1.17,-1.81 2.84,-2.48 0.36,-0.08 1.11,1.14 2.93,-2.09 0.46,-0.07 0.4,0.45 0.1,0.57 -0.32,0.67 1.07,-0.16 0.81,-0.58 0.36,-0.78 0.63,-0.19 0.28,0.15 0.74,1.39 1.33,1.2 0.2,-0.56 -0.11,-0.38 -0.96,-0.49 -0.14,-0.29 -0.13,-1.2 0.17,-0.42 0.44,-0.19 2.28,0.26 1.18,0.65 0.62,1.02 1.63,0.71 1.65,-0.78 0.53,2.14 -0.5,0.31 -0.03,0.59 0.92,-0.52 1.16,-2.35 0.38,0.23 -0.23,1.33 0.41,0.44 2.51,-0.26 0.45,0.65 0.46,1.68 -0.6,0.95 0.85,-0.5 0.26,0.37 1.89,0.14 3.53,-1.24 -0.31,1.58 -0.75,1.829996 1.47,-0.489996 0.59,-0.62 0.63,1.619996 0,0 -0.77,0.45 -0.47,1.03 0.16,1.38 -0.71,4.39 -0.57,0.74 -1.14,0.15 -0.05,0.62 0.27,0.49 0.99,-0.16 0.43,0.53 -0.08,1.61 -0.9,3.02 -0.36,0.71 -1.74,1.57 -0.5,2.38 0.13,1.64 -3.68,3.09 1.04,1.58 -0.79,0.81 0.18,1.82 -0.46,1.28 -0.83,1.45 -1.48,1.76 -1.96,1.54 -1.6,4.69 -0.29,1.9 -0.47,1.21 -2.44,2.32 -1.12,0.46 -0.62,2.88 -1.55,1.17 -0.43,1.15 -1.55,2.17 -1.17,0.92 -2.35,-0.23 -14.71,11.83 0.49,0.08 0,0 2.29,0.81 1.87,-0.24 1.29,0.12 1.02,1.66 0.39,0.31 0.87,0.14 1.26,1.17 -0.04,0.63 -0.37,0.67 -0.72,0.37 -0.97,0.07 -0.29,0.28 0.09,1.41 1.01,1.34 -0.92,2.75 -0.64,0.48 -1.46,0.46 -0.25,0.46 0.29,1.2 -0.19,1.34 -1.3,0.15 -1.51,1.34 -0.85,1.27 0.15,1.51 -0.24,0.5 -2.5,1.2 -3.41,1.14 -2.47,1.78 -0.19,0.35 0.43,2.19 0.06,2.67 -1.28,2.1 -1.41,1.68 -0.15,0.57 0.17,0.88 0.59,0.96 1.67,1.74 0.75,0.32 0.15,0.3 -0.66,4.04 -1.76,5.15 -1.08,0.81 -1.7,3.24 -0.18,0.99 -0.94,1.54 -0.74,0.85 -1.05,0.16 -1.37,0.92 -1.03,1.92 -1.21,1.68 -1.18,1.09 -1.15,1.58 -1.13,4.46 -1.6,3.66 z' },
+
+            'PB': { name: 'Para�ba', d: 'm 610.69257,199.41114 -2.5,-2.06 -0.82,-0.26 -2.65,-0.21 -2.31,1.07 -1.48,1.28 -0.45,1.8 -1.9,1.03 -2.01,0.45 -1.14,-0.02 0,0.6 -0.8,0.53 -2.18,0.29 -3.88,-0.26 -1.61,0.88 -0.55,0.64 -1.82,0.1 -0.89,0.69 -0.54,0.76 0.39,0.73 0.01,0.54 -0.4,0.48 -1.78,1.53 -1.34,0.16 -1.65,0.84 -1.6,-0.79 -0.95,-0.94 -0.35,-2.24 0.24,-0.49 -0.18,-0.3 -1.14,-0.32 -0.44,0.29 -1.51,0.25 0.04,-0.45 2.53,-2.64 0.17,-0.43 -0.72,-1.87 -0.04,-0.47 0.37,-0.78 3,-1.07 0.11,-0.3 -0.5,-1.39 -3.5,-1.92 -1.48,0.41 -2.22,1.26 -0.93,1.51 -1.48,0.87 -1.05,0.31 -2.7,1.88 -1.52,1.64 -1.63,0.23 -2.63,0.97 -0.77,-0.33 0.05,-0.68 -0.63,-1.24 -0.38,-0.08 -0.93,0.73 -1.51,0.32 -0.99,-0.33 -1.4,-1.91 -0.4,-0.09 0,0 -0.17,-0.25 1.19,-1.12 1.61,-3.49 -0.34,-1.19 -0.69,-0.08 -1.24,-0.89 0.02,-1.66 -0.35,-0.72 -0.58,-0.29 -0.24,-0.41 0.12,-0.93 0.17,-0.38 1.09,-0.63 0.66,-1.31 -0.52,-1.31 1.03,-3 0.84,-1.15 0.08,-0.54 0,0 0.57,-0.46 1.93,1.64 0.9,0.42 2.88,0.61 1.16,-1.13 3.23,-1.66 0.82,-0.71 0.1,-1.04 0.41,-0.95 3.18,-1.21 1.43,-0.12 3.26,-1.04 0.64,0.08 0.53,0.44 0.01,1.19 -2.99,3.21 -0.44,0.96 -0.38,1.74 -0.41,0.38 -0.85,0.25 -0.21,0.31 -0.08,1.72 3.53,0.52 0.32,0.23 0.31,1.38 0.29,0.23 3.15,-1.26 1.77,-0.08 1.95,0.3 0.89,1.17 -0.52,1.54 0.83,0.74 2.35,-0.93 0.5,-0.74 0.55,-1.21 -0.47,-0.94 -0.16,-1.42 0.48,-0.59 1.01,0.32 -0.53,-1.53 -0.72,-0.78 0.31,-1.48 1.82,-1.35 1.38,-0.05 0.42,0.39 -0.1,1 0.62,0.49 3.42,0.4 0.53,0.35 5.83,-0.39 2.17,0.3 2.46,1.1 1.04,-0.4 3.5,0.21 0.93,-0.24 0,0 0.09,2.4 1.45,4.39 0.06,0.64 -0.18,0.94 -0.37,0.45 -0.03,0.88 0.58,-0.74 0.51,-1.5 0.01,1.98 0.59,1.01 -0.27,5.18 -0.36,0.6 z' },
+
+            'PR': { name: 'Paran�???', d: 'm 397.01257,499.66114 -5.24,-0.03 -0.33,0.44 -1.74,0.24 -0.76,-0.07 -0.11,-0.39 -1.57,0.57 -1.35,1.43 -3.35,2.13 -1.44,-0.16 -1.23,-0.62 -3.13,-2.6 -1.03,-0.39 -0.76,-0.01 -2.84,0.73 -2.33,0.17 -0.81,-0.03 -1.42,-0.76 -1.11,0.14 -1.53,0.65 -0.59,1.47 -0.73,0.87 -1.87,0.98 -3.57,-0.41 -2,1.15 -0.72,0.77 -0.69,1.59 0.85,2.99 -0.87,0.86 -0.92,0.02 -0.75,0.38 -0.17,0.49 -1.33,-1.89 -4.25,0.13 -3.76,-0.43 -1.58,-1.18 -0.16,-0.41 -1.03,-0.63 -4.26,-0.36 -5.29,-1.68 -2.34,0.57 -2.69,-0.03 -2.02,-1.41 -0.32,-0.51 -1.06,-0.24 -0.53,-0.01 -0.71,0.37 -3.63,-0.02 0,0 -0.22,-1.21 -2.53,-4.18 0.02,-2.59 -0.99,-2.88 -3.42,-2.37 -1.09,1.13 -2.12,-0.11 -1.1,0.43 -1.07,0.9 -1.46,-1.08 -0.82,0.06 -0.28,-2.2 0.66,-1.57 1.07,-1.27 1.22,-2.18 0.06,-0.34 -0.49,-0.75 0.02,-1.24 0.9,-3.64 1.26,-3.02 -0.25,-2.3 1.28,-2.38 -0.21,-1.02 -0.84,-0.88 -0.31,-1.6 0.66,-1.06 0.79,-0.54 0,0 2.38,-1.56 0.36,-0.82 1.57,-7.92 0.33,-0.35 1.11,-0.32 1.66,-1.01 0.67,-0.68 1.45,-3.56 -0.02,-1.15 0.93,-2.33 1.11,-0.82 5.41,-2.27 0,0 3.26,-2.29 3.83,0.65 4.01,-0.11 3.27,0.29 1.21,-0.62 0.35,-0.6 0.73,-0.37 1.17,0.29 1.48,0.78 2.52,0.46 2.64,1.09 1.31,0.13 1.07,-0.54 2.58,-0.01 0.78,1 1.75,0.84 3.51,0.8 0.63,0.51 0.71,1.32 1.73,0.07 0.42,-0.34 1.65,0.15 0.66,0.54 5.31,0.13 2.97,-0.85 1.13,1.55 3.59,2.83 0.89,1.76 0.01,2.74 -0.39,0.58 -0.16,0.81 0.38,1.84 1.3,1.51 -0.08,1.76 -0.36,0.56 1.49,3 1.21,1.15 0.67,0.28 0.5,0.68 -0.05,0.89 0.92,1.97 0.6,0.29 0.25,0.44 -0.25,1.05 -1.27,2.13 0.32,2.04 0.6,0.38 1.01,0.21 2.38,-0.12 3.42,-0.53 0.5,0.39 1.58,-0.19 1.59,0.13 1.61,1.26 -0.14,0.41 -0.89,0.65 -0.69,3.3 0.35,0.78 1.07,0.53 0.65,-0.85 1.1,-2.76 0.76,-0.17 2.14,0.58 -0.4,1.95 0.73,3.3 1.42,0.58 0.16,1.32 0,0 -1.35,1.02 -0.61,1.48 -0.55,-0.12 0.27,-1.94 1.44,-0.95 -1.41,0.28 -0.89,0.49 -0.87,-0.02 -0.34,-0.39 -0.57,-0.17 -0.54,0.37 -0.28,0.93 0.52,0.8 -0.73,0.96 -0.3,0.1 -2.48,-0.53 -0.79,-0.54 -0.45,0.12 -0.18,0.9 0.34,0.37 1.61,0.56 1.4,-0.25 2.13,0.6 0.27,0.48 -0.97,0.68 -1.54,2.78 -1.24,0.77 -2.42,0.57 -0.2,0.45 2.95,-0.2 0.15,1.19 z' },
+
+            'PE': { name: 'Pernambuco', d: 'm 558.54257,227.45114 -1.22,-3.04 -0.01,-0.94 -2.11,-0.86 -0.5,-0.37 -0.45,-0.83 0.61,-0.89 -0.02,-0.62 -0.45,-0.32 -1,0.01 -0.43,0.44 -0.29,1.74 -0.43,0.15 -0.39,-0.26 -0.54,-1.65 -1.58,-1.15 -2.99,-0.4 -2.36,-0.77 -1.35,-0.81 -0.83,-1.44 -1.49,-0.56 -0.59,0.11 -2.53,1.46 -1.65,0.44 -0.77,2.05 -2.23,0.45 -0.29,0.25 0.25,1.36 -0.17,0.59 -1.1,1.24 -2.39,1.03 -0.64,-0.06 -0.77,-0.53 -0.76,0.17 -0.5,0.87 -0.77,3.57 -2.87,0.88 -0.82,0.92 -0.96,0.23 -1.84,-0.62 0.92,-1.68 -0.26,-2 -2.21,-0.91 -0.72,-1.94 0.06,-2.73 -0.44,-0.51 -2.81,-1.38 -2.2,-0.29 -1.16,0.26 -0.9,-0.4 0,0 2.62,-1.27 1.97,-1.71 0.54,-0.87 2.29,-1.33 0.97,-0.28 3.89,-3.87 0.74,-1.76 0.06,-2.27 -0.29,-0.54 -1.62,-1.58 0.07,-2.19 -0.6,-1.13 -0.06,-0.95 0.11,-0.45 0.52,-0.33 1.79,-0.16 0,0 4.93,0.2 0.89,0.24 1.63,-0.19 2.14,-0.8 1.29,-0.1 3.08,0.42 2.85,1.9 1.83,0.83 0.46,0.99 1.01,1.07 1.36,0.48 0.78,0.57 0.63,1.64 1.65,-0.05 1.54,-2.29 1.07,-0.83 1.59,-0.49 0,0 0.4,0.09 1.4,1.91 0.99,0.33 1.51,-0.32 0.93,-0.73 0.38,0.08 0.63,1.24 -0.05,0.68 0.77,0.33 2.63,-0.97 1.63,-0.23 1.52,-1.64 2.7,-1.88 1.05,-0.31 1.48,-0.87 0.93,-1.51 2.22,-1.26 1.48,-0.41 3.5,1.92 0.5,1.39 -0.11,0.3 -3,1.07 -0.37,0.78 0.04,0.47 0.72,1.87 -0.17,0.43 -2.53,2.64 -0.04,0.45 1.51,-0.25 0.44,-0.29 1.14,0.32 0.18,0.3 -0.24,0.49 0.35,2.24 0.95,0.94 1.6,0.79 1.65,-0.84 1.34,-0.16 1.78,-1.53 0.4,-0.48 -0.01,-0.54 -0.39,-0.73 0.54,-0.76 0.89,-0.69 1.82,-0.1 0.55,-0.64 1.61,-0.88 3.88,0.26 2.18,-0.29 0.8,-0.53 0,-0.6 1.14,0.02 2.01,-0.45 1.9,-1.03 0.45,-1.8 1.48,-1.28 2.31,-1.07 2.65,0.21 0.82,0.26 2.5,2.06 0,0 0.88,0.23 0.55,1.22 -1.27,1.72 -0.11,0.55 0.01,0.48 0.7,0.37 0.27,0.5 0.19,1.06 -1.96,6.38 -3.25,8.95 0,0 -0.27,-0.21 -2.9,-0.27 -1.92,-0.81 -1.47,0.19 -2.56,1.29 -2.24,-0.85 -2,0.24 -1.55,1.24 -0.12,0.45 -2.18,2.29 -1.81,1.11 -1.16,-0.05 -1.86,1.06 -1.17,0.11 -3.14,-0.29 -2.5,0.65 -1.91,-0.48 -1.78,-1.05 -1.9,-2.12 -2.55,-2.02 -1.08,0.12 -1.67,-0.3 -1,-1.22 -0.82,0.6 -0.09,0.69 -2.38,3.29 -2.17,0.76 -0.64,1.09 z' },
+
+            'PI': { name: 'Piau�???', d: 'm 505.96257,127.17114 1.31,0.12 0.69,-0.23 2.24,0.51 0.99,0.85 0.32,0.6 0,0 -0.11,0.8 -1.09,1.85 -1.58,1.97 -0.18,1.46 0.29,1.29 1.8,4.72 3.15,6.42 0.44,1.73 1.36,1.59 -0.02,0.76 -0.74,1.36 0.79,3.87 -0.48,1.6 1,2.01 0.6,2.99 -0.59,1.58 -0.8,0.58 0.92,0.69 0.11,0.38 0.94,8.16 -0.24,0.45 0.76,2.57 1.05,5.2 1.01,2.67 1.31,0.65 2.56,0.47 0.77,1.16 -0.01,0.69 -1.5,2.25 -1.14,3.11 0.08,0.97 0.68,0.68 -0.06,1.32 0,0 -1.79,0.16 -0.52,0.33 -0.11,0.45 0.06,0.95 0.6,1.13 -0.07,2.19 1.62,1.58 0.29,0.54 -0.06,2.27 -0.74,1.76 -3.89,3.87 -0.97,0.28 -2.29,1.33 -0.54,0.87 -1.97,1.71 -2.62,1.27 0,0 -0.45,1.16 -1.5,2.3 -1.05,0.67 -0.79,-0.18 -2,0.38 0.11,2.4 -1.86,1.8 -0.32,-0.05 -0.62,-0.62 -2.16,-0.01 -0.82,0.98 -0.77,0.36 -2.73,0.34 -1.51,1.34 -0.82,1.22 -1.7,0.1 -1.48,0.64 -3,0.11 -0.82,-0.28 -0.19,-0.28 0.13,-0.66 -1.71,-0.98 -1.33,-0.39 -1.39,0.55 -2.13,0.43 -0.32,-0.18 -0.41,-0.93 -1.5,-0.46 -1.95,0.02 -3.24,1.65 -0.06,0.93 2.24,4.44 0.12,1.15 -0.29,2.57 -0.25,0.91 -0.72,0.86 -2.95,5.05 -2.97,2.42 -1.35,0.42 -1.48,-0.53 -1.34,-0.17 -2.2,0.75 -1.17,0.89 -0.67,0.87 -1.14,0.38 -0.75,1.45 -0.33,0.21 -2.11,-0.18 -1.8,0.52 -4.18,-1.85 -1.77,-2.49 -0.53,-2.21 -0.66,-1.04 -1.44,-1.34 -2.33,0.02 0,0 -2.94,-0.21 0,0 0.05,-1.92 0.26,-1.06 1.15,-2.45 0.13,-6.36 0.76,-1.4 0.03,-0.51 -1.73,-3.06 -0.47,-3.19 -0.7,-1.94 0.73,-2 1.7,-1.4 1.2,-2.48 0.13,-1.51 0.34,-0.83 0.3,-0.21 1.44,-2.74 0.63,-2.32 0.39,-2.97 0.98,-2.98 2.13,-1.95 2.72,-0.76 2.61,-0.31 1.07,-0.37 1.7,-1.53 1.05,-0.04 1.34,-0.52 2.86,-2.57 2.34,-0.91 2.01,-2 0.63,-0.87 0,-0.46 1.9,-1.92 0.5,-0.22 0.84,-0.24 0.23,0.3 1.12,-0.26 1,-0.6 1.46,-0.19 1.01,0.21 2.51,1.82 1.51,-0.1 2.44,-0.86 0.83,-0.04 0.65,0.28 2.28,-0.29 1.21,-1.31 0.5,-1.46 0.12,-1.21 0.29,-0.44 0.39,-2.2 -0.13,-0.85 -0.17,-0.5 -1.61,-0.91 -1.78,-2.03 -0.51,-2.3 -0.11,-2.11 0.17,-2.48 4.1,-4.43 0.21,-0.55 0.1,-2.43 -0.55,-2.98 -1.58,-2.8 1.14,-2.87 0.28,-1.47 -0.38,-1.27 -1.23,-0.84 -0.35,-1.92 0.77,-1.05 0.64,-0.17 0.82,-1.98 1.89,-1.85 0.88,-1.83 -0.04,-1.79 2.92,-3.41 0.81,0.16 3.31,-0.46 4.13,-3.97 1.79,-2.27 0.39,-1.53 -0.64,-0.53 -0.22,-0.72 0.46,-1.44 0,0 0.73,0.12 1.47,0.87 0.51,0.51 -0.13,0.31 z' },
+
+            'RJ': { name: 'Rio de Janeiro', d: 'm 468.61257,450.54114 -0.07,-0.78 0.38,-0.27 3.19,0.22 2.59,-0.59 -2.53,-1.55 -1.4,-0.5 -2.81,0.68 -1.36,1.6 -1.03,0.32 -0.7,-0.05 -1.35,-2.15 -0.48,0 -0.9,0.42 -0.96,1.06 -3.15,0.8 -0.34,0.91 -0.19,1.9 2.19,0.13 1.07,1.01 -1.15,1.08 -0.94,-0.17 -1.42,0.17 0,0 -0.48,-0.26 -1.63,-1.73 -0.05,-0.41 1.09,-3.5 1.09,-1.15 2.35,-1.01 0.5,0.15 2.77,-0.36 1.5,-0.71 1.65,-2.15 -0.75,-1.64 -1.7,-0.01 -3.15,0.53 -1.77,-0.39 -1.23,-1.59 -0.56,-1.17 -1.27,-0.54 0,0 0.68,-0.49 2.42,-0.74 2.91,-1.34 2.58,-0.17 0.5,0.27 1.72,-0.77 1.05,-0.77 4.09,-1.79 0.52,-0.07 0.36,0.31 3.2,-0.07 1.25,-0.17 1.63,-0.94 0.57,-0.06 2.53,0.27 0.49,0.17 -0.02,0.47 1.38,-0.2 9.51,-4.53 2.53,-0.99 0.21,-0.52 -0.28,-0.61 -1.44,-0.13 0.09,-0.75 1.89,-3.71 2.36,-6.04 -0.73,-0.71 0.56,-0.49 1.24,-0.27 2.53,-2.36 0,0 1.93,0.76 0.67,4.71 2.5,1.13 4.33,1.01 2.99,-0.37 1.62,1.06 0,0 -0.08,1.27 -0.94,1.61 -0.22,2.13 1.14,6.78 -0.5,0.68 -3.08,1.75 -5.97,1.94 -2.83,1.72 -3.5,3.69 -0.11,1.66 0.31,1.19 -0.19,1.62 -0.73,1.48 -1.82,0.51 -6.55,-0.17 -5.79,0.7 -2.39,-0.46 -0.49,-0.38 -0.06,-0.68 1.03,-1.48 0.67,-1.45 -0.09,-0.62 -0.78,-0.18 -2.79,1.15 -0.26,0.69 0.31,0.79 1.38,1.17 0.25,0.97 -0.59,0.52 -1.63,0.51 -1.57,-0.03 -8.04,1.07 -1.46,0.45 z' },
+
+            'RN': { name: 'Rio Grande do Norte', d: 'm 609.55,183.17 l 15,0 l 0,12 l -15,0 z' },
+
+            'RO': { name: 'Rond�nia', d: 'm 187.58257,291.21114 -1.29,-1.45 -0.44,-1.88 -1.56,-0.52 -0.86,0.32 -1.81,0.08 -4.07,-1.81 -0.01,-0.4 -0.66,-0.61 -1.27,0.59 -1.98,-1.68 -1.52,-0.97 -0.86,-1.46 -0.28,-1.39 -1.04,-0.39 -1.77,1.12 -1.22,-0.03 -1.41,-0.8 -0.87,-1.33 -3.13,-1.58 -1.96,-0.17 -1.14,0.54 -0.9,0.85 -1.43,-0.17 -0.31,-0.3 -2.14,-0.51 -3.06,-0.28 -0.76,-0.43 -1.18,-1.19 -0.3,-1.97 -1.58,-0.49 -1.89,-0.97 -0.82,-1.72 -0.29,-0.2 -2.72,-0.28 -0.38,-0.35 -0.84,-3.71 -0.88,-0.89 -0.48,1.16 -0.66,-0.32 -0.27,-0.64 0.62,-1.53 -0.84,-1.52 -1.36,-0.39 -1.26,-3.47 -0.17,-1.66 1.55,-2.91 -0.21,-1.66 -1.16,-1.97 -0.75,-2.16 -0.06,-2.29 0.62,-0.5 0.38,-1.37 1.04,-1.05 0.36,-1.47 -0.24,-1.49 -0.42,-0.89 -0.09,-1.53 0.54,-1.65 -1.17,-2.18 -1.02,-0.38 -1.09,0.98 -0.06,0.51 -0.84,0.96 -0.57,0 -2.18,-1.02 -5.18,0.08 -5.61,1.78 -1.69,-0.01 -1.48,0.48 0,0 -2.97,-1.26 0,0 3.26,-2.56 1.92,-0.58 1.55,-1.81 0.15,-0.56 -0.16,-1.29 3.96,0.26 2.87,-0.33 0.72,0.37 2.31,2.33 0.37,-0.02 1.22,-0.79 0.13,-0.72 0.41,-0.53 1.08,-0.5 0.77,0.13 1.37,-0.39 1.3,-1.21 1.84,-1.02 0.38,0.09 0.64,2.26 0.68,0.53 0.68,-0.08 2.54,-3.16 -0.26,-1.75 0.53,-0.84 1.75,-1.26 0.46,0.02 0.84,0.55 1.79,0.1 1.2,-1.07 2.13,-0.38 3.87,0.46 -0.24,-1.46 0.11,-1.81 2.06,-1.21 0.81,-1.15 0.36,-1.02 -0.17,-0.45 -0.9,-0.7 0.05,-0.67 1.19,-1.59 2.48,-0.53 0.26,-0.22 -0.09,-1.17 1.72,-0.5 1.38,-2.56 10.79,-0.06 2.15,1.13 0.45,0.49 0.8,1.91 1.33,1.27 2.54,0.98 1.25,3.27 0.46,0.21 0.98,-0.13 0.62,0.2 0.68,2.88 3.24,1.48 0.68,-0.19 0.54,-1.74 1.92,-1.08 1.39,0.28 0.36,0.38 -0.04,0.7 0,0 1.4,0.97 0.6,1.24 -0.76,1.42 -1.29,4.99 0.06,0.35 0.78,0.47 0.26,0.61 0.15,1.39 0.83,2.27 -0.94,1.67 0.38,1.93 -1,3.52 -0.03,0.8 0.27,1.76 1.5,2.75 -0.9,9 17.16,0.05 -0.24,0.56 1.22,1.11 3.5,-0.09 1.11,0.11 1.07,0.43 1.41,3.59 -0.17,0.75 -1.4,1.75 -1.36,1.08 -0.14,1.32 0.43,3.25 0.58,0.51 0.9,-0.03 1.53,3.34 -0.04,2.05 0.58,1.49 -0.07,1.71 -0.56,2.24 -1.66,2.01 -0.52,2.25 -0.58,0.84 -0.43,0.41 -1.64,0.53 -0.93,1.08 -1.43,3.78 -0.52,2.45 -4.11,2.57 -1.47,1.43 0,0 -0.74,-0.04 -2.59,-1.55 -1.27,-1.43 -7.08,0.96 -1.32,-0.43 -0.25,-0.3 -3.38,0.66 -0.48,-0.16 -0.52,-1.35' },
+
+            'RR': { name: 'Roraima', d: 'm 234.87257,61.661144 1.6,16.97 0,0 -18.49,-0.07 0.03,0.68 -2.33,3.26 -1.66,3.03 -0.07,1.13 -1.15,2.64 -0.11,0.66 0.23,0.73 1.14,1.41 -0.02,0.53 -0.42,0.39 -2.03,0.55 -1.41,1.41 -1.25,0.46 -1.82,-0.23 -0.92,-2.51 -1.87,-2.04 -2.83,-0.93 -1.6,0.06 -0.55,0.89 -2.09,0.71 -1.28,0.69 -1.02,1.26 -0.82,2.97 0.37,1.8 -0.25,1.73 -0.75,2.289996 0.44,2.11 -2.36,-1.04 -1.34,0.42 -0.53,-0.07 -1.04,-2.04 -1.48,-1.649996 -1.96,-1.31 -0.52,-0.04 -5.01,-4.42 0.14,-1.14 1.84,0.33 1.14,-1.32 0.06,-0.58 -1.13,-4.33 -0.58,-0.9 -1.22,-0.84 -0.88,-2.17 -0.29,-4.98 0.57,-0.96 0.77,-3.04 -0.66,-1.58 -0.36,-1.59 1.62,-1.46 -0.05,-0.45 -0.87,-1.12 -0.19,-2.26 -1.66,-4.76 -2.73,-3.74 0.71,-1.5 0.91,-3.32 -0.49,-0.66 -1.95,-0.95 -1.36,-0.11 -0.88,0.21 -0.97,-0.37 -1.21,-1.17 -0.06,-0.96 -0.63,-0.11 -1.13,0.42 -0.61,-0.01 -0.75,-0.34 -0.72,-0.78 0,0 0.3,-0.46 0.23,-2.28 -0.3,-0.22 -3.37,-0.23 -3.75,0.14 -3.31,-0.7 -0.2,-0.6 0.8,-1.76 0.12,-1.48 -0.73,-1.77 -1.94,-3.54 -0.73,-2.06 -0.47,-3.72 0.79,-1.48 -0.08,-0.96 -1.84,-2 -2.16,-1.06 -2.81,-2.78 -1.06,-1.81 -0.29,-0.96 -1.14,-0.65 -0.25,-0.39 0.03,-0.84 0.29,-0.33 0.9,0.07 1.12,0.66 0.94,1.73 0.61,0.09 3.39,-0.5 1.35,0.1 1.91,0.59 0.61,1.2 0.55,1.93 0.54,0.35 0.96,-0.08 0.74,-0.65 0.95,-0.4 3.18,0.16 0.47,0.05 1.31,1.21 0.6,0.15 0.52,-0.14 0.61,-1.56 1.31,0.14 1.45,0.93 3.93,4.57 1.05,0.57 0.71,0.11 1.51,-0.68 0.74,-1.13 0.1,-0.84 -0.83,-2.76 0.36,-1.74 0.46,-0.28 1.93,-0.05 1.01,-1.1 1.55,-1.09 0.75,0.05 3.9,1.34 0.59,-0.17 0.8,-0.72 1.03,-0.3 1.13,0.35 1.03,-0.21 1.34,-1.28 1,-0.25 1.15,0.23 1.11,-0.07 0.68,-0.85 0.05,-1.35 3.03,-1.81 2.33,0.19 2.76,-0.39 0.89,-1.13 0.09,-0.71 0.59,-1.1199998 0.75,-0.13 1.85,-0.9 1.1,-1.04 1.11,-1.71 -1.2,-3.56 -1.17,-0.36 0.64,-0.18 1.43,0.07 0.8,0.32 3.57,-0.1 1.06,-0.95 0.74,-0.22 1.37,0.42 0.53,1.31 1.04,0.8 0.48,1.37 -0.67,4.9 -0.72,1.3799998 -1.25,0.7 0.06,0.83 1.61,0.41 1.62,-0.22 2.35,0.81 1.82,1.1 -0.88,1.43 -0.01,1.15 2.34,3.42 0.2,1.55 -1.51,2.92 -1.88,1.41 -0.72,1.5 0.27,0.39 0.06,2.17 -1.47,2.41 -0.9,2.77 -0.31,2.57 -0.09,2.67 0.98,1.87 0.51,1.76 -0.01,1.4 1.57,1.03 0.9,0.2 0.13,0.68 -0.46,5.15 0.12,0.74 1.81,0.29 -0.66,1.17 0.46,0.5 2.15,0.74 1.46,1.92 2.66,2.74 z' },
+
+            'RS': { name: 'Rio Grande do Sul', d: 'm 322.25257,638.78114 -0.36,0.01 -1.94,-1.11 -0.2,-0.46 0.52,-4.27 -0.46,-4.25 0.15,-1.07 0.63,-1.24 2.84,-2.38 0.83,-1.56 2.3,-2.56 -1.46,-1.65 -1.07,-0.62 -2.25,-0.6 -2.32,-2.25 -1.21,-1.62 -0.1,-1.59 -0.43,-1.18 -1.23,-2.03 -2.06,-2.24 -0.67,-0.59 -2.39,-1.21 -1.45,0.21 -1.9,-1.51 -1.52,-1.63 -1.25,-0.78 -0.14,-1.7 -1.9,-2.16 -3.32,-0.46 -0.92,-0.47 -1.73,-1.66 -1.76,0.13 -2.17,-1.38 -1.91,-3.71 -1.11,-1.49 -2.53,-2.12 -0.7,0.08 -0.67,1.79 -2.59,2.24 -2.67,0.12 0.1,-2.86 0.4,-1.28 -0.39,-1 -3.65,-4.29 -2.37,-1.77 -2.18,-2.06 -1.75,-2.11 -2.69,-2.21 -1.9,-0.14 -2.15,0.21 -1.14,1.36 -0.06,0.96 -1.03,0.97 -1.11,0.02 -0.58,-0.48 -3.16,0.14 -0.65,-0.48 -0.16,-0.91 -0.49,-0.22 0.85,-0.22 1.04,-0.72 2.52,-2.77 0.11,-1.84 0.6,-1.25 0.82,-0.45 1.29,-0.07 0.64,-0.26 0.92,-1 5.45,-6.48 0.63,-1.42 0.17,-1.11 0.82,-1.07 1.2,-0.85 1.37,-0.41 1.96,-4.22 0.1,-0.61 0.31,-0.37 1.64,-0.86 1.63,-1.8 0.85,-1.15 0.51,-1.29 1.34,-2.1 0.93,-0.29 1.57,0.18 0.55,0.79 0.47,-1.28 -0.21,-0.58 -1.35,-0.82 -0.05,-0.36 0.35,-0.33 1.08,-0.38 0.82,-0.96 2.79,-0.95 1.05,-1.07 0.1,-0.92 0.82,-0.91 2.21,-1.15 2.47,-0.4 1.77,-1.81 0.15,-1.06 1.32,-2.36 0.33,-0.04 0.05,0.36 0.29,0.2 1.33,-0.17 2.44,-1.13 2.68,-0.59 1.21,-0.57 2.1,-2.35 0.5,0.01 0.67,-0.39 1.01,-1.35 2.31,-0.73 0.3,0.38 0,0 3.52,0.39 3.26,-1.15 0.56,-0.81 1.35,0.58 -0.15,0.92 3.08,-0.03 1.63,0.99 2.56,-0.37 1.92,1.15 2.58,-0.41 1.54,0.18 2.8,-0.16 2.26,0.92 2.48,1.4 1,2.44 1.59,0.19 0.09,-0.48 1.81,-0.35 5.56,3.54 1.37,1.55 0.71,-0.03 1.56,0.98 3.03,3.49 1.64,2.21 0.48,1.48 2.17,2.66 1.17,0.55 6.69,1.06 2.11,-0.4 3.35,0.34 0.88,2.34 -2.08,1.58 -1.27,0.41 -0.73,1.86 0.22,2.19 -0.38,1.56 -0.52,1.3 -1.18,0.2 -1.29,1.69 -0.03,1.41 1.8,1.17 0.27,-0.2 -0.28,-0.97 0.01,-0.96 1.49,-0.82 1.58,0.64 0.73,0.91 1.17,0.85 0.45,-0.03 0,0 -1.4,1.73 -3.9,7.04 -4.21,11.6 -6.3,10.48 -5.44,6.66 -6.51,5.96 -6.09,3.68 -3.1,4.31 -0.18,-0.43 0.65,-1.58 0.34,-2.18 -1.18,-1.71 0.1,-0.42 0.93,-0.17 1.01,0.4 0.56,0.58 1.02,0.04 2.58,-1.41 0.82,-0.68 2.85,-3.71 0.75,-0.69 0.45,0.19 1.02,-0.19 1.05,-0.84 0.93,-1.27 0.37,-1.48 0.18,-0.93 -0.23,-2.1 0.2,-1.37 1.57,-0.07 0.74,0.3 0.27,0.83 0.35,-0.26 -0.29,-1.4 0.51,-2.07 0.48,-0.57 2.74,-1.59 0.73,-1.08 0.47,-2.75 -0.21,-2.28 0.56,-0.68 0.5,0.8 0.37,0.03 0.43,-0.42 0.47,-3.08 -0.1,-0.44 -0.95,-1.22 -0.67,-0.03 -0.26,0.69 0.17,0.39 -0.14,0.57 -0.35,0.2 -1.51,-0.02 -2.01,0.4 -0.34,1.61 -0.53,0.05 -0.81,-0.44 0.1,-1.71 -0.82,-0.89 -1.04,0.33 -0.6,-0.48 -0.73,-1.26 -0.4,-1.45 0.12,-0.57 -0.64,-0.69 -0.61,2.71 0.44,2.25 1.25,2.11 -0.57,0.81 -0.74,2.54 0.38,3.03 -0.18,0.77 -0.48,-0.37 0.26,-0.24 -0.03,-0.71 -0.47,-1.28 -0.45,-0.39 -0.53,0.66 -0.03,1.37 -1.41,3.27 -0.05,1.89 0.22,0.52 -0.72,0.7 -1.61,0.64 -0.61,1.58 -4.09,1.57 -0.72,0.53 -0.53,1.59 -0.1,2.27 -0.97,2.27 -2.36,1.3 -0.11,1.76 0.48,0.83 0.25,1.02 -0.95,0.56 -0.25,1.51 0.43,0.6 0.68,-0.14 1.3,0.63 0.15,0.91 -2.13,1.65 -2.32,4.52 -1.93,6.88 -2.01,4.49 -1.68,2.52 -7.79,7.53 z' },
+
+            'SC': { name: 'Santa Catarina', d: 'm 379.56257,558.27114 -0.45,0.03 -1.17,-0.85 -0.73,-0.92 -1.59,-0.63 -1.48,0.82 -0.01,0.96 0.28,0.97 -0.27,0.2 -1.8,-1.17 0.04,-1.41 1.28,-1.69 1.18,-0.2 0.53,-1.31 0.37,-1.55 -0.22,-2.19 0.73,-1.86 1.27,-0.42 2.08,-1.58 -0.88,-2.34 -3.35,-0.34 -2.11,0.4 -6.69,-1.06 -1.16,-0.54 -2.17,-2.66 -0.49,-1.48 -1.63,-2.21 -3.03,-3.49 -1.57,-0.99 -0.71,0.03 -1.37,-1.55 -5.56,-3.54 -1.81,0.34 -0.09,0.48 -1.6,-0.19 -1,-2.44 -2.47,-1.39 -2.27,-0.93 -2.79,0.16 -1.54,-0.18 -2.59,0.41 -1.91,-1.15 -2.57,0.36 -1.63,-0.98 -3.08,0.03 0.15,-0.93 -1.35,-0.58 -0.56,0.81 -3.26,1.16 -3.52,-0.39 0,0 1.45,-2.93 0.73,-2.09 -0.58,-3.25 0.41,-3.21 -0.04,-2.55 0.96,-1.75 0,0 3.63,0.02 0.71,-0.38 0.53,0.01 1.06,0.24 0.31,0.51 2.03,1.41 2.68,0.03 2.34,-0.58 5.29,1.68 4.26,0.36 1.02,0.63 0.17,0.41 1.57,1.18 3.77,0.42 4.25,-0.13 1.33,1.9 0.18,-0.5 0.74,-0.38 0.92,-0.02 0.87,-0.86 -0.85,-2.99 0.69,-1.58 0.72,-0.78 2,-1.14 3.57,0.4 1.87,-0.97 0.73,-0.87 0.59,-1.48 1.53,-0.65 1.11,-0.14 1.42,0.76 0.81,0.03 2.33,-0.17 2.84,-0.73 0.75,0.01 1.04,0.4 3.12,2.6 1.23,0.62 1.44,0.16 3.35,-2.13 1.35,-1.43 1.56,-0.57 0.12,0.39 0.76,0.07 1.74,-0.23 0.33,-0.44 5.24,0.03 0,0 -0.39,1.32 0.51,1.65 -0.07,0.39 -1.5,1.14 -0.98,-0.48 -0.82,-2.53 -0.02,1.12 0.59,2.72 1.71,1.66 0.56,0.95 -1.01,2.29 -0.16,2.32 0.1,0.43 0.76,0.73 0.26,5.86 0.31,0.55 0.43,0.2 0.77,-0.51 0.35,0.72 0.1,0.87 -0.47,0.06 -0.43,-0.28 -1.19,0.63 -0.34,3.84 0.57,2.59 -0.57,0.75 0.31,1.93 0.91,1.88 -0.86,2.34 -0.52,4.01 -1.71,4.68 -0.34,-0.1 -0.36,-0.76 0.21,-0.97 -0.92,-1.18 -0.26,0.33 0.18,2.43 1.16,0.83 -0.92,1.66 -1.64,0.65 -4.13,3.04 -2.8,2.56 -3.75,4.44 -1.04,1.88 z' },
+
+            'SE': { name: 'Sergipe', d: 'm 570.20257,261.95114 -2.9,0.89 -1.55,-0.64 -0.54,-0.34 -0.48,-0.72 -1.92,-0.92 -0.6,-0.52 -0.12,-0.41 0.34,-0.39 0.13,-1.42 -0.15,-0.39 -1.43,-1.51 -0.52,-1.49 -1.09,-0.67 -0.96,-1.6 -0.02,-0.77 0.59,-1.58 0.32,-0.3 1.7,0.01 1.13,0.75 2.55,-0.99 0.69,-0.55 0.3,-0.58 -0.76,-2.75 0.08,-0.88 0.66,-1.62 0.08,-3.11 -0.75,-1.15 -1.99,-1.95 -1.27,-2.5 -0.22,-2.14 0.67,-1.15 0,0 6.46,2.98 3.68,0.95 5.42,3.07 1.3,2.45 1.76,1.45 1.66,0.79 0.46,0.03 3.59,2.23 0.6,1.31 0,0 -2.38,0.76 -4.57,2.94 -0.97,0.89 -1.55,2.21 -0.32,-0.02 0.11,-1.1 -1.05,-1.82 -0.99,0.16 0.34,1.16 1.24,0 0.23,0.24 -0.52,1.97 -1.27,2.09 -0.53,-0.35 -0.37,-0.67 -0.99,-0.16 0.2,0.68 1.13,0.62 -0.26,1.77 -0.86,1.15 -0.93,2.03 -0.78,0.15 -0.3,-0.46 0.48,-1.4 0.41,-0.13 0.31,-0.43 0.37,-1.04 -0.81,-0.37 0.1,0.68 -0.45,1.13 -0.48,0.5 -0.26,1.09 0.28,0.72 -0.26,0.52 z' },
+
+            'SP': { name: 'S�o Paulo', d: 'm 404.84257,488.18114 -0.16,-1.33 -1.42,-0.57 -0.73,-3.3 0.4,-1.95 -2.14,-0.58 -0.76,0.17 -1.1,2.77 -0.66,0.85 -1.06,-0.53 -0.35,-0.78 0.69,-3.3 0.89,-0.66 0.14,-0.4 -1.61,-1.27 -1.59,-0.13 -1.58,0.19 -0.5,-0.38 -3.41,0.53 -2.38,0.12 -1.01,-0.21 -0.6,-0.39 -0.33,-2.04 1.28,-2.12 0.25,-1.05 -0.25,-0.44 -0.6,-0.3 -0.92,-1.97 0.06,-0.89 -0.5,-0.68 -0.67,-0.29 -1.21,-1.14 -1.49,-3.01 0.36,-0.55 0.08,-1.76 -1.3,-1.52 -0.38,-1.84 0.17,-0.81 0.39,-0.58 -0.02,-2.74 -0.89,-1.76 -3.59,-2.83 -1.13,-1.55 -2.97,0.86 -5.31,-0.13 -0.66,-0.54 -1.65,-0.14 -0.42,0.34 -1.72,-0.07 -0.72,-0.32 -0.63,-0.51 -3.51,-0.8 -1.75,-0.84 -0.78,-1 -2.58,0.01 -1.07,0.54 -1.32,-0.13 -2.64,-1.09 -2.53,-0.46 -1.48,-0.79 -1.17,-0.29 -0.73,0.37 -0.34,0.6 -1.21,0.62 -3.28,-0.29 -4.01,0.11 -3.83,-0.65 -3.25,2.29 0,0 0.84,-1.08 0.73,-1.54 1.26,-1.14 7.56,-4.54 1.95,-1.87 1.26,-2.43 1.73,-1.69 0.4,-1.21 1.44,-1.03 0.28,-1.22 -0.35,-0.84 2,-2.26 1.21,-2.34 0.07,-0.94 -0.31,-1.93 0.23,-0.39 0.96,-0.52 2.6,-3.64 0.16,-2.93 0.62,-1.68 1.01,-0.3 0.73,-0.64 1.99,-2.68 1.22,-0.02 0.47,-0.23 1.31,-0.04 1.5,-0.78 0.28,-0.4 0.4,-2.46 0,0 1.22,-1.13 2.15,-1.11 1.92,-0.37 1.43,-1.69 1.5,-0.61 0.75,0.14 1.73,1.55 2.55,0.08 4.29,0.96 1.67,-0.36 1.62,0.22 2,-0.59 2.18,1.42 1.67,0.79 -0.13,0.92 0.33,1.42 1.21,2.09 0.63,0.03 0.54,-0.32 0.67,-0.94 0.41,-1.13 0.26,-0.19 0.55,0.05 0.36,0.39 0.25,0.96 0.01,2.78 1.2,0.53 0.41,-0.45 -0.27,-2.54 0.49,-1.19 0.45,-0.48 8.18,-0.67 1.01,-1.25 1.5,1.46 1.12,0.43 2.78,-0.69 0.44,-0.99 -0.2,-0.46 0.31,-0.61 2.38,-0.11 1.66,0.78 0.85,-0.64 1.31,-0.29 3.26,3.35 0.2,1.04 -0.57,1.01 -0.29,2.37 0.58,0.61 1.89,1.21 0.4,1.55 -0.06,0.56 -1.52,2.03 -0.18,1.94 0.79,0.74 0.31,0.61 0.37,2.21 1.3,1.8 0.83,1.99 -0.03,0.85 1.61,-0.05 0.78,-0.31 0.28,-0.36 1,-0.05 3.7,1.32 0.23,0.37 -0.05,1.27 -0.7,2.18 -1.86,2.72 0.26,2.94 -0.19,3.45 -0.53,1.56 0.72,1.6 1.78,1.24 1.81,0.83 0.51,1.72 -1.21,0.7 2.02,3.31 1.13,0.25 2.01,-0.24 0.18,0.53 3.62,-1 0.56,0.42 1.31,-0.32 0.75,-0.98 0.05,-0.84 -0.24,-0.24 0.17,-2.3 1.19,-0.33 0.09,0.35 -0.35,0.49 0.01,0.48 2.34,0.08 2.39,-0.25 1.79,-0.67 1.23,-1.24 1.93,-1.02 2.21,-0.22 1.24,0.73 0,0 1.27,0.54 0.56,1.17 1.23,1.59 1.77,0.39 3.15,-0.53 1.7,0.01 0.75,1.64 -1.65,2.15 -1.5,0.71 -2.77,0.36 -0.5,-0.15 -2.35,1.01 -1.09,1.15 -1.09,3.5 0.05,0.41 1.63,1.73 0.48,0.26 0,0 -0.06,0.2 -1.69,0.42 -1.06,-0.82 -1.48,1.11 -0.43,0.65 0.27,0.22 -0.76,0.64 -3.22,1.55 -2.25,0.7 -0.28,0.44 0.04,0.96 0.5,1.55 -0.32,0.42 -1.4,0.26 -0.7,-0.64 -1.34,-0.29 -3.12,-0.5 -0.86,0.15 -1.32,0.34 -1.73,0.82 -0.5,0.51 -1.21,2.15 -1.31,0.57 -0.5,-0.12 0.58,-0.47 -0.48,-1.22 -1.17,-0.85 -0.83,1.23 0.26,0.75 -0.3,0.61 -7.62,4.24 -0.95,0.82 -0.31,1.16 -3.27,3 -3.25,1.95 -1.92,0.53 -4.5,3.21 -2.33,1.96 -0.67,0.08 -0.44,0.62 0.9,0.43 0.66,0.06 0.93,-0.36 0,0.76 -0.62,1.31 -1.32,0.85 -1.06,1.48 z' },
+
+            'TO': { name: 'Tocantins', d: 'm 433.61257,282.08114 -5.36,1.42 -1.74,1.34 -2.56,1.1 -1.55,0 -4.53,1 -2.52,2.08 -1.78,0.9 -0.46,-0.24 -1.51,-2.62 -0.55,-0.03 -0.51,3.3 -0.69,0.08 -3.35,-0.68 -3.13,-1.47 0.56,-1.56 -0.22,-0.74 -4.53,0.53 -2.76,-0.34 -0.56,0.54 -0.3,1 -0.75,0.75 -1.14,-0.05 -0.61,-3.1 -1.11,-3.71 -1.04,-1.88 -1.15,-1.31 -1.18,0.97 -1.47,2.39 -1.63,5.94 -0.63,0.23 -4.07,-1.43 -3.09,-1.71 -3.93,-0.4 -2.2,-1.03 -2.4,-0.4 0.52,-2.34 1.22,-1.88 0.03,-1.71 -0.56,0.3 -1.81,2.09 -0.66,1.23 -0.2,1.88 -0.34,0.45 0,0 -0.8,-0.02 -0.96,-0.51 -0.98,-3.34 0.74,-2.76 -0.44,-3.05 -0.52,-0.58 -0.01,-1.57 0.47,-3.31 -1.1,-2.25 0.05,-0.5 0.82,-0.89 0.16,-0.87 -1.39,-1.34 -0.06,-0.86 1.88,-5.99 0.04,-2.95 0.54,-2.97 1.94,-5.29 0.37,-0.27 0.43,-0.85 0.44,-3.14 1.1,-1.25 0.56,-1.89 0.65,-1.02 0,0 1.62,-3.69 1.13,-4.45 1.15,-1.58 1.19,-1.1 1.21,-1.68 1.03,-1.92 1.37,-0.92 1.05,-0.16 0.73,-0.85 0.94,-1.54 0.18,-0.99 1.7,-3.24 1.09,-0.8 1.76,-5.15 0.66,-4.04 -0.15,-0.3 -0.74,-0.32 -1.67,-1.74 -0.6,-0.95 -0.16,-0.88 0.14,-0.57 1.41,-1.69 1.29,-2.1 -0.06,-2.67 -0.43,-2.18 0.19,-0.35 2.47,-1.78 3.41,-1.14 2.5,-1.21 0.24,-0.5 -0.15,-1.51 0.86,-1.27 1.51,-1.34 1.29,-0.15 0.19,-1.34 -0.29,-1.2 0.25,-0.46 1.46,-0.46 0.64,-0.48 0.93,-2.75 -1.02,-1.34 -0.09,-1.4 0.29,-0.28 0.97,-0.08 0.72,-0.37 0.37,-0.66 0.03,-0.64 -1.26,-1.17 -0.87,-0.14 -0.39,-0.31 -1.02,-1.66 -1.29,-0.12 -1.87,0.25 -2.29,-0.81 0,0 0.53,-0.64 2.62,-1.85 1.96,-0.53 0.87,0.05 2.78,1.52 1.4,0.08 0.95,-0.52 1.74,0.29 0.59,0.69 0.08,1.03 0.28,0.32 1.22,0.03 3.4,1.43 0.84,1.03 0.47,3.5 0.64,1.5 -0.21,3.72 0.23,1.08 0.67,1.13 -0.01,0.44 -1.77,6.15 -0.31,2.37 0.28,1 -0.25,1.59 -1.75,2.04 -1.76,0.67 -0.18,0.71 1.94,1.32 0.42,-0.27 1.37,0.24 0.25,0.35 1.11,0.07 0.68,-0.85 0.05,-1.35 3.03,-1.81 2.33,0.19 2.76,-0.39 0.89,-1.13 0.09,-0.71 0.59,-1.1199998 0.75,-0.13 1.85,-0.9 1.1,-1.04 1.11,-1.71 -1.2,-3.56 -1.17,-0.36 0.64,-0.18 1.43,0.07 0.8,0.32 3.57,-0.1 1.06,-0.95 0.74,-0.22 1.37,0.42 0.53,1.31 1.04,0.8 0.48,1.37 -0.67,4.9 -0.72,1.3799998 -1.25,0.7 0.06,0.83 1.61,0.41 1.62,-0.22 2.35,0.81 1.82,1.1 -0.88,1.43 -0.01,1.15 2.34,3.42 0.2,1.55 -1.51,2.92 -1.88,1.41 -0.72,1.5 0.27,0.39 0.06,2.17 -1.47,2.41 -0.9,2.77 -0.31,2.57 -0.09,2.67 0.98,1.87 0.51,1.76 -0.01,1.4 1.57,1.03 0.9,0.2 0.13,0.68 -0.46,5.15 0.12,0.74 1.81,0.29 -0.66,1.17 0.46,0.5 2.15,0.74 1.46,1.92 2.66,2.74 z' },
+
+        };
+
+
+
+// ══════════════════════════════════════════�???
+
+// I18N
+
+// ══════════════════════════════════════════�???
+
+const i18n = {
+
+  'zh-CN': {
+
+    title: '巴西项目地图',
+
+    subtitle: 'Brazil Project Delivery Map',
+
+    projects: '项目',
+
+    devices: '设备',
+
+    states: '�???',
+
+    type: '类型',
+
+    solution: '解决方案',
+
+    upload: '上传 Excel',
+
+    all: '全部',
+
+    maintenance: '维护�???',
+
+    delivery: 'in delivery',
+
+    poc: 'POC',
+
+    done: '已完�???',
+
+    pending: '待处�???',
+
+    showAll: '显示全部',
+
+    noData: '请上�??? Excel 文件或加载默认数�???',
+
+    noProjects: '该州没有项目',
+
+    dblClickHint: '双击州进行筛�???',
+
+    dblClickHintEmpty: '双击州进行筛�???',
+
+    dblClickProject: '双击查看详情',
+
+    tabInfo: '项目信息',
+
+    tabBOM: 'BOM',
+
+    tabMilestone: '里程�???',
+
+    tabVersion: '版本�???',
+
+    tabRemarks: '备注',
+
+    placeholderTitle: '无数�???',
+
+    placeholderHint: '扩展 Excel 配置以填充此选项�???',
+
+    projectName: '项目名称',
+
+    oppId: '商机ID',
+
+    person: '负责�???',
+
+    projectType: '项目类型',
+
+    startDate: '开始日�???',
+
+    endDate: '结束日期',
+
+    status: '状�?',
+
+    stateCode: '州代�???',
+
+    deviceList: '设备列表',
+
+    deviceName: '设备名称',
+
+    quantity: '数量',
+
+    remarks: '备注',
+
+    projectList: '项目列表',
+
+    heatmapLegend: '项目密度',
+
+    heatmapNone: '无项�???',
+
+    heatmapLow: '1-2',
+
+    heatmapMed: '3-5',
+
+    heatmapHigh: '6+',
+
+    totalDevices: ' 台设�???',
+
+    legendStatus: '状�?',
+
+  },
+
+  'en': {
+
+    title: 'Brazil Project Map',
+
+    subtitle: 'Universal Project Delivery Map',
+
+    projects: 'Projects',
+
+    devices: 'Devices',
+
+    states: 'States',
+
+    type: 'Type',
+
+    solution: 'Solution',
+
+    upload: '📂 Upload Excel',
+
+    all: 'All',
+
+    maintenance: 'Maintenance',
+
+    delivery: 'Delivery',
+
+    poc: 'POC',
+
+    done: 'Done',
+
+    pending: 'Pending',
+
+    showAll: '�??? Show All',
+
+    noData: '📭 Please upload an Excel file or load default data',
+
+    noProjects: 'No projects in this state',
+
+    dblClickHint: 'Double-click state to filter',
+
+    dblClickHintEmpty: 'Double-click state to filter',
+
+    dblClickProject: 'Double-click to view details',
+
+    tabInfo: 'Project Info',
+
+    tabBOM: 'BOM',
+
+    tabMilestone: 'Milestone',
+
+    tabVersion: 'Version Tree',
+
+    tabRemarks: 'Remarks',
+
+    placeholderTitle: 'No Data',
+
+    placeholderHint: 'Extend the Excel config to populate this tab',
+
+    projectName: 'Project Name',
+
+    oppId: 'Opportunity ID',
+
+    person: 'Person in Charge',
+
+    projectType: 'Project Type',
+
+    startDate: 'Start Date',
+
+    endDate: 'End Date',
+
+    status: 'Status',
+
+    stateCode: 'State Code',
+
+    deviceList: 'Device List',
+
+    deviceName: 'Device Name',
+
+    quantity: 'Quantity',
+
+    remarks: 'Remarks',
+
+    projectList: 'Project List',
+
+    heatmapLegend: 'Project Density',
+
+    heatmapNone: 'No projects',
+
+    heatmapLow: '1-2',
+
+    heatmapMed: '3-5',
+
+    heatmapHigh: '6+',
+
+    totalDevices: ' devices',
+
+    legendStatus: 'Status',
+
+  },
+
+  'pt-BR': {
+
+    title: 'Mapa de Projetos Brasil',
+
+    subtitle: 'Mapa Universal de Projetos',
+
+    projects: 'Projetos',
+
+    devices: 'Dispositivos',
+
+    states: 'Estados',
+
+    type: 'Tipo',
+
+    solution: 'Solução',
+
+    upload: '📂 Carregar Excel',
+
+    all: 'Todos',
+
+    maintenance: 'Manutenção',
+
+    delivery: 'Entrega',
+
+    poc: 'POC',
+
+    done: 'Concluído',
+
+    pending: 'Pendente',
+
+    showAll: '�??? Mostrar Todos',
+
+    noData: '📭 Carregue um arquivo Excel ou dados padrão',
+
+    noProjects: 'Sem projetos neste estado',
+
+    dblClickHint: 'Clique duplo para filtrar',
+
+    dblClickHintEmpty: 'Clique duplo para filtrar',
+
+    dblClickProject: 'Clique duplo para detalhes',
+
+    tabInfo: 'Info do Projeto',
+
+    tabBOM: 'BOM',
+
+    tabMilestone: 'Marco',
+
+    tabVersion: 'Versões',
+
+    tabRemarks: 'Observações',
+
+    placeholderTitle: 'Sem Dados',
+
+    placeholderHint: 'Estenda o Excel para preencher esta aba',
+
+    projectName: 'Nome do Projeto',
+
+    oppId: 'ID Oportunidade',
+
+    person: 'Responsável',
+
+    projectType: 'Tipo de Projeto',
+
+    startDate: 'Data Início',
+
+    endDate: 'Data Fim',
+
+    status: 'Status',
+
+    stateCode: 'Estado',
+
+    deviceList: 'Lista de Dispositivos',
+
+    deviceName: 'Dispositivo',
+
+    quantity: 'Quantidade',
+
+    remarks: 'Observações',
+
+    projectList: 'Lista de Projetos',
+
+    heatmapLegend: 'Densidade',
+
+    heatmapNone: 'Sem projetos',
+
+    heatmapLow: '1-2',
+
+    heatmapMed: '3-5',
+
+    heatmapHigh: '6+',
+
+    totalDevices: ' dispositivos',
+
+    legendStatus: 'Status',
+
+  }
+
+};
+
+
+
+let currentLanguage = 'zh-CN';
+
+
+
+// Read language from URL parameter (from main portal)
+
+(function() {
+
+  const params = new URLSearchParams(window.location.search);
+
+  const langParam = params.get('lang');
+
+  if (langParam && ['zh-CN', 'en', 'pt-BR'].includes(langParam)) {
+
+    currentLanguage = langParam;
+
+  }
+
+})();
+
+
+
+let allProjects = [];
+
+let settingData = { types: [], solutions: [] };
+
+let filteredProjects = [];
+
+let selectedState = null;
+
+let currentStatusFilter = 'all';
+
+let activeProject = null;
+
+
+
+// ══════════════════════════════════════════�???
+
+// LANGUAGE
+
+// ══════════════════════════════════════════�???
+
+function t(key) {
+
+  return (i18n[currentLanguage] && i18n[currentLanguage][key]) || key;
+
+}
+
+
+
+function setLanguage(lang) {
+
+  currentLanguage = lang;
+
+  document.getElementById('langSelect').value = lang;
+
+  updateUI();
+
+  renderMap();
+
+  renderProjectList();
+
+  renderLegend();
+
+}
+
+
+
+function updateUI() {
+
+  document.getElementById('mainTitle').textContent = t('title');
+
+  document.getElementById('statProjectsLabel').textContent = t('projects');
+
+  document.getElementById('statDevicesLabel').textContent = t('devices');
+
+  document.getElementById('statStatesLabel').textContent = t('states');
+
+  document.getElementById('lblType').textContent = t('type');
+
+  document.getElementById('lblSolution').textContent = t('solution');
+
+  document.getElementById('uploadBtn').textContent = t('upload');
+
+  document.getElementById('panelTitle').textContent = '📋 ' + t('projectList');
+
+  document.getElementById('btnReset').textContent = t('showAll');
+
+  if (allProjects.length === 0) {
+
+    document.getElementById('noDataMsg').textContent = t('noData');
+
+  }
+
+  // Status filter buttons
+
+  const btns = document.querySelectorAll('.filter-btn[data-status]');
+
+  btns.forEach(b => {
+
+    const s = b.getAttribute('data-status');
+
+    if (s === 'all') b.textContent = t('all');
+
+    else b.textContent = t(s);
+
+  });
+
+  // Modal tabs
+
+  document.querySelectorAll('.modal-tab').forEach(tab => {
+
+    const key = tab.getAttribute('data-tab');
+
+    if (key) tab.textContent = t(key);
+
+  });
+
+  // Tooltip hint
+
+  document.getElementById('ttHint').textContent = t('dblClickHint');
+
+  // Update stats
+
+  updateStats();
+
+  // If detail is open, re-render
+
+  if (activeProject) renderDetailModal(activeProject);
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// EXCEL READING
+
+// ══════════════════════════════════════════�???
+
+function parseExcel(data) {
+
+  const workbook = XLSX.read(data, { type: 'array' });
+
+
+
+  // Sheet 1: Setting
+
+  const settingSheet = workbook.Sheets['Setting'] || workbook.Sheets['设置'];
+
+  if (settingSheet) {
+
+    const settingJson = XLSX.utils.sheet_to_json(settingSheet, { header: 1 });
+
+    const types = new Set();
+
+    const solutions = new Set();
+
+    for (let i = 1; i < settingJson.length; i++) {
+
+      const row = settingJson[i];
+
+      if (row[0] && String(row[0]).trim()) types.add(String(row[0]).trim());
+
+      if (row[1] && String(row[1]).trim()) solutions.add(String(row[1]).trim());
+
+    }
+
+    settingData.types = Array.from(types);
+
+    settingData.solutions = Array.from(solutions);
+
+  }
+
+
+
+  // Sheet 2: 项目信息
+
+  const infoSheet = workbook.Sheets['项目信息'] || workbook.Sheets['Project Info'] || workbook.Sheets[workbook.SheetNames[1]];
+
+  if (!infoSheet) {
+
+    console.error('No project info sheet found');
+
+    return [];
+
+  }
+
+  const infoJson = XLSX.utils.sheet_to_json(infoSheet, { header: 1 });
+
+
+
+  // Find header row (row 1 should be headers)
+
+  const headers = infoJson[0];
+
+  if (!headers) return [];
+
+
+
+  // Map column indices from headers
+
+  const colMap = {};
+
+  headers.forEach((h, i) => {
+
+    const s = String(h || '').toLowerCase();
+
+    if (s.includes('项目名称') || s.includes('project name')) colMap.name = i;
+
+    else if (s.includes('商机') || s.includes('opportunity')) colMap.oppId = i;
+
+    else if (s.includes('责任') || s.includes('person') || s.includes('charge')) colMap.person = i;
+
+    else if (s.includes('项目类型') || s.includes('project type')) colMap.type = i;
+
+    else if (s.includes('解决方案') || s.includes('solution')) colMap.solution = i;
+
+    else if (s.includes('起始') || s.includes('start')) colMap.startDate = i;
+
+    else if (s.includes('结束') || s.includes('end')) colMap.endDate = i;
+
+    else if (s.includes('状�?') || s.includes('status')) colMap.status = i;
+
+    else if (s.includes('�???') || s.includes('state')) colMap.state = i;
+
+    else if (s.includes('设备1') || s.includes('device 1')) colMap.dev1 = i;
+
+    else if (s.includes('数量1') || s.includes('qty 1')) colMap.qty1 = i;
+
+    else if (s.includes('设备2') || s.includes('device 2')) colMap.dev2 = i;
+
+    else if (s.includes('数量2') || s.includes('qty 2')) colMap.qty2 = i;
+
+    else if (s.includes('设备3') || s.includes('device 3')) colMap.dev3 = i;
+
+    else if (s.includes('数量3') || s.includes('qty 3')) colMap.qty3 = i;
+
+    else if (s.includes('设备4') || s.includes('device 4')) colMap.dev4 = i;
+
+    else if (s.includes('数量4') || s.includes('qty 4')) colMap.qty4 = i;
+
+    else if (s.includes('设备5') || s.includes('device 5')) colMap.dev5 = i;
+
+    else if (s.includes('数量5') || s.includes('qty 5')) colMap.qty5 = i;
+
+    else if (s.includes('备注') || s.includes('remark')) colMap.remarks = i;
+
+  });
+
+
+
+  const projects = [];
+
+  for (let i = 1; i < infoJson.length; i++) {
+
+    const row = infoJson[i];
+
+    if (!row || !row[colMap.name]) continue; // skip empty rows
+
+
+
+    const name = String(row[colMap.name] || '').trim();
+
+    if (!name) continue;
+
+
+
+    // Build devices array
+
+    const devices = [];
+
+    for (let d = 1; d <= 5; d++) {
+
+      const devCol = colMap['dev' + d];
+
+      const qtyCol = colMap['qty' + d];
+
+      if (devCol !== undefined && row[devCol]) {
+
+        devices.push({
+
+          name: String(row[devCol] || '').trim(),
+
+          qty: qtyCol !== undefined ? (row[qtyCol] || 0) : 0
+
+        });
+
+      }
+
+    }
+
+
+
+    // Calculate total devices
+
+    let totalDevices = 0;
+
+    devices.forEach(d => {
+
+      const q = parseInt(d.qty) || 0;
+
+      totalDevices += q;
+
+    });
+
+
+
+    // Normalize status
+
+    let status = String(row[colMap.status] || 'maintenance').trim().toLowerCase();
+
+    const statusMap = {
+
+      '维护�???': 'maintenance', 'maintenance': 'maintenance',
+
+      'in delivery': 'delivery', 'delivery': 'delivery',
+
+      'poc': 'poc',
+
+      '已完�???': 'done', 'done': 'done',
+
+      '待处�???': 'pending', 'pending': 'pending',
+
+      '处理�???': 'handling',
+
+    };
+
+    status = statusMap[status] || 'maintenance';
+
+
+
+    projects.push({
+
+      name: name,
+
+      oppId: colMap.oppId !== undefined ? String(row[colMap.oppId] || '').trim() : '',
+
+      person: colMap.person !== undefined ? String(row[colMap.person] || '').trim() : '',
+
+      type: colMap.type !== undefined ? String(row[colMap.type] || '').trim() : '',
+
+      solution: colMap.solution !== undefined ? String(row[colMap.solution] || '').trim() : '',
+
+      startDate: colMap.startDate !== undefined ? String(row[colMap.startDate] || '').trim() : '',
+
+      endDate: colMap.endDate !== undefined ? String(row[colMap.endDate] || '').trim() : '',
+
+      status: status,
+
+      statusText: status === 'maintenance' ? t('maintenance') : status === 'delivery' ? t('delivery') : status === 'poc' ? t('poc') : status === 'done' ? t('done') : t('pending'),
+
+      state: colMap.state !== undefined ? String(row[colMap.state] || '').trim().toUpperCase() : '',
+
+      devices: devices,
+
+      totalDevices: totalDevices,
+
+      remarks: colMap.remarks !== undefined ? String(row[colMap.remarks] || '').trim() : '',
+        remarks_en: colMap.remarks_en !== undefined ? String(row[colMap.remarks_en] || '').trim() : '',
+        remarks_pt: colMap.remarks_pt !== undefined ? String(row[colMap.remarks_pt] || '').trim() : '',
+
+    });
+
+  }
+
+
+
+  return projects;
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// POPULATE DROPDOWNS
+
+// ══════════════════════════════════════════�???
+
+function populateDropdowns() {
+
+  const typeSel = document.getElementById('filterType');
+
+  const solSel = document.getElementById('filterSolution');
+
+
+
+  typeSel.innerHTML = '<option value="all">' + t('all') + '</option>';
+
+  solSel.innerHTML = '<option value="all">' + t('all') + '</option>';
+
+
+
+  settingData.types.forEach(tp => {
+
+    typeSel.innerHTML += '<option value="' + tp + '">' + tp + '</option>';
+
+  });
+
+  settingData.solutions.forEach(sl => {
+
+    solSel.innerHTML += '<option value="' + sl + '">' + sl + '</option>';
+
+  });
+
+
+
+  // Also detect from project data
+
+  const projectTypes = new Set();
+
+  const projectSolutions = new Set();
+
+  allProjects.forEach(p => {
+
+    if (p.type) projectTypes.add(p.type);
+
+    if (p.solution) projectSolutions.add(p.solution);
+
+  });
+
+  projectTypes.forEach(tp => {
+
+    if (!settingData.types.includes(tp)) {
+
+      typeSel.innerHTML += '<option value="' + tp + '">' + tp + '</option>';
+
+    }
+
+  });
+
+  projectSolutions.forEach(sl => {
+
+    if (!settingData.solutions.includes(sl)) {
+
+      solSel.innerHTML += '<option value="' + sl + '">' + sl + '</option>';
+
+    }
+
+  });
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// RENDER MAP
+
+// ══════════════════════════════════════════�???
+
+function getStateProjectCount(stateCode) {
+
+  return filteredProjects.filter(p => p.state === stateCode).length;
+
+}
+
+
+
+function getStateColor(stateCode) {
+
+  const count = getStateProjectCount(stateCode);
+
+  if (count === 0) return '#1a2840';
+
+  if (count <= 2) return '#0f3460';
+
+  if (count <= 5) return '#e67e22';
+
+  return '#27ae60';
+
+}
+
+
+
+function renderMap() {
+
+  const svg = document.getElementById('brazilMap');
+
+  svg.innerHTML = '';
+
+
+
+  // Group projects by state
+
+  const stateProjects = {};
+
+  filteredProjects.forEach(p => {
+
+    if (!stateProjects[p.state]) stateProjects[p.state] = [];
+
+    stateProjects[p.state].push(p);
+
+  });
+
+
+
+  Object.keys(statePaths).forEach(code => {
+
+    const sp = statePaths[code];
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    path.setAttribute('d', sp.d);
+
+    path.setAttribute('id', 'state-' + code);
+
+    path.setAttribute('data-state', code);
+
+    path.setAttribute('data-name', sp.name);
+
+
+
+    const color = getStateColor(code);
+
+    path.setAttribute('fill', color);
+
+
+
+    if (selectedState === code) {
+
+      path.classList.add('selected-state');
+
+    }
+
+
+
+    // Hover events
+
+    path.addEventListener('mouseenter', (e) => showTooltip(e, code, sp.name, stateProjects[code] || []));
+
+    path.addEventListener('mousemove', (e) => moveTooltip(e));
+
+    path.addEventListener('mouseleave', hideTooltip);
+
+
+
+    // Double-click event
+
+    path.addEventListener('dblclick', () => {
+
+      selectedState = code;
+
+      document.getElementById('btnReset').style.display = 'inline-block';
+
+      renderMap();
+
+      applyAllFilters();
+
+    });
+
+
+
+    svg.appendChild(path);
+
+  });
+
+}
+
+
+
+function renderLegend() {
+
+  const legend = document.getElementById('legend');
+
+  legend.innerHTML = `
+
+    <div style="font-weight:bold;margin-bottom:6px;color:#00d9ff">${t('legendStatus')} / ${t('heatmapLegend')}</div>
+
+    <div class="legend-item"><div class="legend-color" style="background:#1a2840"></div>${t('heatmapNone')}</div>
+
+    <div class="legend-item"><div class="legend-color" style="background:#0f3460"></div>${t('heatmapLow')}</div>
+
+    <div class="legend-item"><div class="legend-color" style="background:#e67e22"></div>${t('heatmapMed')}</div>
+
+    <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div>${t('heatmapHigh')}</div>
+
+    <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px">
+
+      <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div>${t('maintenance')}</div>
+
+      <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>${t('delivery')}</div>
+
+      <div class="legend-item"><div class="legend-color" style="background:#3498db"></div>${t('poc')}</div>
+
+    </div>
+
+  `;
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// TOOLTIP (hover on state)
+
+// ══════════════════════════════════════════�???
+
+function showTooltip(e, code, name, projects) {
+
+  const tt = document.getElementById('tooltip');
+
+  const header = document.getElementById('ttHeader');
+
+  const body = document.getElementById('ttBody');
+
+
+
+  header.innerHTML = name + ' (' + code + ')' +
+
+    '<span class="tooltip-count">' + projects.length + ' ' + t('projects').toLowerCase() + '</span>';
+
+
+
+  if (projects.length === 0) {
+
+    body.innerHTML = '<div class="tooltip-empty">' + t('noProjects') + '</div>';
+
+  } else {
+
+    let html = '<table class="tooltip-table"><thead><tr><th>' + t('projectName') + '</th><th>' + t('solution') + '</th><th>' + t('status') + '</th></tr></thead><tbody>';
+
+    projects.forEach(p => {
+
+      html += '<tr><td>' + p.name + '</td><td>' + p.solution + '</td><td>' + p.statusText + '</td></tr>';
+
+    });
+
+    html += '</tbody></table>';
+
+    body.innerHTML = html;
+
+  }
+
+
+
+  tt.style.display = 'block';
+
+  moveTooltip(e);
+
+}
+
+
+
+function moveTooltip(e) {
+
+  const tt = document.getElementById('tooltip');
+
+  let x = e.clientX + 15;
+
+  let y = e.clientY + 15;
+
+  // Keep within viewport
+
+  if (x + 400 > window.innerWidth) x = e.clientX - 400;
+
+  if (y + 300 > window.innerHeight) y = e.clientY - 320;
+
+  tt.style.left = x + 'px';
+
+  tt.style.top = y + 'px';
+
+}
+
+
+
+function hideTooltip() {
+
+  document.getElementById('tooltip').style.display = 'none';
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// PROJECT LIST
+
+// ══════════════════════════════════════════�???
+
+function renderProjectList() {
+
+  const list = document.getElementById('projectList');
+
+  const noData = document.getElementById('noDataMsg');
+
+
+
+  // Apply state filter
+
+  let displayProjects = filteredProjects;
+
+  if (selectedState) {
+
+    displayProjects = displayProjects.filter(p => p.state === selectedState);
+
+  }
+
+
+
+  // Apply status filter
+
+  if (currentStatusFilter !== 'all') {
+
+    displayProjects = displayProjects.filter(p => p.status === currentStatusFilter);
+
+  }
+
+
+
+  if (allProjects.length === 0) {
+
+    list.innerHTML = '';
+
+    noData.style.display = 'block';
+
+    return;
+
+  }
+
+
+
+  noData.style.display = 'none';
+
+
+
+  if (displayProjects.length === 0) {
+
+    list.innerHTML = '<div class="no-data">' + t('noProjects') + '</div>';
+
+    return;
+
+  }
+
+
+
+  list.innerHTML = displayProjects.map(p => {
+
+    let deviceStr = '';
+
+    if (p.devices.length > 0) {
+
+      deviceStr = p.devices.map(d => d.name + (d.qty ? ' ×' + d.qty : '')).join(', ');
+
+    } else if (p.totalDevices > 0) {
+
+      deviceStr = p.totalDevices + t('totalDevices');
+
+    }
+
+    return '<div class="project-card status-' + p.status + '" onclick="openProjectDetail(\'' + p.name.replace(/'/g, "\\'") + '\')" title="' + t('dblClickProject') + '">' +
+
+      '<div class="card-row">' +
+
+        '<span class="card-name">' + p.name + '</span>' +
+
+        '<span class="card-state">' + p.state + '</span>' +
+
+      '</div>' +
+
+      '<div class="card-info">' +
+
+        '<span>💡 ' + p.solution + '</span>' +
+
+        '<span>📊 ' + p.statusText + '</span>' +
+
+        (deviceStr ? '<span>📦 ' + deviceStr + '</span>' : '') +
+
+      '</div>' +
+
+    '</div>';
+
+  }).join('');
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// FILTERS
+
+// ══════════════════════════════════════════�???
+
+function applyAllFilters() {
+
+  const typeVal = document.getElementById('filterType').value;
+
+  const solVal = document.getElementById('filterSolution').value;
+
+
+
+  filteredProjects = allProjects.filter(p => {
+
+    if (typeVal !== 'all' && p.type !== typeVal) return false;
+
+    if (solVal !== 'all' && p.solution !== solVal) return false;
+
+    return true;
+
+  });
+
+
+
+  renderMap();
+
+  renderProjectList();
+
+  updateStats();
+
+}
+
+
+
+function setStatusFilter(status, btn) {
+
+  currentStatusFilter = status;
+
+  // Update active button
+
+  document.querySelectorAll('.filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+
+  btn.classList.add('active');
+
+  renderProjectList();
+
+}
+
+
+
+function resetStateFilter() {
+
+  selectedState = null;
+
+  document.getElementById('btnReset').style.display = 'none';
+
+  renderMap();
+
+  applyAllFilters();
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// STATS
+
+// ══════════════════════════════════════════�???
+
+function updateStats() {
+
+  document.getElementById('statProjects').textContent = filteredProjects.length;
+
+  const totalDevices = filteredProjects.reduce((sum, p) => sum + p.totalDevices, 0);
+
+  document.getElementById('statDevices').textContent = totalDevices;
+
+  const states = new Set(filteredProjects.map(p => p.state).filter(s => s));
+
+  document.getElementById('statStates').textContent = states.size;
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// DETAIL MODAL
+
+// ══════════════════════════════════════════�???
+
+function openProjectDetail(projectName) {
+
+  activeProject = allProjects.find(p => p.name === projectName);
+
+  if (!activeProject) return;
+
+  renderDetailModal(activeProject);
+
+  document.getElementById('modalOverlay').classList.add('active');
+
+  // Reset to first tab
+
+  switchTab('tabInfo', document.querySelector('.modal-tab[data-tab="tabInfo"]'));
+
+}
+
+
+
+function closeModal() {
+
+  document.getElementById('modalOverlay').classList.remove('active');
+
+}
+
+
+
+function switchTab(tabId, tabEl) {
+
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+  if (tabEl) tabEl.classList.add('active');
+
+  document.getElementById(tabId).classList.add('active');
+
+
+
+  if (!activeProject) return;
+
+
+
+  // Render tab content on demand
+
+  if (tabId === 'tabInfo' && !document.getElementById(tabId).dataset.rendered) {
+
+    renderTabInfo(activeProject);
+
+  }
+
+  if (tabId === 'tabRemarks' && !document.getElementById(tabId).dataset.rendered) {
+
+    renderTabRemarks(activeProject);
+
+  }
+
+  if ((tabId === 'tabBOM' || tabId === 'tabMilestone' || tabId === 'tabVersion') && !document.getElementById(tabId).dataset.rendered) {
+
+    renderPlaceholderTab(tabId);
+
+  }
+
+}
+
+
+
+function renderDetailModal(project) {
+
+  document.getElementById('modalTitle').textContent = project.name + ' (' + project.state + ')';
+
+  // Reset rendered flags
+
+  document.querySelectorAll('.tab-panel').forEach(p => delete p.dataset.rendered);
+
+  // Update tab button texts (fix: tabs not translated on open)
+
+  document.querySelectorAll('.modal-tab').forEach(tab => {
+
+    const key = tab.getAttribute('data-tab');
+
+    if (key) tab.textContent = t(key);
+
+  });
+
+}
+
+
+
+function renderTabInfo(project) {
+
+  const panel = document.getElementById('tabInfo');
+
+  panel.dataset.rendered = '1';
+
+
+
+  const locale = currentLanguage.startsWith('zh') ? 'zh' : currentLanguage.startsWith('pt') ? 'pt' : 'en';
+
+
+
+  // Status map for display
+
+  const statusDisplay = {
+
+    'maintenance': t('maintenance'), 'delivery': t('delivery'),
+
+    'poc': t('poc'), 'done': t('done'), 'pending': t('pending')
+
+  };
+
+
+
+  let html = '<div class="info-grid">';
+
+  html += infoItem(t('projectName'), project.name);
+
+  html += infoItem(t('oppId'), project.oppId || '-');
+
+  html += infoItem(t('person'), project.person || '-');
+
+  html += infoItem(t('projectType'), project.type || '-');
+
+  html += infoItem(t('solution'), project.solution || '-');
+
+  html += infoItem(t('status'), statusDisplay[project.status] || project.status);
+
+  html += infoItem(t('startDate'), project.startDate || '-');
+
+  html += infoItem(t('endDate'), project.endDate || '-');
+
+  html += infoItem(t('stateCode'), project.state || '-');
+
+  html += '</div>';
+
+
+
+  // Device table
+
+  if (project.devices.length > 0) {
+
+    html += '<div style="margin-top:16px"><h3 style="color:#00d9ff;margin-bottom:8px">📦 ' + t('deviceList') + '</h3>';
+
+    html += '<table class="device-table"><thead><tr><th>#</th><th>' + t('deviceName') + '</th><th>' + t('quantity') + '</th></tr></thead><tbody>';
+
+    project.devices.forEach((d, i) => {
+
+      if (d.name) {
+
+        html += '<tr><td>' + (i + 1) + '</td><td>' + d.name + '</td><td>' + d.qty + '</td></tr>';
+
+      }
+
+    });
+
+    html += '</tbody></table></div>';
+
+  }
+
+
+
+  panel.innerHTML = html;
+
+}
+
+
+
+function renderTabRemarks(project) {
+  const panel = document.getElementById('tabRemarks');
+  panel.dataset.rendered = '1';
+  // Pick language-specific remark if available
+  let content = '';
+  if (currentLanguage === 'en' && project.remarks_en) content = project.remarks_en;
+  else if (currentLanguage === 'pt-BR' && project.remarks_pt) content = project.remarks_pt;
+  else content = project.remarks || '';
+  const label = content ? t('remarks') + ': ' : '';
+  panel.innerHTML = '<div style="padding:10px;line-height:1.8">' +
+    (label ? '<strong style="color:#00d9ff">' + label + '</strong>' : '') +
+    '<span style="color:#ccc">' + (content || t('placeholderTitle')) + '</span></div>';
+}
+
+
+
+function renderPlaceholderTab(tabId) {
+
+  const panel = document.getElementById(tabId);
+
+  panel.dataset.rendered = '1';
+
+  panel.innerHTML = '<div class="placeholder-panel">' +
+
+    '<div class="placeholder-icon">📋</div>' +
+
+    '<div class="placeholder-text">' + t('placeholderTitle') + '</div>' +
+
+    '<div class="placeholder-hint">' + t('placeholderHint') + '</div>' +
+
+    '</div>';
+
+}
+
+
+
+function infoItem(label, value) {
+
+  return '<div class="info-item"><div class="label">' + label + '</div><div class="value">' + value + '</div></div>';
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// FILE UPLOAD
+
+// ══════════════════════════════════════════�???
+
+function handleFileUpload(event) {
+
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+
+    try {
+
+      const data = new Uint8Array(e.target.result);
+
+      allProjects = parseExcel(data);
+
+      console.log('�??? Uploaded ' + allProjects.length + ' projects');
+
+      populateDropdowns();
+
+      selectedState = null;
+
+      currentStatusFilter = 'all';
+
+      document.getElementById('btnReset').style.display = 'none';
+
+      document.querySelectorAll('.filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+
+      document.querySelector('.filter-bar .filter-btn.all').classList.add('active');
+
+      document.getElementById('filterType').value = 'all';
+
+      document.getElementById('filterSolution').value = 'all';
+
+      filteredProjects = [...allProjects];
+
+      updateUI();
+
+      renderMap();
+
+      renderProjectList();
+
+      renderLegend();
+
+      updateStats();
+
+    } catch(err) {
+
+      console.error('Upload error:', err);
+
+      alert('Excel解析错误: ' + err.message + '\n请检查文件是否为标准.xlsx格式');
+
+    }
+
+  };
+
+  reader.readAsArrayBuffer(file);
+
+}
+
+
+
+// ══════════════════════════════════════════�???
+
+// INIT
+
+// ══════════════════════════════════════════�???
+
+function init() {
+
+  // Sync language selector with URL parameter
+
+  document.getElementById('langSelect').value = currentLanguage;
+
+
+
+  // 使用内嵌数据直接初始化（无需服务�???/fetch�???
+
+  settingData.types = EMBEDDED_SETTING.types;
+
+  settingData.solutions = EMBEDDED_SETTING.solutions;
+
+
+
+  // 为每个项目添加statusText
+
+  allProjects = EMBEDDED_PROJECTS.map(p => ({
+
+    ...p,
+
+    statusText: p.status === 'maintenance' ? t('maintenance')
+
+              : p.status === 'delivery'    ? t('delivery')
+
+              : p.status === 'poc'         ? t('poc')
+
+              : p.status === 'done'        ? t('done')
+
+              : t('pending')
+
+  }));
+
+
+
+  console.log('�??? Loaded ' + allProjects.length + ' embedded projects');
+
+
+
+  populateDropdowns();
+
+  filteredProjects = [...allProjects];
+
+  updateUI();
+
+  renderMap();
+
+  renderProjectList();
+
+  renderLegend();
+
+  updateStats();
+
+}
+
+
+
+// Start
+
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+
+
+</body>
+
+</html>
+

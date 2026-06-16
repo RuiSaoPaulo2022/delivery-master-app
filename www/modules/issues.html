@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客户问题反馈</title>
+<script src="../config.js"></script>
+<script src="../permission.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* HEADER - 绿色主题（项目管理板块） */
+.header{height:48px;background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.back-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.back-btn:hover{background:rgba(255,255,255,0.25)}
+.back-btn svg{width:16px;height:16px}
+.header-title{font-size:15px;font-weight:600;color:#fff;flex:1}
+.header-spacer{flex:1}
+.btn-refresh{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;color:#fff}
+.btn-refresh:hover{background:rgba(255,255,255,0.25)}
+.btn-refresh svg{width:16px;height:16px}
+.btn-create{height:28px;padding:0 12px;border:none;background:rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;font-size:12px;color:#fff;font-weight:500;transition:background .2s;white-space:nowrap}
+.btn-create:hover{background:rgba(255,255,255,0.3)}
+
+/* TOOLBAR */
+.toolbar{height:52px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.project-select{appearance:none;-webkit-appearance:none;padding:6px 28px 6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;color:#333;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 8px center;cursor:pointer;min-width:160px}
+.project-select:focus{outline:none;border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.1)}
+.select-label{font-size:12px;color:#666;white-space:nowrap}
+.status-filter{display:flex;gap:4px;margin-left:auto}
+.status-chip{padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .15s;white-space:nowrap}
+.status-chip:hover{background:#f5f5f5}
+.status-chip.active{background:#2E7D32;color:#fff;border-color:#2E7D32}
+.search-input{padding:6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;width:180px;color:#333}
+.search-input:focus{outline:none;border-color:#2E7D32}
+
+/* STATS */
+.stats-bar{display:flex;gap:12px;padding:16px;flex-shrink:0}
+.stat-card{flex:1;background:#fff;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
+.stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon.total{background:#e8f5e9;color:#2E7D32}
+.stat-icon.closed{background:#e8f5e9;color:#2e7d32}
+.stat-icon.open{background:#fff3e0;color:#e65100}
+.stat-icon.avg{background:#f3e5f5;color:#7b1fa2}
+.stat-icon svg{width:20px;height:20px}
+.stat-value{font-size:22px;font-weight:700;color:#1a1c21;line-height:1.2}
+.stat-label{font-size:11px;color:#999;margin-top:2px}
+
+/* TABLE */
+.table-wrap{flex:1;overflow:auto;padding:0 16px 16px;background:#f7f8fa}
+.issues-table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.issues-table thead{position:sticky;top:0;z-index:5}
+.issues-table th{background:#f5f7fa;font-size:11px;font-weight:600;color:#666;text-align:left;padding:10px 12px;border-bottom:2px solid #e8e8e8;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+.issues-table td{padding:10px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.issues-table td.title-cell{max-width:350px}
+.issues-table tr:hover{background:#f8fafd}
+.issues-table tr:hover td{color:#1a1c21}
+
+/* Action buttons in table */
+.action-btns{display:flex;gap:4px}
+.action-btn{padding:2px 8px;border:none;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s}
+.action-btn.edit{background:#e3f2fd;color:#1565c0}
+.action-btn.edit:hover{background:#bbdefb}
+.action-btn.delete{background:#fce4ec;color:#c62828}
+.action-btn.delete:hover{background:#ffcdd2}
+
+/* Status badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;white-space:nowrap}
+.badge.closed{background:#e8f5e9;color:#2e7d32}
+.badge.investigating{background:#e3f2fd;color:#1565c0}
+.badge.in_progress{background:#fff8e1;color:#f57f17}
+.badge.new,.badge.pending{background:#f5f5f5;color:#616161}
+.badge.suspended{background:#fce4ec;color:#c62828}
+.badge.invalid{background:#eceff1;color:#78909c}
+.badge.other{background:#f3e5f5;color:#6a1b9a}
+.badge.demand{background:#e8eaf6;color:#283593}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#bbb;gap:10px}
+.empty-state svg{width:48px;height:48px;opacity:.3}
+.empty-state-text{font-size:13px}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#bbb;font-size:13px;gap:8px}
+.spinner{width:18px;height:18px;border:2px solid #e0e0e0;border-top-color:#2E7D32;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Scrollbar */
+.table-wrap::-webkit-scrollbar{width:5px;height:5px}
+.table-wrap::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:3px}
+.table-wrap::-webkit-scrollbar-track{background:transparent}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal{background:#fff;border-radius:12px;width:90%;max-width:600px;max-height:80vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #e8e8e8}
+.modal-title{font-size:16px;font-weight:600;color:#1a1c21}
+.modal-close{width:28px;height:28px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .2s}
+.modal-close:hover{background:#f5f5f5}
+.modal-body{padding:20px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid #e8e8e8}
+
+.form-row{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:500;color:#666;margin-bottom:6px}
+.form-input{width:100%;padding:8px 12px;border:1px solid #d0d5dd;border-radius:6px;font-size:13px;color:#333;transition:border-color .2s}
+.form-input:focus{outline:none;border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.1)}
+.form-select{width:100%;padding:8px 12px;border:1px solid #d0d5dd;border-radius:6px;font-size:13px;color:#333;background:#fff;cursor:pointer}
+.form-select:focus{outline:none;border-color:#2E7D32}
+.form-textarea{width:100%;padding:8px 12px;border:1px solid #d0d5dd;border-radius:6px;font-size:13px;color:#333;resize:vertical;min-height:80px;font-family:inherit}
+.form-textarea:focus{outline:none;border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.1)}
+
+.btn-save{padding:8px 20px;background:#2E7D32;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-save:hover{background:#1a5aa5}
+.btn-cancel{padding:8px 20px;background:transparent;color:#666;border:1px solid #d0d5dd;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-cancel:hover{background:#f5f5f5}
+
+/* Alert */
+.alert{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transform:translateY(-10px);transition:all .3s;pointer-events:none}
+.alert.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.alert.success{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.alert.error{background:#fce4ec;color:#c62828;border:1px solid #ef9a9a}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .stats-bar{flex-wrap:wrap;gap:8px}
+  .stat-card{min-width:calc(50% - 4px);flex:0 0 auto}
+  .toolbar{flex-wrap:wrap;height:auto;padding:10px 12px;gap:8px}
+  .status-filter{order:3;margin-left:0;flex-wrap:wrap}
+  .search-input{width:120px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="back-btn" onclick="history.back()" title="返回">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
+  </button>
+  <span class="header-title" id="pageTitle">客户问题反馈 — Customer Feedback</span>
+  <div class="header-spacer"></div>
+  <button class="btn-create" data-permission="write" onclick="openCreateModal()">+ 新建问题</button>
+  <button class="btn-refresh" onclick="loadData()" title="刷新数据">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+  </button>
+</header>
+
+<div class="toolbar">
+  <span class="select-label">项目:</span>
+  <select class="project-select" id="projectSelect" onchange="onProjectChange()"></select>
+  <span class="select-label" style="margin-left:16px">状态:</span>
+  <div class="status-filter" id="statusFilter"></div>
+  <input class="search-input" type="text" id="searchInput" placeholder="搜索问题..." oninput="onSearchChange()">
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-card">
+    <div class="stat-icon total"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+    <div><div class="stat-value" id="statTotal">0</div><div class="stat-label">总问题数</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon closed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+    <div><div class="stat-value" id="statClosed">0</div><div class="stat-label">已关闭</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+    <div><div class="stat-value" id="statOpen">0</div><div class="stat-label">未关闭</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon avg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+    <div><div class="stat-value" id="statAvg">0</div><div class="stat-label">关闭周期（天）</div></div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="loading" id="loading"><div class="spinner"></div> 加载中...</div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div class="empty-state-text" id="emptyText">暂无疑问记录</div>
+  </div>
+  <table class="issues-table" id="issuesTable" style="display:none">
+    <thead>
+      <tr>
+        <th>ID</th><th>问题描述</th><th>反馈时间</th><th>关闭时间</th>
+        <th>状态</th><th>严重等级</th><th>产品线</th><th>反馈人</th><th>关闭天数</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="issuesBody"></tbody>
+  </table>
+</div>
+
+<!-- Edit/Create Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">编辑问题</div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <label class="form-label">项目</label>
+        <select class="form-select" id="editProject"></select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">问题描述 *</label>
+        <input class="form-input" type="text" id="editTitle" placeholder="请输入问题描述">
+      </div>
+      <div class="form-row">
+        <label class="form-label">详细描述</label>
+        <textarea class="form-textarea" id="editDescription" placeholder="请输入详细描述"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">状态</label>
+        <select class="form-select" id="editStatus">
+          <option value="new">新建</option>
+          <option value="investigating">调查中</option>
+          <option value="in_progress">处理中</option>
+          <option value="closed">已关闭</option>
+          <option value="suspended">挂起</option>
+          <option value="invalid">无效</option>
+          <option value="converted_to_demand">转需求</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">严重等级</label>
+        <select class="form-select" id="editSeverity">
+          <option value="">-</option>
+          <option value="I">I - 严重</option>
+          <option value="II">II - 中等</option>
+          <option value="III">III - 轻微</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">反馈人</label>
+        <input class="form-input" type="text" id="editReporter" placeholder="反馈人">
+      </div>
+      <div class="form-row">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="editRemarks" placeholder="备注信息"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveIssue()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="alert" id="alertMsg"></div>
+
+<script>
+// ===== Auth Check =====
+(function checkAuth() {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  if (!token || !user) {
+    window.location.href = '../login.html';
+  }
+})();
+
+// ===== Config =====
+var ALL_DATA = null;  // { _meta: {}, issues: [] }
+var currentProject = '__ALL__';
+var statusFilter = 'all';
+var searchQuery = '';
+var currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+var API_BASE = '/api/data/all_issues.json';
+
+// ===== API Helper =====
+function apiFetch(url, options) {
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options?.headers
+  };
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+  return fetch(url, {
+    ...options,
+    headers
+  }).then(function(r) {
+    if (r.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '../login.html';
+      return Promise.reject('Unauthorized');
+    }
+    return r;
+  });
+}
+
+// ===== Alert =====
+function showAlert(type, text) {
+  const el = document.getElementById('alertMsg');
+  el.textContent = text;
+  el.className = 'alert ' + type + ' show';
+  setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// ===== Init =====
+(function(){
+  document.title = '客户问题反馈 — 交维大师';
+  applyWriteButtons(currentUser, 'feedback:write');
+  loadData();
+})();
+
+// ===== Load Data =====
+function loadData() {
+  showLoading(true);
+  apiFetch(API_BASE)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      ALL_DATA = data;
+      buildProjectSelect();
+      render();
+      showLoading(false);
+    })
+    .catch(function(e) {
+      console.error('Failed to load issues data:', e);
+      // Fallback to static file
+      fetch('../_data/all_issues.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          ALL_DATA = data;
+          buildProjectSelect();
+          render();
+          showLoading(false);
+        })
+        .catch(function(e2) {
+          document.getElementById('emptyText').textContent = '数据加载失败：' + e2.message;
+          showLoading(false);
+          document.getElementById('emptyState').style.display = 'flex';
+        });
+    });
+}
+
+// ===== Build Project Select =====
+function buildProjectSelect() {
+  const sel = document.getElementById('projectSelect');
+  if (!sel) return;
+
+  // 优先从 projects.json 加载统一项目列表（与APP版一致）
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      sel.innerHTML = '';
+      var allProjects = data.projects || [];
+      var user = getCurrentUser();
+
+      // "全部项目" only for admin or users with multiple projects
+      var filtered = filterProjects(user, allProjects);
+      if (user && user.role !== 'admin' && filtered.length <= 1) {
+        // Single project user: no "全部" option, auto-select
+        currentProject = filtered.length === 1 ? filtered[0].name : '__ALL__';
+      } else {
+        const allOpt = document.createElement('option');
+        allOpt.value = '__ALL__';
+        allOpt.textContent = '全部项目' + (ALL_DATA && ALL_DATA.issues ? ' (' + ALL_DATA.issues.length + ' 条)' : '');
+        sel.appendChild(allOpt);
+      }
+      for (let i = 0; i < filtered.length; i++) {
+        const opt = document.createElement('option');
+        opt.value = filtered[i].name;
+        opt.textContent = filtered[i].name;
+        sel.appendChild(opt);
+      }
+      sel.value = currentProject;
+    })
+    .catch(() => {
+      // 降级：从当前数据提取
+      if (!ALL_DATA || !ALL_DATA.issues) return;
+      const projects = {};
+      for (let i = 0; i < ALL_DATA.issues.length; i++) {
+        const p = ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project;
+        if (p && !projects[p]) { projects[p] = 0; }
+        if (ALL_DATA.issues[i].project) {
+          projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] =
+            (projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] || 0) + 1;
+        }
+      }
+      sel.innerHTML = '';
+      const allOpt = document.createElement('option');
+      allOpt.value = '__ALL__';
+      allOpt.textContent = '全部项目 (' + ALL_DATA.issues.length + ' 条)';
+      sel.appendChild(allOpt);
+      const projectKeys = Object.keys(projects);
+      for (let i = 0; i < projectKeys.length; i++) {
+        const opt = document.createElement('option');
+        opt.value = ALL_DATA.issues.find(i => (i.project_display || i.project) === projectKeys[i])?.project || projectKeys[i];
+        opt.textContent = projectKeys[i] + ' (' + projects[projectKeys[i]] + ' 条)';
+        sel.appendChild(opt);
+      }
+      sel.value = currentProject;
+    });
+  
+  // Status filter chips
+  const chips = document.getElementById('statusFilter');
+  const statuses = [
+    {key:'all', label:'全部'},
+    {key:'closed', label:'已关闭'},
+    {key:'investigating', label:'调查中'},
+    {key:'in_progress', label:'处理中'},
+    {key:'new', label:'新建'},
+    {key:'suspended', label:'挂起'},
+    {key:'invalid', label:'无效'},
+    {key:'converted_to_demand', label:'转需求'},
+    {key:'other', label:'其他'}
+  ];
+  chips.innerHTML = '';
+  for (let s = 0; s < statuses.length; s++) {
+    const chip = document.createElement('span');
+    chip.className = 'status-chip' + (statuses[s].key === 'all' ? ' active' : '');
+    chip.textContent = statuses[s].label;
+    chip.dataset.status = statuses[s].key;
+    chip.onclick = function() {
+      statusFilter = this.dataset.status;
+      const allChips = document.querySelectorAll('.status-chip');
+      for (let c = 0; c < allChips.length; c++) allChips[c].classList.remove('active');
+      this.classList.add('active');
+      render();
+    };
+    chips.appendChild(chip);
+  }
+}
+
+// ===== Filters =====
+function onProjectChange() {
+  currentProject = document.getElementById('projectSelect').value;
+  render();
+}
+
+function onSearchChange() {
+  searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+  render();
+}
+
+// ===== Get Filtered Issues =====
+function getIssues() {
+  if (!ALL_DATA || !ALL_DATA.issues) return [];
+  let issues = ALL_DATA.issues.slice();
+  
+  // Project filter
+  if (currentProject !== '__ALL__') {
+    issues = issues.filter(function(i) { return i.project === currentProject; });
+  }
+  
+  // Status filter
+  if (statusFilter !== 'all') {
+    if (statusFilter === 'other') {
+      const known = ['closed','investigating','in_progress','new','suspended','invalid','converted_to_demand','pending'];
+      issues = issues.filter(function(i) { return known.indexOf(i.status) === -1; });
+    } else {
+      issues = issues.filter(function(i) { return i.status === statusFilter || i.status_raw === statusFilter; });
+    }
+  }
+  
+  // Search
+  if (searchQuery) {
+    issues = issues.filter(function(i) {
+      const text = (i.id || '') + ' ' + (i.title || '') + ' ' + (i.description || '') + ' ' + (i.reporter || '') + ' ' + (i.remarks || '');
+      return text.toLowerCase().indexOf(searchQuery) !== -1;
+    });
+  }
+  
+  // Sort by date desc
+  issues.sort(function(a, b) {
+    const da = a.created_date || '';
+    const db = b.created_date || '';
+    return db.localeCompare(da);
+  });
+  
+  return issues;
+}
+
+// ===== Render Table =====
+function render() {
+  if (!ALL_DATA) return;
+  
+  const issues = getIssues();
+  const total = issues.length;
+  let closedCount = 0, openCount = 0;
+  const durations = [];
+  
+  for (let i = 0; i < issues.length; i++) {
+    if (issues[i].status === 'closed') closedCount++;
+    else if (['closed','invalid'].indexOf(issues[i].status) === -1) openCount++;
+    
+    const d = issues[i].close_duration;
+    if (d !== null && d !== undefined && !isNaN(d)) {
+      durations.push(parseFloat(d));
+    }
+  }
+  
+  // Stats
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statClosed').textContent = closedCount;
+  document.getElementById('statOpen').textContent = openCount;
+  document.getElementById('statAvg').textContent = durations.length > 0 ? (durations.reduce(function(a,b){return a+b;},0)/durations.length).toFixed(0) : '-';
+  
+  // Table
+  const tbody = document.getElementById('issuesBody');
+  tbody.innerHTML = '';
+  
+  if (issues.length === 0) {
+    document.getElementById('issuesTable').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('emptyText').textContent = '当前筛选条件下无匹配记录';
+    return;
+  }
+  
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('issuesTable').style.display = 'table';
+  
+  for (let i = 0; i < issues.length; i++) {
+    const iss = issues[i];
+    const tr = document.createElement('tr');
+    
+    // ID
+    const tdId = document.createElement('td');
+    tdId.style.cssText = 'font-family:monospace;font-size:11px;color:#555';
+    tdId.textContent = iss.id || '';
+    tr.appendChild(tdId);
+    
+    // Title
+    const tdTitle = document.createElement('td');
+    tdTitle.className = 'title-cell';
+    let titleText = iss.title || '';
+    if (currentProject === '__ALL__') {
+      titleText = '[' + (iss.project_display || iss.project || '') + '] ' + titleText;
+    }
+    tdTitle.textContent = titleText;
+    tdTitle.title = titleText;
+    tr.appendChild(tdTitle);
+    
+    // Created date
+    const tdCreated = document.createElement('td');
+    tdCreated.style.cssText = 'white-space:nowrap';
+    tdCreated.textContent = iss.created_date || '-';
+    tr.appendChild(tdCreated);
+    
+    // Close date
+    const tdClosed = document.createElement('td');
+    tdClosed.style.cssText = 'white-space:nowrap';
+    tdClosed.textContent = iss.actual_close_date || '-';
+    tr.appendChild(tdClosed);
+    
+    // Status
+    const tdStatus = document.createElement('td');
+    let badgeClass = (iss.status && ['closed','investigating','in_progress','new','pending','suspended','invalid','converted_to_demand'].indexOf(iss.status) !== -1) ? iss.status : 'other';
+    if (iss.status && iss.status.indexOf('demand') !== -1) badgeClass = 'demand';
+    tdStatus.innerHTML = '<span class="badge ' + badgeClass + '">' + (iss.status_raw || iss.status || '') + '</span>';
+    tr.appendChild(tdStatus);
+    
+    // Severity
+    const tdSev = document.createElement('td');
+    tdSev.textContent = iss.severity || '-';
+    tr.appendChild(tdSev);
+    
+    // Product line
+    const tdProd = document.createElement('td');
+    tdProd.textContent = iss.product_line || '-';
+    tr.appendChild(tdProd);
+    
+    // Reporter
+    const tdRep = document.createElement('td');
+    tdRep.textContent = iss.reporter || '-';
+    tr.appendChild(tdRep);
+    
+    // Duration
+    const tdDur = document.createElement('td');
+    tdDur.style.cssText = 'text-align:right;font-weight:500';
+    tdDur.textContent = iss.close_duration !== null ? iss.close_duration + '天' : '-';
+    tr.appendChild(tdDur);
+    
+    // Actions
+    const tdAct = document.createElement('td');
+    tdAct.innerHTML = '<div class="action-btns">' +
+      '<button class="action-btn edit" onclick="openEditModal(\'' + (iss.id || '') + '\')">编辑</button>' +
+      '<button class="action-btn delete" onclick="deleteIssue(\'' + (iss.id || '') + '\')">删除</button>' +
+      '</div>';
+    tr.appendChild(tdAct);
+    
+    tbody.appendChild(tr);
+  }
+}
+
+// ===== Modal Operations =====
+function openCreateModal() {
+  document.getElementById('modalTitle').textContent = '新建问题';
+  document.getElementById('editId').value = '';
+  document.getElementById('editTitle').value = '';
+  document.getElementById('editDescription').value = '';
+  document.getElementById('editStatus').value = 'new';
+  document.getElementById('editSeverity').value = '';
+  document.getElementById('editReporter').value = '';
+  document.getElementById('editRemarks').value = '';
+  
+  // Populate project select (from projects.json)
+  const projectSel = document.getElementById('editProject');
+  projectSel.innerHTML = '';
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      (data.projects || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        projectSel.appendChild(opt);
+      });
+    })
+    .catch(() => {
+      // 降级：从当前数据提取
+      if (ALL_DATA && ALL_DATA.issues) {
+        const projects = {};
+        for (let i = 0; i < ALL_DATA.issues.length; i++) {
+          const p = ALL_DATA.issues[i].project;
+          const pd = ALL_DATA.issues[i].project_display || p;
+          if (p && !projects[p]) { projects[p] = pd; }
+        }
+        const keys = Object.keys(projects);
+        for (let i = 0; i < keys.length; i++) {
+          const opt = document.createElement('option');
+          opt.value = keys[i];
+          opt.textContent = projects[keys[i]];
+          projectSel.appendChild(opt);
+        }
+      }
+    });
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function openEditModal(issueId) {
+  if (!ALL_DATA || !ALL_DATA.issues) return;
+  
+  const issue = ALL_DATA.issues.find(function(i) { return i.id === issueId; });
+  if (!issue) {
+    showAlert('error', '问题不存在');
+    return;
+  }
+  
+  document.getElementById('modalTitle').textContent = '编辑问题';
+  document.getElementById('editId').value = issue.id || '';
+  document.getElementById('editTitle').value = issue.title || '';
+  document.getElementById('editDescription').value = issue.description || '';
+  document.getElementById('editStatus').value = issue.status || 'new';
+  document.getElementById('editSeverity').value = issue.severity || '';
+  document.getElementById('editReporter').value = issue.reporter || '';
+  document.getElementById('editRemarks').value = issue.remarks || '';
+  
+  // Populate project select (from projects.json) + set selected
+  const projectSel = document.getElementById('editProject');
+  projectSel.innerHTML = '';
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      (data.projects || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        if (p.name === (issue.project || '')) opt.selected = true;
+        projectSel.appendChild(opt);
+      });
+    })
+    .catch(() => {
+      if (ALL_DATA && ALL_DATA.issues) {
+        const projects = {};
+        for (let i = 0; i < ALL_DATA.issues.length; i++) {
+          const p = ALL_DATA.issues[i].project;
+          const pd = ALL_DATA.issues[i].project_display || p;
+          if (p && !projects[p]) { projects[p] = pd; }
+        }
+        const keys = Object.keys(projects);
+        for (let i = 0; i < keys.length; i++) {
+          const opt = document.createElement('option');
+          opt.value = keys[i];
+          opt.textContent = projects[keys[i]];
+          if (keys[i] === (issue.project || '')) opt.selected = true;
+          projectSel.appendChild(opt);
+        }
+      }
+    });
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function saveIssue() {
+  const issueId = document.getElementById('editId').value;
+  const title = document.getElementById('editTitle').value.trim();
+  
+  if (!title) {
+    showAlert('error', '问题描述不能为空');
+    return;
+  }
+  
+  if (!ALL_DATA) ALL_DATA = { _meta: {}, issues: [] };
+  if (!ALL_DATA.issues) ALL_DATA.issues = [];
+  
+  if (issueId) {
+    // Update existing issue
+    const idx = ALL_DATA.issues.findIndex(function(i) { return i.id === issueId; });
+    if (idx === -1) {
+      showAlert('error', '问题不存在');
+      return;
+    }
+    
+    ALL_DATA.issues[idx] = {
+      ...ALL_DATA.issues[idx],
+      project: document.getElementById('editProject').value,
+      title: title,
+      description: document.getElementById('editDescription').value,
+      status: document.getElementById('editStatus').value,
+      severity: document.getElementById('editSeverity').value,
+      reporter: document.getElementById('editReporter').value,
+      remarks: document.getElementById('editRemarks').value,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    // Save to API
+    apiFetch(API_BASE, {
+      method: 'POST',
+      body: JSON.stringify(ALL_DATA)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+      showAlert('success', '问题已更新');
+      closeModal();
+      render();
+      buildProjectSelect();
+    })
+    .catch(function(e) {
+      showAlert('error', '保存失败：' + e.message);
+    });
+  } else {
+    // Create new issue
+    const newId = 'MANUAL_' + Date.now();
+    const newIssue = {
+      id: newId,
+      project: document.getElementById('editProject').value,
+      project_display: document.getElementById('editProject').selectedOptions[0]?.textContent || '',
+      title: title,
+      description: document.getElementById('editDescription').value,
+      status: document.getElementById('editStatus').value,
+      severity: document.getElementById('editSeverity').value,
+      reporter: document.getElementById('editReporter').value,
+      remarks: document.getElementById('editRemarks').value,
+      created_date: new Date().toISOString().split('T')[0],
+      created_by: currentUser.username || 'unknown',
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    ALL_DATA.issues.push(newIssue);
+    ALL_DATA._meta = ALL_DATA._meta || {};
+    ALL_DATA._meta.total = ALL_DATA.issues.length;
+    
+    // Save to API
+    apiFetch(API_BASE, {
+      method: 'POST',
+      body: JSON.stringify(ALL_DATA)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+      showAlert('success', '问题已创建');
+      closeModal();
+      render();
+      buildProjectSelect();
+    })
+    .catch(function(e) {
+      showAlert('error', '保存失败：' + e.message);
+    });
+  }
+}
+
+function deleteIssue(issueId) {
+  if (!confirm('确定要删除这个问题吗？')) return;
+  
+  if (!ALL_DATA || !ALL_DATA.issues) return;
+  
+  const idx = ALL_DATA.issues.findIndex(function(i) { return i.id === issueId; });
+  if (idx === -1) {
+    showAlert('error', '问题不存在');
+    return;
+  }
+  
+  ALL_DATA.issues.splice(idx, 1);
+  ALL_DATA._meta = ALL_DATA._meta || {};
+  ALL_DATA._meta.total = ALL_DATA.issues.length;
+  
+  // Save to API
+  apiFetch(API_BASE, {
+    method: 'POST',
+    body: JSON.stringify(ALL_DATA)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function() {
+    showAlert('success', '问题已删除');
+    render();
+    buildProjectSelect();
+  })
+  .catch(function(e) {
+    showAlert('error', '删除失败：' + e.message);
+  });
+}
+
+// ===== Loading =====
+function showLoading(on) {
+  document.getElementById('loading').style.display = on ? 'flex' : 'none';
+}
+</script>
+</body>
+</html>

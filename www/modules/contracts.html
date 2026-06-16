@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>合同管理 — 交维大师</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .status-active { color: #81c784; font-weight: 600; }
+    .status-expired { color: #ef5350; font-weight: 600; }
+    .status-pending { color: #ffb74d; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <div class="toolbar-title">📄 合同管理</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="searchBox" placeholder="搜索合同号、客户名...">
+        <button class="btn btn-primary btn-sm" id="btnAuth" onclick="showAuthModal()" style="display:none;">授权管理</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>客户</th>
+            <th>合同号</th>
+            <th>类型</th>
+            <th>关联项目</th>
+            <th>起始日期</th>
+            <th>结束日期</th>
+            <th>金额</th>
+            <th>付款进度</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="contractTableBody">
+          <tr><td colspan="9" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 授权管理 Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" style="width:700px;">
+      <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+      <div class="modal-title">合同授权管理</div>
+      <div class="form-group">
+        <label class="form-label">选择用户</label>
+        <select class="form-input" id="authUserId" onchange="loadUserContracts()">
+          <option value="">-- 请选择用户 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">授权合同（可多选）</label>
+        <div id="contractCheckboxes" style="max-height:300px; overflow-y:auto; border:1px solid #ddd; padding:8px; border-radius:4px;">
+          <p style="color:#999;">请先选择用户</p>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('authModal')">取消</button>
+        <button type="button" class="btn btn-primary" onclick="saveContractAuth()">保存授权</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../permission.js"></script>
+  <script>
+    let contractData = [];
+    let allContracts = [];
+    let users = [];
+
+    // API 请求封装
+    async function api(path, options = {}) {
+      const token = (JSON.parse(localStorage.getItem('user') || '{}')).token;
+      const res = await fetch(path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+          ...options.headers
+        }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    // 加载合同列表
+    async function loadContracts() {
+      try {
+        const user = getCurrentUser();
+        if (!user) { location.href = '../login.html'; return; }
+
+        contractData = await api('/api/contracts');
+        renderContracts();
+      } catch (err) {
+        console.error('加载合同失败:', err);
+        document.getElementById('contractTableBody').innerHTML =
+          '<tr><td colspan="9" class="empty">加载失败：' + err.message + '</td></tr>';
+      }
+    }
+
+    // 渲染合同表格
+    function renderContracts(keyword = '') {
+      const tbody = document.getElementById('contractTableBody');
+      const kw = keyword.toLowerCase();
+
+      let filtered = contractData;
+      if (kw) {
+        filtered = contractData.filter(c =>
+          (c.clientName || '').toLowerCase().includes(kw) ||
+          (c.contractNo || '').toLowerCase().includes(kw) ||
+          (c.projectId || '').toLowerCase().includes(kw)
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无合同数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const statusClass = c.status === 'active' ? 'status-active' :
+                            c.status === 'expired' ? 'status-expired' : 'status-pending';
+        const statusText = c.status === 'active' ? '生效中' :
+                           c.status === 'expired' ? '已过期' : '待生效';
+        const typeText = c.type === 'delivery' ? '交付合同' :
+                        c.type === 'maintenance' ? '维保合同' : c.type;
+
+        return `<tr>
+          <td><strong>${esc(c.clientName || '')}</strong></td>
+          <td>${esc(c.contractNo || '')}</td>
+          <td>${typeText}</td>
+          <td>${esc(c.projectId || '')}</td>
+          <td>${c.startDate || '-'}</td>
+          <td>${c.endDate || '-'}</td>
+          <td>${c.amount ? c.amount.toLocaleString() + ' ' + (c.currency || '') : '-'}</td>
+          <td>${c.paidPercent ? c.paidPercent + '%' : '-'}</td>
+          <td><span class="${statusClass}">${statusText}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    // 显示授权管理 Modal
+    async function showAuthModal() {
+      try {
+        users = await api('/api/admin/users');
+        const select = document.getElementById('authUserId');
+        select.innerHTML = '<option value="">-- 请选择用户 --</option>' +
+          users.filter(u => u.role !== 'admin').map(u =>
+            `<option value="${u.id}">${esc(u.displayName || u.username)} (${u.username})</option>`
+          ).join('');
+
+        document.getElementById('contractCheckboxes').innerHTML =
+          '<p style="color:#999;">请先选择用户</p>';
+
+        showModal('authModal');
+      } catch (err) {
+        alert('加载用户列表失败: ' + err.message);
+      }
+    }
+
+    // 加载用户的合同授权
+    async function loadUserContracts() {
+      const userId = document.getElementById('authUserId').value;
+      if (!userId) {
+        document.getElementById('contractCheckboxes').innerHTML =
+          '<p style="color:#999;">请先选择用户</p>';
+        return;
+      }
+
+      try {
+        // 加载所有合同
+        allContracts = await api('/api/contracts');
+        // 加载用户信息
+        const user = users.find(u => u.id == userId);
+        const allowed = (user && user.allowedContracts) || [];
+
+        // 显示合同复选框
+        const div = document.getElementById('contractCheckboxes');
+        div.innerHTML = allContracts.map(c => `
+          <label style="display:block; padding:4px 0; cursor:pointer;">
+            <input type="checkbox" value="${esc(c.contractNo)}" ${allowed.includes(c.contractNo) ? 'checked' : ''}>
+            <span>${esc(c.clientName)} - ${esc(c.contractNo)} (${esc(c.projectId)})</span>
+          </label>
+        `).join('');
+      } catch (err) {
+        console.error('加载合同列表失败:', err);
+      }
+    }
+
+    // 保存合同授权
+    async function saveContractAuth() {
+      const userId = document.getElementById('authUserId').value;
+      if (!userId) { alert('请先选择用户'); return; }
+
+      const checkboxes = document.querySelectorAll('#contractCheckboxes input[type="checkbox"]');
+      const allowedContracts = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+      try {
+        await api('/api/admin/users/' + userId, {
+          method: 'PUT',
+          body: JSON.stringify({ allowedContracts })
+        });
+        alert('授权保存成功！');
+        closeModal('authModal');
+      } catch (err) {
+        alert('保存失败: ' + err.message);
+      }
+    }
+
+    // HTML 转义
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // 显示 Modal
+    function showModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    // 关闭 Modal
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // 初始化
+    (function() {
+      document.title = '合同管理 — 交维大师';
+
+      const currentUser = getCurrentUser();
+      if (!currentUser) { location.href = '../login.html'; return; }
+
+      // 管理员显示授权按钮
+      if (currentUser.role === 'admin') {
+        document.getElementById('btnAuth').style.display = 'inline-block';
+      }
+
+      // 搜索框
+      document.getElementById('searchBox').addEventListener('input', function() {
+        renderContracts(this.value);
+      });
+
+      loadContracts();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "index": 0,
+  "title": "Sample Week Work Plan",
+  "display_date": "MM/DD-MM/DD",
+  "tasks": [
+    {
+      "seq": 1,
+      "task": "Sample task - replace with your own data",
+      "category": "",
+      "quadrant_key": "q1",
+      "status": "completed"
+    }
+  ]
+}

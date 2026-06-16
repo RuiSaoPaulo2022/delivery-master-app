@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交维大师 - 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #070d18;
+      color: #e0e6ed;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(15,25,45,0.9);
+      border-bottom: 1px solid rgba(31,73,125,0.3);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left a { color: #4fc3f7; text-decoration: none; font-size: 14px; }
+    .header-left a:hover { text-decoration: underline; }
+    .header-title { font-size: 18px; font-weight: 600; color: #fff; }
+    .header-badge {
+      background: rgba(31,73,125,0.6); border: 1px solid #1F497D;
+      border-radius: 4px; padding: 2px 8px; font-size: 12px; color: #90caf9;
+    }
+    .header-user { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #90a4ae; }
+    .header-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #1F497D, #2E7D32);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; color: #fff; font-size: 14px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 0; padding: 0 24px;
+      background: rgba(10,20,35,0.6);
+      border-bottom: 1px solid rgba(31,73,125,0.2);
+    }
+    .tab {
+      padding: 12px 20px; font-size: 14px; font-weight: 500;
+      color: #78909c; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: #b0bec5; }
+    .tab.active { color: #4fc3f7; border-bottom-color: #1F497D; background: rgba(31,73,125,0.1); }
+    .tab .badge {
+      background: #1F497D; color: #90caf9; border-radius: 10px;
+      padding: 1px 6px; font-size: 11px; margin-left: 6px;
+    }
+
+    /* Content */
+    .content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+    }
+    .toolbar-title { font-size: 16px; font-weight: 600; color: #fff; }
+    .search-box {
+      background: rgba(15,25,45,0.8); border: 1px solid rgba(31,73,125,0.4);
+      border-radius: 6px; padding: 8px 12px; color: #e0e6ed; font-size: 13px;
+      width: 200px; outline: none;
+    }
+    .search-box:focus { border-color: #4fc3f7; }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none; transition: all 0.2s; display: inline-flex;
+      align-items: center; gap: 6px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1F497D, #1565c0);
+      color: #fff;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #1565c0, #0d47a1); }
+    .btn-secondary {
+      background: rgba(31,73,125,0.3); color: #90caf9;
+      border: 1px solid rgba(31,73,125,0.5);
+    }
+    .btn-secondary:hover { background: rgba(31,73,125,0.5); }
+    .btn-danger {
+      background: rgba(198,40,40,0.3); color: #ef9a9a;
+      border: 1px solid rgba(198,40,40,0.4);
+    }
+    .btn-danger:hover { background: rgba(198,40,40,0.5); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Table */
+    .table-wrap {
+      background: rgba(15,25,45,0.5); border: 1px solid rgba(31,73,125,0.2);
+      border-radius: 8px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: rgba(31,73,125,0.2); }
+    th { padding: 10px 12px; text-align: left; color: #90caf9; font-weight: 600; white-space: nowrap; }
+    td { padding: 10px 12px; border-top: 1px solid rgba(31,73,125,0.15); }
+    tr:hover td { background: rgba(31,73,125,0.08); }
+    .status {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 500;
+    }
+    .status-active { background: rgba(46,125,50,0.2); color: #81c784; }
+    .status-inactive { background: rgba(198,40,40,0.2); color: #ef9a9a; }
+
+    /* Role badges */
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 500;
+    }
+    .role-admin { background: rgba(255,215,0,0.15); color: #ffd54f; }
+    .role-diamond { background: rgba(100,181,246,0.15); color: #64b5f6; }
+    .role-gold { background: rgba(255,183,77,0.15); color: #ffb74d; }
+    .role-silver { background: rgba(189,189,189,0.15); color: #bdbdbd; }
+
+    /* Tier badges */
+    .tier-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 10px; font-size: 12px;
+    }
+    .tier-diamond { background: rgba(100,181,246,0.15); color: #64b5f6; }
+    .tier-gold { background: rgba(255,183,77,0.15); color: #ffb74d; }
+    .tier-silver { background: rgba(189,189,189,0.15); color: #bdbdbd; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      justify-content: center; align-items: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #0f1929; border: 1px solid rgba(31,73,125,0.4);
+      border-radius: 12px; padding: 24px; width: 500px; max-width: 95vw;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .modal-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+    .modal-close {
+      float: right; background: none; border: none; color: #78909c;
+      font-size: 20px; cursor: pointer; padding: 4px;
+    }
+    .modal-close:hover { color: #fff; }
+
+    /* Form */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; color: #90caf9; margin-bottom: 4px; font-weight: 500; }
+    .form-input, .form-select {
+      width: 100%; padding: 8px 12px; border-radius: 6px; font-size: 13px;
+      background: rgba(15,25,45,0.8); border: 1px solid rgba(31,73,125,0.4);
+      color: #e0e6ed; outline: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: #4fc3f7; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .form-hint { font-size: 11px; color: #78909c; margin-top: 2px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .form-error { color: #ef5350; font-size: 12px; margin-top: 4px; }
+
+    /* Stats */
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: rgba(15,25,45,0.5); border: 1px solid rgba(31,73,125,0.2);
+      border-radius: 8px; padding: 16px;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; color: #fff; }
+    .stat-label { font-size: 12px; color: #78909c; margin-top: 2px; }
+    .stat-icon { font-size: 20px; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 40px; color: #546e7a; }
+    .empty-icon { font-size: 48px; margin-bottom: 10px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .content { padding: 12px; }
+      .header { padding: 12px 16px; }
+      .tabs { padding: 0 12px; overflow-x: auto; }
+      .tab { padding: 10px 14px; white-space: nowrap; }
+      .toolbar { flex-direction: column; align-items: flex-start; }
+      .search-box { width: 100%; }
+      table { font-size: 12px; }
+      th, td { padding: 8px 6px; }
+      .form-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <a href="../index.html">&larr; 返回主页</a>
+    <span class="header-title">管理后台</span>
+    <span class="header-badge">Admin Only</span>
+  </div>
+  <div class="header-user">
+    <div class="header-avatar" id="avatar">A</div>
+    <span id="adminName">admin</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-tab="users">用户管理 <span class="badge" id="userCount">0</span></div>
+  <div class="tab" data-tab="clients">客户管理 <span class="badge" id="clientCount">0</span></div>
+  <div class="tab" data-tab="access">项目授权 <span class="badge" id="accessCount">0</span></div>
+  <div class="tab" data-tab="credit">信用管理 <span class="badge" id="creditCount">0</span></div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="statUsers">-</div>
+      <div class="stat-label">注册用户</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statClients">-</div>
+      <div class="stat-label">客户数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statProjects">-</div>
+      <div class="stat-label">项目授权</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statActive">-</div>
+      <div class="stat-label">活跃用户</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statCredit">-</div>
+      <div class="stat-label">信用警告</div>
+    </div>
+  </div>
+  
+  <!-- ============ Users Tab ============ -->
+  <div class="tab-panel active" id="panel-users">
+    <div class="toolbar">
+      <div class="toolbar-title">用户列表</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="userSearch" placeholder="搜索用户名/显示名...">
+        <button class="btn btn-primary" onclick="showUserModal()">+ 新建用户</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>用户名</th><th>显示名</th><th>角色</th>
+            <th>所属客户</th><th>语言</th><th>状态</th><th>最后登录</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="9" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ Clients Tab ============ -->
+  <div class="tab-panel" id="panel-clients">
+    <div class="toolbar">
+      <div class="toolbar-title">客户列表</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="clientSearch" placeholder="搜索客户名...">
+        <button class="btn btn-primary" onclick="showClientModal()">+ 新建客户</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>客户名</th><th>简称</th><th>Tier</th>
+            <th>联系人</th><th>邮箱</th><th>信用分</th><th>合同数</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="clientTableBody">
+          <tr><td colspan="9" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ Access Tab ============ -->
+  <div class="tab-panel" id="panel-access">
+    <div class="toolbar">
+      <div class="toolbar-title">项目授权列表</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="accessSearch" placeholder="搜索项目/客户...">
+        <button class="btn btn-primary" onclick="showAccessModal()">+ 新增授权</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>客户</th><th>项目ID</th><th>项目名</th>
+            <th>授权人</th><th>授权时间</th><th>状态</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="accessTableBody">
+          <tr><td colspan="8" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ Credit Score Tab ============ -->
+  <div class="tab-panel" id="panel-credit">
+    <div class="toolbar">
+      <div class="toolbar-title">信用评分管理</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="creditSearch" placeholder="搜索客户名...">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>客户</th><th>当前分数</th><th>状态</th>
+            <th>最后更新</th><th>更新人</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="creditTableBody">
+          <tr><td colspan="6" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Credit Deduct Modal ============ -->
+<div class="modal-overlay" id="creditDeductModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('creditDeductModal')">&times;</button>
+    <div class="modal-title">扣分操作</div>
+    <form onsubmit="saveCreditDeduct(event)">
+      <input type="hidden" id="deductClientId">
+      <div class="form-group">
+        <label class="form-label">客户</label>
+        <input class="form-input" id="deductClientName" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">扣除分值 *（负数）</label>
+        <input class="form-input" id="deductScoreChange" type="number" required placeholder="-1 ~ -5">
+        <div class="form-hint">请输入负数，例如 -2 表示扣 2 分</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">扣除事由 *</label>
+        <input class="form-input" id="deductReason" required placeholder="例如：逾期付款、不履行合同">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input class="form-input" id="deductRemark" placeholder="补充说明（可选）">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('creditDeductModal')">取消</button>
+        <button type="submit" class="btn btn-danger">确认扣分</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Credit Reset Modal ============ -->
+<div class="modal-overlay" id="creditResetModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('creditResetModal')">&times;</button>
+    <div class="modal-title">重置分数</div>
+    <form onsubmit="saveCreditReset(event)">
+      <input type="hidden" id="resetClientId">
+      <div class="form-group">
+        <label class="form-label">客户</label>
+        <input class="form-input" id="resetClientName" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">目标分数 *（0-10 分）</label>
+        <input class="form-input" id="resetTargetScore" type="number" min="0" max="10" required placeholder="例如：10">
+        <div class="form-hint">输入 0-10 之间的数字，系统会自动记录分数变化</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">重置理由 *</label>
+        <input class="form-input" id="resetReason" required placeholder="例如：已补交欠款、合同履行完毕">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input class="form-input" id="resetRemark" placeholder="补充说明（可选）">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('creditResetModal')">取消</button>
+        <button type="submit" class="btn btn-primary">确认重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Credit Log Modal ============ -->
+<div class="modal-overlay" id="creditLogModal">
+  <div class="modal" style="width:700px;">
+    <button class="modal-close" onclick="closeModal('creditLogModal')">&times;</button>
+    <div class="modal-title" id="creditLogTitle">信用评分历史记录</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th><th>操作类型</th><th>分数变化</th>
+            <th>变化前</th><th>变化后</th><th>事由</th><th>操作人</th>
+          </tr>
+        </thead>
+        <tbody id="creditLogTableBody">
+          <tr><td colspan="7" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ User Modal ============ -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+    <div class="modal-title" id="userModalTitle">新建用户</div>
+    <form id="userForm" onsubmit="saveUser(event)">
+      <input type="hidden" id="userId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">用户名 *</label>
+          <input class="form-input" id="uUsername" required placeholder="登录用户名">
+        </div>
+        <div class="form-group">
+          <label class="form-label">显示名 *</label>
+          <input class="form-input" id="uDisplayName" required placeholder="用户显示名称">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">密码 * <span id="pwdHint" class="form-hint">（初始密码，至少8位含字母+数字）</span></label>
+          <input class="form-input" id="uPassword" type="password" placeholder="SHA-256 hash 或明文">
+        </div>
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input class="form-input" id="uEmail" type="email" placeholder="user@example.com">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">角色 *</label>
+          <select class="form-select" id="uRole" required>
+            <option value="admin">👑 管理员 (admin)</option>
+            <option value="diamond">💎 钻石 (diamond)</option>
+            <option value="gold">🥇 黄金 (gold)</option>
+            <option value="silver" selected>🥈 白银 (silver)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">所属客户</label>
+          <select class="form-select" id="uClientId">
+            <option value="">-- 无 --</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">语言</label>
+        <select class="form-select" id="uLanguage">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+          <option value="pt-BR">Portugues</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Client Modal ============ -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('clientModal')">&times;</button>
+    <div class="modal-title" id="clientModalTitle">新建客户</div>
+    <form id="clientForm" onsubmit="saveClient(event)">
+      <input type="hidden" id="clientId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">公司全称 *</label>
+          <input class="form-input" id="cName" required placeholder="公司全称">
+        </div>
+        <div class="form-group">
+          <label class="form-label">简称 *</label>
+          <input class="form-input" id="cShortName" required placeholder="简称">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">英文名</label>
+          <input class="form-input" id="cNameEn" placeholder="English name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">葡文名</label>
+          <input class="form-input" id="cNamePt" placeholder="Nome em portugues">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tier *</label>
+          <select class="form-select" id="cTier" required>
+            <option value="diamond">💎 Diamond</option>
+            <option value="gold">🥇 Gold</option>
+            <option value="silver">🥈 Silver</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系人</label>
+          <input class="form-input" id="cContactPerson" placeholder="联系人姓名">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">联系电话</label>
+          <input class="form-input" id="cContactPhone" placeholder="+55-xx-xxxxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input class="form-input" id="cContactEmail" placeholder="email@example.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">地址</label>
+        <input class="form-input" id="cAddress" placeholder="地址">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('clientModal')">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Access Modal ============ -->
+<div class="modal-overlay" id="accessModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('accessModal')">&times;</button>
+    <div class="modal-title">新增项目授权</div>
+    <form id="accessForm" onsubmit="saveAccess(event)">
+      <div class="form-group">
+        <label class="form-label">客户 *</label>
+        <select class="form-select" id="aClientId" required onchange="loadClientProjects()">
+          <option value="">-- 选择客户 --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">项目 ID *</label>
+          <input class="form-input" id="aProjectId" required placeholder="如：rj-bwc">
+        </div>
+        <div class="form-group">
+          <label class="form-label">项目名 *</label>
+          <input class="form-input" id="aProjectName" required placeholder="如：RJ BWC I期">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('accessModal')">取消</button>
+        <button type="submit" class="btn btn-primary">授权</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ===== Globals =====
+let usersData = [], clientsData = [], accessData = [];
+
+const ROLE_EMOJIS = { admin: '👑', diamond: '💎', gold: '🥇', silver: '🥈' };
+const ROLE_NAMES = { admin: '管理员', diamond: '钻石', gold: '黄金', silver: '白银' };
+
+function getToken() { return localStorage.getItem('token'); }
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('user')); }
+  catch(e) { return null; }
+}
+
+function api(path, opts = {}) {
+  const token = getToken();
+  if (!token) { window.location.replace('../login.html'); return Promise.reject('No auth'); }
+  return fetch('/api/admin' + path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+      ...(opts.headers || {})
+    }
+  }).then(r => {
+    if (r.status === 401 || r.status === 403) { window.location.replace('../login.html'); throw new Error('Unauthorized'); }
+    return r.json();
+  });
+}
+
+// ===== Init =====
+(function init() {
+  const user = getUser();
+  if (!user || user.role !== 'admin') {
+    alert('仅管理员可访问此页面');
+    window.location.replace('../login.html');
+    return;
+  }
+  document.getElementById('adminName').textContent = user.displayName || user.username;
+  document.getElementById('avatar').textContent = (user.displayName || user.username || 'A').charAt(0);
+  loadAll();
+})();
+
+async function loadAll() {
+  try {
+    const [users, clients, access] = await Promise.all([
+      api('/users'), api('/clients'), api('/access')
+    ]);
+    usersData = users;
+    clientsData = clients;
+    accessData = access;
+    renderAll();
+  } catch (err) {
+    console.error('Load error:', err);
+  }
+}
+
+function renderAll() {
+  // Stats
+  document.getElementById('statUsers').textContent = usersData.length;
+  document.getElementById('statClients').textContent = clientsData.length;
+  document.getElementById('statProjects').textContent = accessData.length;
+  document.getElementById('statActive').textContent = usersData.filter(u => u.active).length;
+  document.getElementById('userCount').textContent = usersData.length;
+  document.getElementById('clientCount').textContent = clientsData.length;
+  document.getElementById('accessCount').textContent = accessData.length;
+
+  renderUsers();
+  renderClients();
+  renderAccess();
+  populateClientDropdowns();
+}
+
+// ===== Users =====
+function renderUsers(filter = '') {
+  const f = filter.toLowerCase();
+  const rows = usersData.filter(u =>
+    !f || u.username.toLowerCase().includes(f) || (u.displayName || '').toLowerCase().includes(f)
+  );
+  const tbody = document.getElementById('userTableBody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无用户数据</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(u => {
+    const client = clientsData.find(c => c.id === u.clientId);
+    const clientName = client ? client.shortName : '-';
+    const lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    return `<tr>
+      <td>${u.id}</td>
+      <td><strong>${esc(u.username)}</strong></td>
+      <td>${esc(u.displayName)}</td>
+      <td><span class="role-badge role-${u.role}">${ROLE_EMOJIS[u.role]} ${ROLE_NAMES[u.role]}</span></td>
+      <td>${esc(clientName)}</td>
+      <td>${u.language || '-'}</td>
+      <td><span class="status ${u.active ? 'status-active' : 'status-inactive'}">${u.active ? '活跃' : '已禁用'}</span></td>
+      <td>${lastLogin}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editUser(${u.id})">编辑</button>
+        ${u.id !== 1 ? `<button class="btn btn-danger btn-sm" onclick="disableUser(${u.id})">${u.active ? '禁用' : '启用'}</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showUserModal(data) {
+  document.getElementById('userModalTitle').textContent = data ? '编辑用户' : '新建用户';
+  document.getElementById('userId').value = data ? data.id : '';
+  document.getElementById('uUsername').value = data ? data.username : '';
+  document.getElementById('uUsername').disabled = !!data; // 编辑时不可改用户名
+  document.getElementById('uDisplayName').value = data ? data.displayName : '';
+  document.getElementById('uPassword').value = '';
+  document.getElementById('uPassword').required = !data; // 新建必须填密码
+  document.getElementById('pwdHint').textContent = data ? '（留空则不修改密码）' : '（至少8位含字母+数字）';
+  document.getElementById('uEmail').value = data ? (data.email || '') : '';
+  document.getElementById('uRole').value = data ? data.role : 'silver';
+  document.getElementById('uClientId').value = data ? (data.clientId || '') : '';
+  document.getElementById('uLanguage').value = data ? (data.language || 'zh') : 'zh';
+  populateClientDropdowns();
+  showModal('userModal');
+}
+
+async function saveUser(e) {
+  e.preventDefault();
+  const id = document.getElementById('userId').value;
+  const body = {
+    username: document.getElementById('uUsername').value,
+    displayName: document.getElementById('uDisplayName').value,
+    email: document.getElementById('uEmail').value || null,
+    role: document.getElementById('uRole').value,
+    clientId: document.getElementById('uClientId').value ? parseInt(document.getElementById('uClientId').value) : null,
+    language: document.getElementById('uLanguage').value
+  };
+
+  const pwd = document.getElementById('uPassword').value;
+  if (pwd) {
+    // 检查是否已是 SHA-256 hash（64 hex chars）
+    if (/^[a-f0-9]{64}$/.test(pwd)) {
+      body.password = pwd;
+    } else {
+      // 客户端 hash
+      body.password = await sha256(pwd);
+    }
+  }
+
+  try {
+    if (id) {
+      await api('/users/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      if (!body.password) { alert('新建用户必须填写密码'); return; }
+      await api('/users', { method: 'POST', body: JSON.stringify(body) });
+    }
+    closeModal('userModal');
+    await loadAll();
+  } catch (err) {
+    alert('保存失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+async function editUser(id) {
+  const u = usersData.find(u => u.id === id);
+  if (u) showUserModal(u);
+}
+
+async function disableUser(id) {
+  if (!confirm('确定要禁用/启用该用户吗？')) return;
+  try {
+    const u = usersData.find(u => u.id === id);
+    await api('/users/' + id, { method: 'PUT', body: JSON.stringify({ active: !u.active }) });
+    await loadAll();
+  } catch (err) {
+    alert('操作失败: ' + (err.error || err.message));
+  }
+}
+
+// ===== Clients =====
+function renderClients(filter = '') {
+  const f = filter.toLowerCase();
+  const rows = clientsData.filter(c =>
+    !f || (c.name || '').toLowerCase().includes(f) || (c.shortName || '').toLowerCase().includes(f)
+  );
+  const tbody = document.getElementById('clientTableBody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无客户数据</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(c => `<tr>
+    <td>${c.id}</td>
+    <td><strong>${esc(c.name)}</strong></td>
+    <td>${esc(c.shortName)}</td>
+    <td><span class="tier-badge tier-${c.tier}">${c.tier.toUpperCase()}</span></td>
+    <td>${esc(c.contactPerson || '-')}</td>
+    <td>${esc(c.contactEmail || '-')}</td>
+    <td>${c.creditScore || '-'}</td>
+    <td>${(c.contracts || []).length}</td>
+    <td>
+      <button class="btn btn-secondary btn-sm" onclick="editClient(${c.id})">编辑</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteClient(${c.id})">删除</button>
+    </td>
+  </tr>`).join('');
+}
+
+function showClientModal(data) {
+  document.getElementById('clientModalTitle').textContent = data ? '编辑客户' : '新建客户';
+  document.getElementById('clientId').value = data ? data.id : '';
+  document.getElementById('cName').value = data ? data.name : '';
+  document.getElementById('cShortName').value = data ? data.shortName : '';
+  document.getElementById('cNameEn').value = data ? (data.nameEn || '') : '';
+  document.getElementById('cNamePt').value = data ? (data.namePt || '') : '';
+  document.getElementById('cTier').value = data ? data.tier : 'gold';
+  document.getElementById('cContactPerson').value = data ? (data.contactPerson || '') : '';
+  document.getElementById('cContactPhone').value = data ? (data.contactPhone || '') : '';
+  document.getElementById('cContactEmail').value = data ? (data.contactEmail || '') : '';
+  document.getElementById('cAddress').value = data ? (data.address || '') : '';
+  showModal('clientModal');
+}
+
+async function saveClient(e) {
+  e.preventDefault();
+  const id = document.getElementById('clientId').value;
+  const body = {
+    name: document.getElementById('cName').value,
+    shortName: document.getElementById('cShortName').value,
+    nameEn: document.getElementById('cNameEn').value || '',
+    namePt: document.getElementById('cNamePt').value || '',
+    tier: document.getElementById('cTier').value,
+    contactPerson: document.getElementById('cContactPerson').value || '',
+    contactPhone: document.getElementById('cContactPhone').value || '',
+    contactEmail: document.getElementById('cContactEmail').value || '',
+    address: document.getElementById('cAddress').value || ''
+  };
+
+  try {
+    if (id) {
+      await api('/clients/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      await api('/clients', { method: 'POST', body: JSON.stringify(body) });
+    }
+    closeModal('clientModal');
+    await loadAll();
+  } catch (err) {
+    alert('保存失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+async function editClient(id) {
+  const c = clientsData.find(c => c.id === id);
+  if (c) showClientModal(c);
+}
+
+async function deleteClient(id) {
+  const c = clientsData.find(c => c.id === id);
+  if (!confirm(`确定删除客户「${c.shortName}」？\n关联的授权记录也会被删除。`)) return;
+  try {
+    await api('/clients/' + id, { method: 'DELETE' });
+    await loadAll();
+  } catch (err) {
+    alert('删除失败: ' + (err.error || err.message));
+  }
+}
+
+// ===== Access =====
+function renderAccess(filter = '') {
+  const f = filter.toLowerCase();
+  const rows = accessData.filter(a =>
+    !f || (a.clientName || '').toLowerCase().includes(f) ||
+         (a.projectId || '').toLowerCase().includes(f) ||
+         (a.projectName || '').toLowerCase().includes(f)
+  );
+  const tbody = document.getElementById('accessTableBody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">暂无授权数据</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(a => `<tr>
+    <td>${a.id}</td>
+    <td><strong>${esc(a.clientName)}</strong></td>
+    <td><code>${esc(a.projectId)}</code></td>
+    <td>${esc(a.projectName)}</td>
+    <td>${esc(a.grantedBy)}</td>
+    <td>${a.grantedAt || '-'}</td>
+    <td><span class="status ${a.active ? 'status-active' : 'status-inactive'}">${a.active ? '有效' : '已停用'}</span></td>
+    <td>
+      <button class="btn btn-secondary btn-sm" onclick="toggleAccess(${a.id}, ${!a.active})">${a.active ? '停用' : '启用'}</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteAccess(${a.id})">删除</button>
+    </td>
+  </tr>`).join('');
+}
+
+function showAccessModal() {
+  populateClientDropdowns();
+  document.getElementById('aClientId').value = '';
+  document.getElementById('aProjectId').value = '';
+  document.getElementById('aProjectName').value = '';
+  showModal('accessModal');
+}
+
+async function saveAccess(e) {
+  e.preventDefault();
+  const body = {
+    clientId: parseInt(document.getElementById('aClientId').value),
+    projectId: document.getElementById('aProjectId').value,
+    projectName: document.getElementById('aProjectName').value
+  };
+  try {
+    await api('/access', { method: 'POST', body: JSON.stringify(body) });
+    closeModal('accessModal');
+    await loadAll();
+  } catch (err) {
+    alert('授权失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+async function toggleAccess(id, active) {
+  try {
+    await api('/access/' + id, { method: 'PUT', body: JSON.stringify({ active }) });
+    await loadAll();
+  } catch (err) {
+    alert('操作失败: ' + (err.error || err.message));
+  }
+}
+
+async function deleteAccess(id) {
+  if (!confirm('确定删除此授权记录？')) return;
+  try {
+    await api('/access/' + id, { method: 'DELETE' });
+    await loadAll();
+  } catch (err) {
+    alert('删除失败: ' + (err.error || err.message));
+  }
+}
+
+// ===== Tabs =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-' + this.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== Search =====
+document.getElementById('userSearch').addEventListener('input', function() { renderUsers(this.value); });
+document.getElementById('clientSearch').addEventListener('input', function() { renderClients(this.value); });
+document.getElementById('accessSearch').addEventListener('input', function() { renderAccess(this.value); });
+
+// ===== Helpers =====
+function populateClientDropdowns() {
+  const options = clientsData.map(c =>
+    `<option value="${c.id}">${c.shortName} (${c.tier})</option>`
+  ).join('');
+  document.getElementById('uClientId').innerHTML = '<option value="">-- 无 --</option>' + options;
+  document.getElementById('aClientId').innerHTML = '<option value="">-- 选择客户 --</option>' + options;
+}
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function sha256(text) {
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ===== Credit Score Management =====
+let creditData = [];
+let creditLogData = [];
+
+async function loadCreditScores() {
+  try {
+    creditData = await api('/credit-scores');
+    updateCreditStats();
+    renderCreditScores();
+  } catch (err) {
+    console.error('Failed to load credit scores:', err);
+  }
+}
+
+function updateCreditStats() {
+  const warningCount = creditData.filter(c => c.currentScore < 8).length;
+  document.getElementById('statCredit').textContent = warningCount;
+  document.getElementById('creditCount').textContent = creditData.length;
+}
+
+function renderCreditScores(search = '') {
+  const tbody = document.getElementById('creditTableBody');
+  const keyword = search.toLowerCase();
+  
+  let filtered = creditData;
+  if (keyword) {
+    filtered = creditData.filter(c =>
+      c.clientName.toLowerCase().includes(keyword)
+    );
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无信用评分数据</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(c => {
+    const statusClass = c.currentScore >= 8 ? 'status-active' :
+                          c.currentScore >= 5 ? 'status-warning' : 'status-inactive';
+    const statusText = c.currentScore >= 8 ? '良好' :
+                       c.currentScore >= 5 ? '警告' : '危险';
+    const scoreColor = c.currentScore >= 8 ? '#81c784' :
+                       c.currentScore >= 5 ? '#ffb74d' : '#ef5350';
+    
+    return `<tr>
+      <td><strong>${esc(c.clientName)}</strong></td>
+      <td><span style="font-size:20px; font-weight:700; color:${scoreColor};">${c.currentScore}</span> / ${c.maxScore}</td>
+      <td><span class="status ${statusClass}">${statusText}</span></td>
+      <td>${c.lastUpdated ? c.lastUpdated.split('T')[0] : '-'}</td>
+      <td>${esc(c.updatedBy || '-')}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="showDeductModal(${c.clientId}, '${esc(c.clientName)}')">扣分</button>
+        <button class="btn btn-primary btn-sm" onclick="showResetModal(${c.clientId}, '${esc(c.clientName)}')">重置</button>
+        <button class="btn btn-secondary btn-sm" onclick="showCreditLog(${c.clientId}, '${esc(c.clientName)}')">历史</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showDeductModal(clientId, clientName) {
+  document.getElementById('deductClientId').value = clientId;
+  document.getElementById('deductClientName').value = clientName;
+  document.getElementById('deductScoreChange').value = '';
+  document.getElementById('deductReason').value = '';
+  document.getElementById('deductRemark').value = '';
+  showModal('creditDeductModal');
+}
+
+async function saveCreditDeduct(e) {
+  e.preventDefault();
+  const clientId = parseInt(document.getElementById('deductClientId').value);
+  const scoreChange = parseInt(document.getElementById('deductScoreChange').value);
+  const reason = document.getElementById('deductReason').value;
+  const remark = document.getElementById('deductRemark').value;
+  
+  try {
+    await api('/credit-scores/deduct', {
+      method: 'POST',
+      body: JSON.stringify({ clientId, scoreChange, reason, remark })
+    });
+    closeModal('creditDeductModal');
+    await loadCreditScores();
+  } catch (err) {
+    alert('扣分失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+function showResetModal(clientId, clientName) {
+  document.getElementById('resetClientId').value = clientId;
+  document.getElementById('resetClientName').value = clientName;
+  document.getElementById('resetTargetScore').value = '';
+  document.getElementById('resetReason').value = '';
+  document.getElementById('resetRemark').value = '';
+  showModal('creditResetModal');
+}
+
+async function saveCreditReset(e) {
+  e.preventDefault();
+  const clientId = parseInt(document.getElementById('resetClientId').value);
+  const targetScore = parseInt(document.getElementById('resetTargetScore').value);
+  const reason = document.getElementById('resetReason').value;
+  const remark = document.getElementById('resetRemark').value;
+  
+  try {
+    await api('/credit-scores/reset', {
+      method: 'POST',
+      body: JSON.stringify({ clientId, targetScore, reason, remark })
+    });
+    closeModal('creditResetModal');
+    await loadCreditScores();
+  } catch (err) {
+    alert('重置失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+async function showCreditLog(clientId, clientName) {
+  document.getElementById('creditLogTitle').textContent = `${clientName} - 信用评分历史记录`;
+  showModal('creditLogModal');
+  await loadCreditLogs(clientId);
+}
+
+async function loadCreditLogs(clientId) {
+  try {
+    creditLogData = await api('/credit-logs/' + clientId);
+    renderCreditLogs();
+  } catch (err) {
+    console.error('Failed to load credit logs:', err);
+    document.getElementById('creditLogTableBody').innerHTML =
+      '<tr><td colspan="7" class="empty">加载失败</td></tr>';
+  }
+}
+
+function renderCreditLogs() {
+  const tbody = document.getElementById('creditLogTableBody');
+  
+  if (creditLogData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无历史记录</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = creditLogData.map(log => {
+    const typeText = log.type === 'deduct' ? '扣分' :
+                       log.type === 'reset' ? '重置' : '初始化';
+    const typeColor = log.type === 'deduct' ? '#ef5350' :
+                       log.type === 'reset' ? '#81c784' : '#64b5f6';
+    
+    return `<tr>
+      <td>${log.timestamp ? log.timestamp.split('T')[0] : '-'}</td>
+      <td><span style="color:${typeColor}; font-weight:500;">${typeText}</span></td>
+      <td><span style="color:${log.scoreChange < 0 ? '#ef5350' : '#81c784'};">${log.scoreChange > 0 ? '+' : ''}${log.scoreChange}</span></td>
+      <td>${log.scoreBefore}</td>
+      <td><strong>${log.scoreAfter}</strong></td>
+      <td>${esc(log.reason)}</td>
+      <td>${esc(log.operator || '-')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Update loadAll to include credit scores
+const _origLoadAll = loadAll;
+async function loadAll() {
+  await Promise.all([
+    loadUsers(),
+    loadClients(),
+    loadAccess(),
+    loadCreditScores()
+  ]);
+  updateStats();
+}
+
+// Add search for credit tab
+document.getElementById('creditSearch')?.addEventListener('input', function() { renderCreditScores(this.value); });
+
+</script>
+
+</body>
+</html>

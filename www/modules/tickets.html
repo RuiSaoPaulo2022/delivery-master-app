@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>问题工单 — 交维大师</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background: #F7F8FA; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    
+    /* Header - 绿色主题（项目管理板块） */
+    .header { height: 48px; background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%); display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; }
+    .back-btn { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.15); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+    .back-btn:hover { background: rgba(255,255,255,0.25); }
+    .back-btn svg { width: 16px; height: 16px; }
+    .header-title { font-size: 15px; font-weight: 600; color: #fff; flex: 1; }
+    .header-user { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 12px; }
+    .btn-logout { padding: 4px 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; background: transparent; color: #fff; font-size: 11px; cursor: pointer; transition: background .2s; }
+    .btn-logout:hover { background: rgba(255,255,255,0.15); }
+    
+    /* Toolbar */
+    .toolbar { height: 52px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; }
+    .btn-create { padding: 8px 16px; background: #2E7D32; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .2s; }
+    .btn-create:hover { background: #1B5E20; }
+    .filter-select { padding: 6px 28px 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 12px; color: #333; background: #fff; cursor: pointer; }
+    .search-input { padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 12px; width: 200px; color: #333; margin-left: auto; }
+    
+    /* Table */
+    .table-wrap { flex: 1; overflow: auto; padding: 16px; background: #f7f8fa; }
+    .tickets-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    .tickets-table thead { position: sticky; top: 0; z-index: 5; }
+    .tickets-table th { background: #f5f7fa; font-size: 11px; font-weight: 600; color: #666; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e8e8e8; white-space: nowrap; }
+    .tickets-table td { padding: 10px 12px; font-size: 12px; color: #333; border-bottom: 1px solid #f0f0f0; }
+    .tickets-table tr:hover { background: #f8fafd; }
+    
+    /* Status badges */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 500; }
+    .badge.待处理 { background: #fff3e0; color: #e65100; }
+    .badge.处理中 { background: #e3f2fd; color: #1565c0; }
+    .badge.已解决 { background: #e8f5e9; color: #2e7d32; }
+    .badge.已关闭 { background: #f5f5f5; color: #616161; }
+    
+    /* Priority */
+    .priority { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; }
+    .priority.低 { background: #e8f5e9; color: #2e7d32; }
+    .priority.中 { background: #fff3e0; color: #e65100; }
+    .priority.高 { background: #fce4ec; color: #c62828; }
+    .priority.紧急 { background: #b71c1c; color: #fff; }
+    
+    /* Action buttons */
+    .btn-action { padding: 4px 8px; border: 1px solid #d0d5dd; border-radius: 4px; background: #fff; color: #333; font-size: 11px; cursor: pointer; margin-right: 4px; transition: all .2s; }
+    .btn-action:hover { background: #f5f5f5; }
+    .btn-action.edit { color: #2E7D32; border-color: #2E7D32; }
+    .btn-action.delete { color: #c62828; border-color: #c62828; }
+    
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #fff; border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { font-size: 18px; font-weight: 600; color: #1a1c21; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: #333; margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; color: #333; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .btn-cancel { padding: 8px 16px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff; color: #333; font-size: 13px; cursor: pointer; }
+    .btn-save { padding: 8px 16px; border: none; border-radius: 6px; background: #2E7D32; color: #fff; font-size: 13px; cursor: pointer; }
+    .btn-save:hover { background: #1B5E20; }
+    
+    /* Loading */
+    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: #bbb; font-size: 13px; gap: 8px; }
+    .spinner { width: 18px; height: 18px; border: 2px solid #e0e0e0; border-top-color: #2E7D32; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Empty state */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #bbb; gap: 10px; }
+  </style>
+  <script src="../permission.js"></script>
+</head>
+<body>
+
+<header class="header">
+  <button class="back-btn" onclick="window.location.href='../index.html'" title="返回首页">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
+  </button>
+  <span class="header-title">问题工单系统 — Issue Ticketing System</span>
+  <div class="header-user">
+    <span id="currentUser">加载中...</span>
+    <button class="btn-logout" onclick="logout()">退出</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn-create" data-permission="write" onclick="openCreateModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    新建工单
+  </button>
+  <select class="filter-select" id="statusFilter" onchange="filterTickets()">
+    <option value="">全部状态</option>
+    <option value="待处理">待处理</option>
+    <option value="处理中">处理中</option>
+    <option value="已解决">已解决</option>
+    <option value="已关闭">已关闭</option>
+  </select>
+  <select class="filter-select" id="priorityFilter" onchange="filterTickets()">
+    <option value="">全部优先级</option>
+    <option value="低">低</option>
+    <option value="中">中</option>
+    <option value="高">高</option>
+    <option value="紧急">紧急</option>
+  </select>
+  <input class="search-input" type="text" id="searchInput" placeholder="搜索工单..." oninput="filterTickets()">
+</div>
+
+<div class="table-wrap">
+  <div class="loading" id="loading">
+    <div class="spinner"></div> 加载中...
+  </div>
+  
+  <div class="empty-state" id="emptyState" style="display:none">
+    <p>暂无工单记录</p>
+    <p style="font-size: 12px;">点击"新建工单"创建第一个工单</p>
+  </div>
+  
+  <table class="tickets-table" id="ticketsTable" style="display:none">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>标题</th>
+        <th>项目</th>
+        <th>状态</th>
+        <th>优先级</th>
+        <th>创建人</th>
+        <th>负责人</th>
+        <th>创建时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="ticketsBody"></tbody>
+  </table>
+</div>
+
+<!-- Create/Edit Modal -->
+<div class="modal-overlay" id="ticketModal">
+  <div class="modal">
+    <div class="modal-header" id="modalTitle">新建工单</div>
+    <form id="ticketForm">
+      <input type="hidden" id="ticketId">
+      
+      <div class="form-group">
+        <label for="ticketProject">项目 *</label>
+        <select id="ticketProject" required>
+          <option value="">请选择项目</option>
+          <!-- 项目列表由 JS 从 projects.json 动态加载 -->
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="ticketTitle">标题 *</label>
+        <input type="text" id="ticketTitle" required placeholder="请输入工单标题">
+      </div>
+      
+      <div class="form-group">
+        <label for="ticketDescription">描述 *</label>
+        <textarea id="ticketDescription" required placeholder="请详细描述问题或需求"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="ticketPriority">优先级</label>
+        <select id="ticketPriority">
+          <option value="低">低</option>
+          <option value="中" selected>中</option>
+          <option value="高">高</option>
+          <option value="紧急">紧急</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="ticketStatus">状态</label>
+        <select id="ticketStatus">
+          <option value="待处理">待处理</option>
+          <option value="处理中">处理中</option>
+          <option value="已解决">已解决</option>
+          <option value="已关闭">已关闭</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="ticketAssigned">负责人</label>
+        <input type="text" id="ticketAssigned" placeholder="请输入负责人">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn-save">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ===== Auth Check =====
+  (function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (!token || !user) {
+      window.location.href = '../login.html';
+    }
+  })();
+  
+  // ===== Config =====
+  const API_BASE = window.location.origin;
+  let allTickets = [];
+  let currentUser = {};
+
+  // 从 projects.json 加载项目列表到工单表单（与APP版一致）
+  function loadTicketProjects() {
+    const user = getCurrentUser();
+    fetch('../_data/projects.json')
+      .then(r => r.json())
+      .then(data => {
+        const sel = document.getElementById('ticketProject');
+        if (!sel) return;
+        // 保留第一个"请选择项目"option，其余动态加载
+        const firstOpt = sel.querySelector('option[value=""]');
+        sel.innerHTML = '';
+        if (firstOpt) sel.appendChild(firstOpt);
+        else {
+          const def = document.createElement('option');
+          def.value = ''; def.textContent = '请选择项目'; sel.appendChild(def);
+        }
+        const allProjects = data.projects || [];
+        const filtered = filterProjects(user, allProjects);
+        filtered.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name; opt.textContent = p.name;
+          sel.appendChild(opt);
+        });
+      })
+      .catch(() => {});
+  }
+
+  // ===== Init =====
+  (function() {
+    document.title = '问题工单 — 交维大师';
+    currentUser = getCurrentUser();
+    document.getElementById('currentUser').textContent = currentUser ? currentUser.username || '未知用户' : '未知用户';
+    applyWriteButtons(currentUser, 'tickets:write');
+    loadTicketProjects();
+    loadTickets();
+  })();
+  
+  // ===== API Helper =====
+  function apiFetch(url, options) {
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options?.headers
+    };
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    return fetch(url, {
+      ...options,
+      headers
+    }).then(function(r) {
+      if (r.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '../login.html';
+        return Promise.reject('Unauthorized');
+      }
+      return r;
+    });
+  }
+  
+  // ===== Logout =====
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '../login.html';
+  }
+  
+  // ===== Load Tickets =====
+  function loadTickets() {
+    showLoading(true);
+    apiFetch(API_BASE + '/api/issues')
+      .then(function(r) { return r.json(); })
+      .then(function(tickets) {
+        allTickets = tickets;
+        renderTickets();
+        showLoading(false);
+      })
+      .catch(function(e) {
+        console.error('Failed to load tickets:', e);
+        showLoading(false);
+        alert('加载工单失败：' + e);
+      });
+  }
+  
+  // ===== Render Tickets =====
+  function renderTickets() {
+    const tbody = document.getElementById('ticketsBody');
+    tbody.innerHTML = '';
+    
+    const filtered = getFilteredTickets();
+    
+    if (filtered.length === 0) {
+      document.getElementById('ticketsTable').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'flex';
+      return;
+    }
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('ticketsTable').style.display = 'table';
+    
+    for (let i = 0; i < filtered.length; i++) {
+      const ticket = filtered[i];
+      const tr = document.createElement('tr');
+      
+      // ID
+      const tdId = document.createElement('td');
+      tdId.textContent = ticket.id;
+      tr.appendChild(tdId);
+      
+      // Title
+      const tdTitle = document.createElement('td');
+      tdTitle.textContent = ticket.title;
+      tdTitle.style.fontWeight = '500';
+      tr.appendChild(tdTitle);
+      
+      // Project
+      const tdProject = document.createElement('td');
+      tdProject.textContent = ticket.project || '-';
+      tr.appendChild(tdProject);
+      
+      // Status
+      const tdStatus = document.createElement('td');
+      tdStatus.innerHTML = '<span class="badge ' + ticket.status + '">' + ticket.status + '</span>';
+      tr.appendChild(tdStatus);
+      
+      // Priority
+      const tdPriority = document.createElement('td');
+      tdPriority.innerHTML = '<span class="priority ' + ticket.priority + '">' + ticket.priority + '</span>';
+      tr.appendChild(tdPriority);
+      
+      // Created by
+      const tdCreator = document.createElement('td');
+      tdCreator.textContent = ticket.created_by || '-';
+      tr.appendChild(tdCreator);
+      
+      // Assigned to
+      const tdAssigned = document.createElement('td');
+      tdAssigned.textContent = ticket.assigned_to || '-';
+      tr.appendChild(tdAssigned);
+      
+      // Created at
+      const tdCreated = document.createElement('td');
+      tdCreated.textContent = ticket.created_at ? ticket.created_at.split('T')[0] : '-';
+      tr.appendChild(tdCreated);
+      
+      // Actions
+      const tdActions = document.createElement('td');
+      const currentUser = getCurrentUser();
+      if (canWrite(currentUser, 'ticket:write')) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-action edit';
+        editBtn.textContent = '编辑';
+        editBtn.onclick = (function(t) { return function() { openEditModal(t); }; })(ticket);
+        tdActions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-action delete';
+        deleteBtn.textContent = '删除';
+        deleteBtn.onclick = (function(id) { return function() { deleteTicket(id); }; })(ticket.id);
+        tdActions.appendChild(deleteBtn);
+      }
+      tr.appendChild(tdActions);
+      
+      tbody.appendChild(tr);
+    }
+  }
+  
+  // ===== Filter Tickets =====
+  function getFilteredTickets() {
+    let filtered = allTickets.slice();
+    
+    const statusFilter = document.getElementById('statusFilter').value;
+    const priorityFilter = document.getElementById('priorityFilter').value;
+    const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+    
+    if (statusFilter) {
+      filtered = filtered.filter(function(t) { return t.status === statusFilter; });
+    }
+    
+    if (priorityFilter) {
+      filtered = filtered.filter(function(t) { return t.priority === priorityFilter; });
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(function(t) {
+        const text = (t.id || '') + ' ' + (t.title || '') + ' ' + (t.description || '') + ' ' + (t.project || '');
+        return text.toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    }
+    
+    // Sort by ID desc
+    filtered.sort(function(a, b) { return b.id - a.id; });
+    
+    return filtered;
+  }
+  
+  function filterTickets() {
+    renderTickets();
+  }
+  
+  // ===== Modal Operations =====
+  function openCreateModal() {
+    document.getElementById('modalTitle').textContent = '新建工单';
+    document.getElementById('ticketForm').reset();
+    document.getElementById('ticketId').value = '';
+    document.getElementById('ticketStatus').value = '待处理';
+    document.getElementById('ticketPriority').value = '中';
+    document.getElementById('ticketModal').classList.add('active');
+  }
+  
+  function openEditModal(ticket) {
+    document.getElementById('modalTitle').textContent = '编辑工单';
+    document.getElementById('ticketId').value = ticket.id;
+    document.getElementById('ticketProject').value = ticket.project || '';
+    document.getElementById('ticketTitle').value = ticket.title || '';
+    document.getElementById('ticketDescription').value = ticket.description || '';
+    document.getElementById('ticketPriority').value = ticket.priority || '中';
+    document.getElementById('ticketStatus').value = ticket.status || '待处理';
+    document.getElementById('ticketAssigned').value = ticket.assigned_to || '';
+    document.getElementById('ticketModal').classList.add('active');
+  }
+  
+  function closeModal() {
+    document.getElementById('ticketModal').classList.remove('active');
+  }
+  
+  // ===== Save Ticket =====
+  document.getElementById('ticketForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const ticketId = document.getElementById('ticketId').value;
+    const ticketData = {
+      project: document.getElementById('ticketProject').value,
+      title: document.getElementById('ticketTitle').value,
+      description: document.getElementById('ticketDescription').value,
+      priority: document.getElementById('ticketPriority').value,
+      status: document.getElementById('ticketStatus').value,
+      assigned_to: document.getElementById('ticketAssigned').value,
+      created_by: currentUser.id
+    };
+    
+    if (ticketId) {
+      // Update
+      ticketData.id = parseInt(ticketId);
+      apiFetch(API_BASE + '/api/issues/' + ticketId, {
+        method: 'PUT',
+        body: JSON.stringify(ticketData)
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          closeModal();
+          loadTickets();
+          alert('工单更新成功！');
+        })
+        .catch(function(e) {
+          alert('更新失败：' + e);
+        });
+    } else {
+      // Create
+      apiFetch(API_BASE + '/api/issues', {
+        method: 'POST',
+        body: JSON.stringify(ticketData)
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          closeModal();
+          loadTickets();
+          alert('工单创建成功！');
+        })
+        .catch(function(e) {
+          alert('创建失败：' + e);
+        });
+    }
+  });
+  
+  // ===== Delete Ticket =====
+  function deleteTicket(id) {
+    if (!confirm('确定要删除工单 #' + id + ' 吗？')) {
+      return;
+    }
+    
+    apiFetch(API_BASE + '/api/issues/' + id, {
+      method: 'DELETE'
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loadTickets();
+        alert('工单删除成功！');
+      })
+      .catch(function(e) {
+        alert('删除失败：' + e);
+      });
+  }
+  
+  // ===== Loading =====
+  function showLoading(on) {
+    document.getElementById('loading').style.display = on ? 'flex' : 'none';
+  }
+</script>
+
+</body>
+</html>
