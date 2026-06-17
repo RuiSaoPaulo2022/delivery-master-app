@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: '交维大师',
   webDir: 'www',
   server: {
-    androidScheme: 'https',
+    androidScheme: 'http',
   },
   plugins: {
     SplashScreen: {
