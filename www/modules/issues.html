@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>客户问题反馈</title>
 <script src="../config.js"></script>
+<script src="../permission.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction:column}
 
-/* HEADER - 绿色主题 */
+/* HEADER - 绿色主题（项目管理板块） */
 .header{height:48px;background:linear-gradient(135deg,#2E7D32 0%,#1B5E20 100%);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
 .back-btn{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .back-btn:hover{background:rgba(255,255,255,0.25)}
 .back-btn svg{width:16px;height:16px}
-.header-title{font-size:15px;font-weight:600;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.header-title{font-size:15px;font-weight:600;color:#fff;flex:1}
 .header-spacer{flex:1}
 .btn-refresh{width:28px;height:28px;border:none;background:rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;color:#fff}
 .btn-refresh:hover{background:rgba(255,255,255,0.25)}
@@ -23,20 +24,20 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .btn-create:hover{background:rgba(255,255,255,0.3)}
 
 /* TOOLBAR */
-.toolbar{height:auto;min-height:52px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:10px 16px;gap:12px;flex-shrink:0;flex-wrap:wrap}
-.project-select{appearance:none;-webkit-appearance:none;padding:6px 28px 6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;color:#333;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 8px center;cursor:pointer;min-width:140px;max-width:200px}
+.toolbar{height:52px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.project-select{appearance:none;-webkit-appearance:none;padding:6px 28px 6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;color:#333;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 8px center;cursor:pointer;min-width:160px}
 .project-select:focus{outline:none;border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.1)}
 .select-label{font-size:12px;color:#666;white-space:nowrap}
-.status-filter{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.status-filter{display:flex;gap:4px;margin-left:auto}
 .status-chip{padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .15s;white-space:nowrap}
 .status-chip:hover{background:#f5f5f5}
 .status-chip.active{background:#2E7D32;color:#fff;border-color:#2E7D32}
-.search-input{padding:6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;width:160px;color:#333;flex-shrink:0}
+.search-input{padding:6px 10px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;width:180px;color:#333}
 .search-input:focus{outline:none;border-color:#2E7D32}
 
 /* STATS */
-.stats-bar{display:flex;gap:12px;padding:16px;flex-shrink:0;flex-wrap:wrap}
-.stat-card{flex:1;min-width:130px;background:#fff;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
+.stats-bar{display:flex;gap:12px;padding:16px;flex-shrink:0}
+.stat-card{flex:1;background:#fff;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
 .stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .stat-icon.total{background:#e8f5e9;color:#2E7D32}
@@ -52,14 +53,14 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .issues-table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .issues-table thead{position:sticky;top:0;z-index:5}
 .issues-table th{background:#f5f7fa;font-size:11px;font-weight:600;color:#666;text-align:left;padding:10px 12px;border-bottom:2px solid #e8e8e8;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
-.issues-table td{padding:10px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.issues-table td.title-cell{max-width:320px}
+.issues-table td{padding:10px 12px;font-size:12px;color:#333;border-bottom:1px solid #f0f0f0;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.issues-table td.title-cell{max-width:350px}
 .issues-table tr:hover{background:#f8fafd}
 .issues-table tr:hover td{color:#1a1c21}
 
 /* Action buttons in table */
-.action-btns{display:flex;gap:4px;flex-shrink:0}
-.action-btn{padding:2px 8px;border:none;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.action-btns{display:flex;gap:4px}
+.action-btn{padding:2px 8px;border:none;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s}
 .action-btn.edit{background:#e3f2fd;color:#1565c0}
 .action-btn.edit:hover{background:#bbdefb}
 .action-btn.delete{background:#fce4ec;color:#c62828}
@@ -112,7 +113,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 .form-textarea:focus{outline:none;border-color:#2E7D32;box-shadow:0 0 0 2px rgba(46,125,50,0.1)}
 
 .btn-save{padding:8px 20px;background:#2E7D32;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s}
-.btn-save:hover{background:#1B5E20}
+.btn-save:hover{background:#1a5aa5}
 .btn-cancel{padding:8px 20px;background:transparent;color:#666;border:1px solid #d0d5dd;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
 .btn-cancel:hover{background:#f5f5f5}
 
@@ -126,12 +127,9 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 @media(max-width:768px){
   .stats-bar{flex-wrap:wrap;gap:8px}
   .stat-card{min-width:calc(50% - 4px);flex:0 0 auto}
-  .toolbar{padding:8px 10px;gap:6px}
-  .status-filter{order:3;margin-left:0;width:100%;margin-top:4px}
-  .search-input{width:120px;flex:1;min-width:0}
-  .project-select{min-width:120px;max-width:160px}
-  .header-title{font-size:13px}
-  .action-btns{flex-direction:column;gap:2px}
+  .toolbar{flex-wrap:wrap;height:auto;padding:10px 12px;gap:8px}
+  .status-filter{order:3;margin-left:0;flex-wrap:wrap}
+  .search-input{width:120px}
 }
 </style>
 </head>
@@ -141,9 +139,9 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
   <button class="back-btn" onclick="history.back()" title="返回">
     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7" stroke-linecap="round"/></svg>
   </button>
-  <span class="header-title" id="pageTitle">客户问题反馈</span>
+  <span class="header-title" id="pageTitle">客户问题反馈 — Customer Feedback</span>
   <div class="header-spacer"></div>
-  <button class="btn-create" id="btnNewIssue" onclick="openCreateModal()">+ 新建问题</button>
+  <button class="btn-create" data-permission="write" onclick="openCreateModal()">+ 新建问题</button>
   <button class="btn-refresh" onclick="loadData()" title="刷新数据">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
   </button>
@@ -152,7 +150,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 <div class="toolbar">
   <span class="select-label">项目:</span>
   <select class="project-select" id="projectSelect" onchange="onProjectChange()"></select>
-  <span class="select-label" style="margin-left:12px">状态:</span>
+  <span class="select-label" style="margin-left:16px">状态:</span>
   <div class="status-filter" id="statusFilter"></div>
   <input class="search-input" type="text" id="searchInput" placeholder="搜索问题..." oninput="onSearchChange()">
 </div>
@@ -202,7 +200,50 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <label class="form-label">项目</label>
+        <select class="form-select" id="editProject"></select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">问题描述 *</label>
+        <input class="form-input" type="text" id="editTitle" placeholder="请输入问题描述">
+      </div>
+      <div class="form-row">
+        <label class="form-label">详细描述</label>
+        <textarea class="form-textarea" id="editDescription" placeholder="请输入详细描述"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">状态</label>
+        <select class="form-select" id="editStatus">
+          <option value="new">新建</option>
+          <option value="investigating">调查中</option>
+          <option value="in_progress">处理中</option>
+          <option value="closed">已关闭</option>
+          <option value="suspended">挂起</option>
+          <option value="invalid">无效</option>
+          <option value="converted_to_demand">转需求</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">严重等级</label>
+        <select class="form-select" id="editSeverity">
+          <option value="">-</option>
+          <option value="I">I - 严重</option>
+          <option value="II">II - 中等</option>
+          <option value="III">III - 轻微</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">反馈人</label>
+        <input class="form-input" type="text" id="editReporter" placeholder="反馈人">
+      </div>
+      <div class="form-row">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="editRemarks" placeholder="备注信息"></textarea>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn-save" onclick="saveIssue()">保存</button>
@@ -213,9 +254,8 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 <!-- Alert -->
 <div class="alert" id="alertMsg"></div>
 
-<script src="../i18n/index.js"></script>
 <script>
-// ===== Auth Check (always — APP also requires login) =====
+// ===== Auth Check =====
 (function checkAuth() {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
@@ -225,43 +265,12 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 })();
 
 // ===== Config =====
-var ALL_DATA = null;
-var PROJECTS_DATA = null;
+var ALL_DATA = null;  // { _meta: {}, issues: [] }
 var currentProject = '__ALL__';
 var statusFilter = 'all';
 var searchQuery = '';
 var currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 var API_BASE = '/api/data/all_issues.json';
-var lang = localStorage.getItem('lang') || 'zh';
-
-// ===== i18n helper =====
-function t(key) {
-  const keys = key.split('.');
-  let val = window.i18n?.[lang] || window.i18n?.['zh'] || {};
-  for (const k of keys) {
-    if (val === undefined || val === null) return key;
-    val = val[k];
-  }
-  return val || key;
-}
-
-// ===== Apply i18n to static elements =====
-function applyI18n() {
-  document.getElementById('pageTitle').textContent = t('feedback.title');
-  document.getElementById('btnNewIssue').textContent = t('feedback.btn_new_issue');
-  document.getElementById('searchInput').placeholder = t('feedback.search_placeholder');
-  
-  const statLabels = [
-    ['statTotal', t('feedback.stat_total')],
-    ['statClosed', t('feedback.stat_closed')],
-    ['statOpen', t('feedback.stat_open')],
-    ['statAvg', t('feedback.stat_avg_days')]
-  ];
-  statLabels.forEach(([id, text]) => {
-    const el = document.querySelector('#' + id).parentElement;
-    if(el) el.querySelector('.stat-label').textContent = text;
-  });
-}
 
 // ===== API Helper =====
 function apiFetch(url, options) {
@@ -277,7 +286,7 @@ function apiFetch(url, options) {
     ...options,
     headers
   }).then(function(r) {
-    if (r.status === 401) { localStorage.clear(); window.location.href = '../login.html'; throw 'Unauthorized'; }
+    if (r.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '../login.html';
@@ -292,26 +301,15 @@ function showAlert(type, text) {
   const el = document.getElementById('alertMsg');
   el.textContent = text;
   el.className = 'alert ' + type + ' show';
-  setTimeout(function() { el.classList.remove('show'); }, 3000);
+  setTimeout(() => { el.classList.remove('show'); }, 3000);
 }
 
 // ===== Init =====
 (function(){
-  applyI18n();
-  loadProjects();
-  document.title = t('feedback.title') + ' — Delivery Master';
+  document.title = '客户问题反馈 — 交维大师';
+  applyWriteButtons(currentUser, 'feedback:write');
   loadData();
 })();
-
-// ===== Load Projects from unified source =====
-function loadProjects() {
-  fetch('../_data/projects.json')
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      PROJECTS_DATA = data.projects;
-    })
-    .catch(function() { /* fallback */ });
-}
 
 // ===== Load Data =====
 function loadData() {
@@ -336,72 +334,84 @@ function loadData() {
           showLoading(false);
         })
         .catch(function(e2) {
-          document.getElementById('emptyText').textContent = t('feedback.load_failed') + e2.message;
+          document.getElementById('emptyText').textContent = '数据加载失败：' + e2.message;
           showLoading(false);
           document.getElementById('emptyState').style.display = 'flex';
         });
     });
 }
 
-// ===== Build Project Select from projects.json =====
+// ===== Build Project Select =====
 function buildProjectSelect() {
-  if (!ALL_DATA || !ALL_DATA.issues) return;
-  
-  var sel = document.getElementById('projectSelect');
-  sel.innerHTML = '';
-  
-  // "All" option
-  var allOpt = document.createElement('option');
-  allOpt.value = '__ALL__';
-  allOpt.textContent = t('feedback.project_all').replace('{n}', (ALL_DATA.issues?.length || 0));
-  sel.appendChild(allOpt);
-  
-  // Use projects.json as primary source
-  if (PROJECTS_DATA && PROJECTS_DATA.length > 0) {
-    for (let i = 0; i < PROJECTS_DATA.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = PROJECTS_DATA[i].id;
-      opt.textContent = PROJECTS_DATA[i].name;
-      sel.appendChild(opt);
-    }
-  } else {
-    // Fallback: extract from data
-    const projects = {};
-    for (let i = 0; i < ALL_DATA.issues.length; i++) {
-      const p = ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project;
-      if (p && !projects[p]) {
-        projects[p] = 0;
-      }
-      if (ALL_DATA.issues[i].project) {
-        projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] =
-          (projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] || 0) + 1;
-      }
-    }
-    const projectKeys = Object.keys(projects);
-    for (let i = 0; i < projectKeys.length; i++) {
-      const opt = document.createElement('option');
-      opt.value = ALL_DATA.issues.find(function(ii) { return (ii.project_display || ii.project) === projectKeys[i]; })?.project || projectKeys[i];
-      opt.textContent = projectKeys[i] + ' (' + projects[projectKeys[i]] + ')';
-      sel.appendChild(opt);
-    }
-  }
-  
-  sel.value = currentProject;
-  
-  // Status filter chips using i18n
-  buildStatusChips();
-}
+  const sel = document.getElementById('projectSelect');
+  if (!sel) return;
 
-// ===== Build Status Filter Chips (i18n) =====
-function buildStatusChips() {
-  var chips = document.getElementById('statusFilter');
+  // 优先从 projects.json 加载统一项目列表（与APP版一致）
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      sel.innerHTML = '';
+      var allProjects = data.projects || [];
+      var user = getCurrentUser();
+
+      // "全部项目" only for admin or users with multiple projects
+      var filtered = filterProjects(user, allProjects);
+      if (user && user.role !== 'admin' && filtered.length <= 1) {
+        // Single project user: no "全部" option, auto-select
+        currentProject = filtered.length === 1 ? filtered[0].name : '__ALL__';
+      } else {
+        const allOpt = document.createElement('option');
+        allOpt.value = '__ALL__';
+        allOpt.textContent = '全部项目' + (ALL_DATA && ALL_DATA.issues ? ' (' + ALL_DATA.issues.length + ' 条)' : '');
+        sel.appendChild(allOpt);
+      }
+      for (let i = 0; i < filtered.length; i++) {
+        const opt = document.createElement('option');
+        opt.value = filtered[i].name;
+        opt.textContent = filtered[i].name;
+        sel.appendChild(opt);
+      }
+      sel.value = currentProject;
+    })
+    .catch(() => {
+      // 降级：从当前数据提取
+      if (!ALL_DATA || !ALL_DATA.issues) return;
+      const projects = {};
+      for (let i = 0; i < ALL_DATA.issues.length; i++) {
+        const p = ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project;
+        if (p && !projects[p]) { projects[p] = 0; }
+        if (ALL_DATA.issues[i].project) {
+          projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] =
+            (projects[ALL_DATA.issues[i].project_display || ALL_DATA.issues[i].project] || 0) + 1;
+        }
+      }
+      sel.innerHTML = '';
+      const allOpt = document.createElement('option');
+      allOpt.value = '__ALL__';
+      allOpt.textContent = '全部项目 (' + ALL_DATA.issues.length + ' 条)';
+      sel.appendChild(allOpt);
+      const projectKeys = Object.keys(projects);
+      for (let i = 0; i < projectKeys.length; i++) {
+        const opt = document.createElement('option');
+        opt.value = ALL_DATA.issues.find(i => (i.project_display || i.project) === projectKeys[i])?.project || projectKeys[i];
+        opt.textContent = projectKeys[i] + ' (' + projects[projectKeys[i]] + ' 条)';
+        sel.appendChild(opt);
+      }
+      sel.value = currentProject;
+    });
+  
+  // Status filter chips
+  const chips = document.getElementById('statusFilter');
   const statuses = [
-    {key:'all', label:t('feedback.status_all')},
-    {key:'closed', label:t('feedback.status_closed')},
-    {key:'investigating', label:t('feedback.status_investigating')},
-    {key:'in_progress', label:t('feedback.status_in_progress')},
-    {key:'new', label:t('feedback.status_new')},
-    {key:'suspended', label:t('feedback.status_suspended')}
+    {key:'all', label:'全部'},
+    {key:'closed', label:'已关闭'},
+    {key:'investigating', label:'调查中'},
+    {key:'in_progress', label:'处理中'},
+    {key:'new', label:'新建'},
+    {key:'suspended', label:'挂起'},
+    {key:'invalid', label:'无效'},
+    {key:'converted_to_demand', label:'转需求'},
+    {key:'other', label:'其他'}
   ];
   chips.innerHTML = '';
   for (let s = 0; s < statuses.length; s++) {
@@ -494,20 +504,14 @@ function render() {
   document.getElementById('statOpen').textContent = openCount;
   document.getElementById('statAvg').textContent = durations.length > 0 ? (durations.reduce(function(a,b){return a+b;},0)/durations.length).toFixed(0) : '-';
   
-  // Table header with i18n
-  const thead = document.querySelector('#issuesTable thead tr');
-  if (thead) {
-    thead.innerHTML = '<th>ID</th><th>' + t('feedback.th_title') + '</th><th>' + t('feedback.th_created_date') + '</th><th>' + t('feedback.th_close_date') + '</th><th>' + t('feedback.th_status') + '</th><th>' + t('feedback.th_severity') + '</th><th>' + t('feedback.th_product_line') + '</th><th>' + t('feedback.th_reporter') + '</th><th>' + t('feedback.th_close_days') + '</th><th>' + t('feedback.th_actions') + '</th>';
-  }
-  
-  // Table body
+  // Table
   const tbody = document.getElementById('issuesBody');
   tbody.innerHTML = '';
   
   if (issues.length === 0) {
     document.getElementById('issuesTable').style.display = 'none';
     document.getElementById('emptyState').style.display = 'flex';
-    document.getElementById('emptyText').textContent = t('feedback.empty_filtered');
+    document.getElementById('emptyText').textContent = '当前筛选条件下无匹配记录';
     return;
   }
   
@@ -529,7 +533,7 @@ function render() {
     tdTitle.className = 'title-cell';
     let titleText = iss.title || '';
     if (currentProject === '__ALL__') {
-      titleText = '[' + getProjectName(iss.project) + '] ' + titleText;
+      titleText = '[' + (iss.project_display || iss.project || '') + '] ' + titleText;
     }
     tdTitle.textContent = titleText;
     tdTitle.title = titleText;
@@ -572,14 +576,14 @@ function render() {
     // Duration
     const tdDur = document.createElement('td');
     tdDur.style.cssText = 'text-align:right;font-weight:500';
-    tdDur.textContent = iss.close_duration !== null ? iss.close_duration + t('feedback.suffix_days') : '-';
+    tdDur.textContent = iss.close_duration !== null ? iss.close_duration + '天' : '-';
     tr.appendChild(tdDur);
     
     // Actions
     const tdAct = document.createElement('td');
     tdAct.innerHTML = '<div class="action-btns">' +
-      '<button class="action-btn edit" onclick="openEditModal(\'' + (iss.id || '') + '\')">' + t('feedback.btn_edit') + '</button>' +
-      '<button class="action-btn delete" onclick="deleteIssue(\'' + (iss.id || '') + '\')">' + t('feedback.btn_delete') + '</button>' +
+      '<button class="action-btn edit" onclick="openEditModal(\'' + (iss.id || '') + '\')">编辑</button>' +
+      '<button class="action-btn delete" onclick="deleteIssue(\'' + (iss.id || '') + '\')">删除</button>' +
       '</div>';
     tr.appendChild(tdAct);
     
@@ -587,21 +591,49 @@ function render() {
   }
 }
 
-// ===== Get Project Name =====
-function getProjectName(pid) {
-  if(!pid) return '-';
-  if(PROJECTS_DATA) {
-    const found = PROJECTS_DATA.find(p => p.id === pid || p.name === pid);
-    if(found) return found.name;
-  }
-  return pid;
-}
-
 // ===== Modal Operations =====
 function openCreateModal() {
-  document.getElementById('modalTitle').textContent = t('feedback.modal_new');
+  document.getElementById('modalTitle').textContent = '新建问题';
   document.getElementById('editId').value = '';
-  document.getElementById('modalBody').innerHTML = buildModalForm('', null);
+  document.getElementById('editTitle').value = '';
+  document.getElementById('editDescription').value = '';
+  document.getElementById('editStatus').value = 'new';
+  document.getElementById('editSeverity').value = '';
+  document.getElementById('editReporter').value = '';
+  document.getElementById('editRemarks').value = '';
+  
+  // Populate project select (from projects.json)
+  const projectSel = document.getElementById('editProject');
+  projectSel.innerHTML = '';
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      (data.projects || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        projectSel.appendChild(opt);
+      });
+    })
+    .catch(() => {
+      // 降级：从当前数据提取
+      if (ALL_DATA && ALL_DATA.issues) {
+        const projects = {};
+        for (let i = 0; i < ALL_DATA.issues.length; i++) {
+          const p = ALL_DATA.issues[i].project;
+          const pd = ALL_DATA.issues[i].project_display || p;
+          if (p && !projects[p]) { projects[p] = pd; }
+        }
+        const keys = Object.keys(projects);
+        for (let i = 0; i < keys.length; i++) {
+          const opt = document.createElement('option');
+          opt.value = keys[i];
+          opt.textContent = projects[keys[i]];
+          projectSel.appendChild(opt);
+        }
+      }
+    });
+
   document.getElementById('modalOverlay').classList.add('active');
 }
 
@@ -610,57 +642,53 @@ function openEditModal(issueId) {
   
   const issue = ALL_DATA.issues.find(function(i) { return i.id === issueId; });
   if (!issue) {
-    showAlert('error', t('feedback.issue_not_exist'));
+    showAlert('error', '问题不存在');
     return;
   }
   
-  document.getElementById('modalTitle').textContent = t('feedback.modal_edit');
-  document.getElementById('modalBody').innerHTML = buildModalForm('', issue);
-  document.getElementById('modalOverlay').classList.add('active');
-}
-
-// Build modal form HTML with i18n and projects.json
-function buildModalForm(prefix, issue) {
-  const isEdit = !!issue;
-  const pVal = issue ? (issue.project || '') : '';
-  const tVal = issue ? (issue.title || '') : '';
-  const dVal = issue ? (issue.description || '') : '';
-  const sVal = issue ? (issue.status || 'new') : 'new';
-  const sevVal = issue ? (issue.severity || '') : '';
-  const rVal = issue ? (issue.reporter || '') : '';
-  const rmVal = issue ? (issue.remarks || '') : '';
+  document.getElementById('modalTitle').textContent = '编辑问题';
+  document.getElementById('editId').value = issue.id || '';
+  document.getElementById('editTitle').value = issue.title || '';
+  document.getElementById('editDescription').value = issue.description || '';
+  document.getElementById('editStatus').value = issue.status || 'new';
+  document.getElementById('editSeverity').value = issue.severity || '';
+  document.getElementById('editReporter').value = issue.reporter || '';
+  document.getElementById('editRemarks').value = issue.remarks || '';
   
-  let projOptions = '';
-  if (PROJECTS_DATA && PROJECTS_DATA.length > 0) {
-    projOptions = '<option value="">--</option>';
-    PROJECTS_DATA.forEach(function(p) {
-      projOptions += '<option value="' + p.name + '" ' + ((p.name === pVal || p.id === pVal) ? 'selected' : '') + '>' + p.name + '</option>';
+  // Populate project select (from projects.json) + set selected
+  const projectSel = document.getElementById('editProject');
+  projectSel.innerHTML = '';
+  fetch('../_data/projects.json')
+    .then(r => r.json())
+    .then(data => {
+      (data.projects || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        if (p.name === (issue.project || '')) opt.selected = true;
+        projectSel.appendChild(opt);
+      });
+    })
+    .catch(() => {
+      if (ALL_DATA && ALL_DATA.issues) {
+        const projects = {};
+        for (let i = 0; i < ALL_DATA.issues.length; i++) {
+          const p = ALL_DATA.issues[i].project;
+          const pd = ALL_DATA.issues[i].project_display || p;
+          if (p && !projects[p]) { projects[p] = pd; }
+        }
+        const keys = Object.keys(projects);
+        for (let i = 0; i < keys.length; i++) {
+          const opt = document.createElement('option');
+          opt.value = keys[i];
+          opt.textContent = projects[keys[i]];
+          if (keys[i] === (issue.project || '')) opt.selected = true;
+          projectSel.appendChild(opt);
+        }
+      }
     });
-  } else {
-    projOptions = '<option value="">' + t('feedback.placeholder_select_project') + '</option>';
-  }
-  
-  return '<input type="hidden" id="editId" value="' + (issue?.id || '') + '">' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_project') + '</label><select class="form-select" id="editProject">' + projOptions + '</select></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_title') + '</label><input class="form-input" type="text" id="editTitle" value="' + tVal.replace(/"/g,'&quot;') + '" placeholder="' + t('feedback.placeholder_title') + '"></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_detail') + '</label><textarea class="form-textarea" id="editDescription" placeholder="' + t('feedback.placeholder_detail') + '">' + dVal + '</textarea></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_status') + '</label><select class="form-select" id="editStatus">' +
-      '<option value="new" ' + (sVal==='new'?'selected':'') + '>' + t('feedback.status_new') + '</option>' +
-      '<option value="investigating" ' + (sVal==='investigating'?'selected':'') + '>' + t('feedback.status_investigating') + '</option>' +
-      '<option value="in_progress" ' + (sVal==='in_progress'?'selected':'') + '>' + t('feedback.status_in_progress') + '</option>' +
-      '<option value="closed" ' + (sVal==='closed'?'selected':'') + '>' + t('feedback.status_closed') + '</option>' +
-      '<option value="suspended" ' + (sVal==='suspended'?'selected':'') + '>' + t('feedback.status_suspended') + '</option>' +
-      '<option value="invalid" ' + (sVal==='invalid'?'selected':'') + '>' + t('feedback.status_invalid') + '</option>' +
-      '<option value="converted_to_demand" ' + (sVal==='converted_to_demand'?'selected':'') + '>' + t('feedback.status_converted') + '</option>' +
-    '</select></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_severity') + '</label><select class="form-select" id="editSeverity">' +
-      '<option value="" ' + (!sevVal?'selected':'') + '>' + t('feedback.opt_severity_none') + '</option>' +
-      '<option value="I" ' + (sevVal==='I'?'selected':'') + '>' + t('feedback.severity_I') + '</option>' +
-      '<option value="II" ' + (sevVal==='II'?'selected':'') + '>' + t('feedback.severity_II') + '</option>' +
-      '<option value="III" ' + (sevVal==='III'?'selected':'') + '>' + t('feedback.severity_III') + '</option>' +
-    '</select></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_reporter') + '</label><input class="form-input" type="text" id="editReporter" value="' + rVal.replace(/"/g,'&quot;') + '" placeholder="' + t('feedback.placeholder_reporter') + '"></div>' +
-    '<div class="form-row"><label class="form-label">' + t('feedback.label_remarks') + '</label><textarea class="form-textarea" id="editRemarks" placeholder="' + t('feedback.placeholder_remarks') + '">' + rmVal + '</textarea></div>';
+
+  document.getElementById('modalOverlay').classList.add('active');
 }
 
 function closeModal() {
@@ -672,27 +700,24 @@ function saveIssue() {
   const title = document.getElementById('editTitle').value.trim();
   
   if (!title) {
-    showAlert('error', t('feedback.title_empty'));
+    showAlert('error', '问题描述不能为空');
     return;
   }
   
   if (!ALL_DATA) ALL_DATA = { _meta: {}, issues: [] };
   if (!ALL_DATA.issues) ALL_DATA.issues = [];
   
-  const projEl = document.getElementById('editProject');
-  const projectName = projEl ? projEl.value : '';
-  
   if (issueId) {
     // Update existing issue
     const idx = ALL_DATA.issues.findIndex(function(i) { return i.id === issueId; });
     if (idx === -1) {
-      showAlert('error', t('feedback.issue_not_exist'));
+      showAlert('error', '问题不存在');
       return;
     }
     
     ALL_DATA.issues[idx] = {
       ...ALL_DATA.issues[idx],
-      project: projectName,
+      project: document.getElementById('editProject').value,
       title: title,
       description: document.getElementById('editDescription').value,
       status: document.getElementById('editStatus').value,
@@ -709,20 +734,21 @@ function saveIssue() {
     })
     .then(function(r) { return r.json(); })
     .then(function() {
-      showAlert('success', t('feedback.alert_updated'));
+      showAlert('success', '问题已更新');
       closeModal();
       render();
       buildProjectSelect();
     })
     .catch(function(e) {
-      showAlert('error', t('feedback.save_fail') + e.message);
+      showAlert('error', '保存失败：' + e.message);
     });
   } else {
     // Create new issue
     const newId = 'MANUAL_' + Date.now();
     const newIssue = {
       id: newId,
-      project: projectName,
+      project: document.getElementById('editProject').value,
+      project_display: document.getElementById('editProject').selectedOptions[0]?.textContent || '',
       title: title,
       description: document.getElementById('editDescription').value,
       status: document.getElementById('editStatus').value,
@@ -745,25 +771,25 @@ function saveIssue() {
     })
     .then(function(r) { return r.json(); })
     .then(function() {
-      showAlert('success', t('feedback.alert_created'));
+      showAlert('success', '问题已创建');
       closeModal();
       render();
       buildProjectSelect();
     })
     .catch(function(e) {
-      showAlert('error', t('feedback.save_fail') + e.message);
+      showAlert('error', '保存失败：' + e.message);
     });
   }
 }
 
 function deleteIssue(issueId) {
-  if (!confirm(t('feedback.confirm_delete'))) return;
+  if (!confirm('确定要删除这个问题吗？')) return;
   
   if (!ALL_DATA || !ALL_DATA.issues) return;
   
   const idx = ALL_DATA.issues.findIndex(function(i) { return i.id === issueId; });
   if (idx === -1) {
-    showAlert('error', t('feedback.issue_not_exist'));
+    showAlert('error', '问题不存在');
     return;
   }
   
@@ -778,12 +804,12 @@ function deleteIssue(issueId) {
   })
   .then(function(r) { return r.json(); })
   .then(function() {
-    showAlert('success', t('feedback.alert_deleted'));
+    showAlert('success', '问题已删除');
     render();
     buildProjectSelect();
   })
   .catch(function(e) {
-    showAlert('error', t('feedback.save_fail') + e.message);
+    showAlert('error', '删除失败：' + e.message);
   });
 }
 

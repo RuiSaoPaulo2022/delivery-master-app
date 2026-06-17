@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "clientId": 1,
+    "clientName": "茹忆",
+    "type": "init",
+    "scoreChange": 0,
+    "scoreBefore": 10,
+    "scoreAfter": 10,
+    "reason": "初始评分",
+    "remark": "系统初始化，评分满分",
+    "operator": "admin",
+    "timestamp": "2026-06-15T23:00:00Z"
+  },
+  {
+    "id": 2,
+    "clientId": 2,
+    "clientName": "虾咪",
+    "type": "init",
+    "scoreChange": 0,
+    "scoreBefore": 10,
+    "scoreAfter": 10,
+    "reason": "初始评分",
+    "remark": "系统初始化，评分满分",
+    "operator": "admin",
+    "timestamp": "2026-06-15T23:00:00Z"
+  },
+  {
+    "id": 3,
+    "clientId": 1,
+    "clientName": "茹忆",
+    "type": "deduct",
+    "scoreChange": -2,
+    "scoreBefore": 10,
+    "scoreAfter": 8,
+    "reason": "????",
+    "remark": "API ??",
+    "operator": "admin",
+    "timestamp": "2026-06-15T23:53:19.877Z"
+  },
+  {
+    "id": 4,
+    "clientId": 1,
+    "clientName": "茹忆",
+    "type": "deduct",
+    "scoreChange": -2,
+    "scoreBefore": 8,
+    "scoreAfter": 6,
+    "reason": "API测试扣分",
+    "remark": "自动化测试",
+    "operator": "admin",
+    "timestamp": "2026-06-16T00:04:49.053Z"
+  },
+  {
+    "id": 5,
+    "clientId": 1,
+    "clientName": "茹忆",
+    "type": "reset",
+    "scoreChange": 4,
+    "scoreBefore": 6,
+    "scoreAfter": 10,
+    "reason": "API测试重置",
+    "remark": "自动化测试重置",
+    "operator": "admin",
+    "timestamp": "2026-06-16T00:04:49.074Z"
+  }
+]

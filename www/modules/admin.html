@@ -219,6 +219,7 @@
   <div class="tab active" data-tab="users">用户管理 <span class="badge" id="userCount">0</span></div>
   <div class="tab" data-tab="clients">客户管理 <span class="badge" id="clientCount">0</span></div>
   <div class="tab" data-tab="access">项目授权 <span class="badge" id="accessCount">0</span></div>
+  <div class="tab" data-tab="credit">信用管理 <span class="badge" id="creditCount">0</span></div>
 </div>
 
 <!-- Content -->
@@ -242,8 +243,12 @@
       <div class="stat-value" id="statActive">-</div>
       <div class="stat-label">活跃用户</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statCredit">-</div>
+      <div class="stat-label">信用警告</div>
+    </div>
   </div>
-
+  
   <!-- ============ Users Tab ============ -->
   <div class="tab-panel active" id="panel-users">
     <div class="toolbar">
@@ -311,6 +316,114 @@
         </thead>
         <tbody id="accessTableBody">
           <tr><td colspan="8" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ Credit Score Tab ============ -->
+  <div class="tab-panel" id="panel-credit">
+    <div class="toolbar">
+      <div class="toolbar-title">信用评分管理</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="search-box" id="creditSearch" placeholder="搜索客户名...">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>客户</th><th>当前分数</th><th>状态</th>
+            <th>最后更新</th><th>更新人</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="creditTableBody">
+          <tr><td colspan="6" class="empty">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Credit Deduct Modal ============ -->
+<div class="modal-overlay" id="creditDeductModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('creditDeductModal')">&times;</button>
+    <div class="modal-title">扣分操作</div>
+    <form onsubmit="saveCreditDeduct(event)">
+      <input type="hidden" id="deductClientId">
+      <div class="form-group">
+        <label class="form-label">客户</label>
+        <input class="form-input" id="deductClientName" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">扣除分值 *（负数）</label>
+        <input class="form-input" id="deductScoreChange" type="number" required placeholder="-1 ~ -5">
+        <div class="form-hint">请输入负数，例如 -2 表示扣 2 分</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">扣除事由 *</label>
+        <input class="form-input" id="deductReason" required placeholder="例如：逾期付款、不履行合同">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input class="form-input" id="deductRemark" placeholder="补充说明（可选）">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('creditDeductModal')">取消</button>
+        <button type="submit" class="btn btn-danger">确认扣分</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Credit Reset Modal ============ -->
+<div class="modal-overlay" id="creditResetModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('creditResetModal')">&times;</button>
+    <div class="modal-title">重置分数</div>
+    <form onsubmit="saveCreditReset(event)">
+      <input type="hidden" id="resetClientId">
+      <div class="form-group">
+        <label class="form-label">客户</label>
+        <input class="form-input" id="resetClientName" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">目标分数 *（0-10 分）</label>
+        <input class="form-input" id="resetTargetScore" type="number" min="0" max="10" required placeholder="例如：10">
+        <div class="form-hint">输入 0-10 之间的数字，系统会自动记录分数变化</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">重置理由 *</label>
+        <input class="form-input" id="resetReason" required placeholder="例如：已补交欠款、合同履行完毕">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input class="form-input" id="resetRemark" placeholder="补充说明（可选）">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('creditResetModal')">取消</button>
+        <button type="submit" class="btn btn-primary">确认重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Credit Log Modal ============ -->
+<div class="modal-overlay" id="creditLogModal">
+  <div class="modal" style="width:700px;">
+    <button class="modal-close" onclick="closeModal('creditLogModal')">&times;</button>
+    <div class="modal-title" id="creditLogTitle">信用评分历史记录</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th><th>操作类型</th><th>分数变化</th>
+            <th>变化前</th><th>变化后</th><th>事由</th><th>操作人</th>
+          </tr>
+        </thead>
+        <tbody id="creditLogTableBody">
+          <tr><td colspan="7" class="empty">加载中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -847,6 +960,180 @@ async function sha256(text) {
   const hash = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ===== Credit Score Management =====
+let creditData = [];
+let creditLogData = [];
+
+async function loadCreditScores() {
+  try {
+    creditData = await api('/credit-scores');
+    updateCreditStats();
+    renderCreditScores();
+  } catch (err) {
+    console.error('Failed to load credit scores:', err);
+  }
+}
+
+function updateCreditStats() {
+  const warningCount = creditData.filter(c => c.currentScore < 8).length;
+  document.getElementById('statCredit').textContent = warningCount;
+  document.getElementById('creditCount').textContent = creditData.length;
+}
+
+function renderCreditScores(search = '') {
+  const tbody = document.getElementById('creditTableBody');
+  const keyword = search.toLowerCase();
+  
+  let filtered = creditData;
+  if (keyword) {
+    filtered = creditData.filter(c =>
+      c.clientName.toLowerCase().includes(keyword)
+    );
+  }
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无信用评分数据</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(c => {
+    const statusClass = c.currentScore >= 8 ? 'status-active' :
+                          c.currentScore >= 5 ? 'status-warning' : 'status-inactive';
+    const statusText = c.currentScore >= 8 ? '良好' :
+                       c.currentScore >= 5 ? '警告' : '危险';
+    const scoreColor = c.currentScore >= 8 ? '#81c784' :
+                       c.currentScore >= 5 ? '#ffb74d' : '#ef5350';
+    
+    return `<tr>
+      <td><strong>${esc(c.clientName)}</strong></td>
+      <td><span style="font-size:20px; font-weight:700; color:${scoreColor};">${c.currentScore}</span> / ${c.maxScore}</td>
+      <td><span class="status ${statusClass}">${statusText}</span></td>
+      <td>${c.lastUpdated ? c.lastUpdated.split('T')[0] : '-'}</td>
+      <td>${esc(c.updatedBy || '-')}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="showDeductModal(${c.clientId}, '${esc(c.clientName)}')">扣分</button>
+        <button class="btn btn-primary btn-sm" onclick="showResetModal(${c.clientId}, '${esc(c.clientName)}')">重置</button>
+        <button class="btn btn-secondary btn-sm" onclick="showCreditLog(${c.clientId}, '${esc(c.clientName)}')">历史</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showDeductModal(clientId, clientName) {
+  document.getElementById('deductClientId').value = clientId;
+  document.getElementById('deductClientName').value = clientName;
+  document.getElementById('deductScoreChange').value = '';
+  document.getElementById('deductReason').value = '';
+  document.getElementById('deductRemark').value = '';
+  showModal('creditDeductModal');
+}
+
+async function saveCreditDeduct(e) {
+  e.preventDefault();
+  const clientId = parseInt(document.getElementById('deductClientId').value);
+  const scoreChange = parseInt(document.getElementById('deductScoreChange').value);
+  const reason = document.getElementById('deductReason').value;
+  const remark = document.getElementById('deductRemark').value;
+  
+  try {
+    await api('/credit-scores/deduct', {
+      method: 'POST',
+      body: JSON.stringify({ clientId, scoreChange, reason, remark })
+    });
+    closeModal('creditDeductModal');
+    await loadCreditScores();
+  } catch (err) {
+    alert('扣分失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+function showResetModal(clientId, clientName) {
+  document.getElementById('resetClientId').value = clientId;
+  document.getElementById('resetClientName').value = clientName;
+  document.getElementById('resetTargetScore').value = '';
+  document.getElementById('resetReason').value = '';
+  document.getElementById('resetRemark').value = '';
+  showModal('creditResetModal');
+}
+
+async function saveCreditReset(e) {
+  e.preventDefault();
+  const clientId = parseInt(document.getElementById('resetClientId').value);
+  const targetScore = parseInt(document.getElementById('resetTargetScore').value);
+  const reason = document.getElementById('resetReason').value;
+  const remark = document.getElementById('resetRemark').value;
+  
+  try {
+    await api('/credit-scores/reset', {
+      method: 'POST',
+      body: JSON.stringify({ clientId, targetScore, reason, remark })
+    });
+    closeModal('creditResetModal');
+    await loadCreditScores();
+  } catch (err) {
+    alert('重置失败: ' + (err.error || err.message || JSON.stringify(err)));
+  }
+}
+
+async function showCreditLog(clientId, clientName) {
+  document.getElementById('creditLogTitle').textContent = `${clientName} - 信用评分历史记录`;
+  showModal('creditLogModal');
+  await loadCreditLogs(clientId);
+}
+
+async function loadCreditLogs(clientId) {
+  try {
+    creditLogData = await api('/credit-logs/' + clientId);
+    renderCreditLogs();
+  } catch (err) {
+    console.error('Failed to load credit logs:', err);
+    document.getElementById('creditLogTableBody').innerHTML =
+      '<tr><td colspan="7" class="empty">加载失败</td></tr>';
+  }
+}
+
+function renderCreditLogs() {
+  const tbody = document.getElementById('creditLogTableBody');
+  
+  if (creditLogData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无历史记录</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = creditLogData.map(log => {
+    const typeText = log.type === 'deduct' ? '扣分' :
+                       log.type === 'reset' ? '重置' : '初始化';
+    const typeColor = log.type === 'deduct' ? '#ef5350' :
+                       log.type === 'reset' ? '#81c784' : '#64b5f6';
+    
+    return `<tr>
+      <td>${log.timestamp ? log.timestamp.split('T')[0] : '-'}</td>
+      <td><span style="color:${typeColor}; font-weight:500;">${typeText}</span></td>
+      <td><span style="color:${log.scoreChange < 0 ? '#ef5350' : '#81c784'};">${log.scoreChange > 0 ? '+' : ''}${log.scoreChange}</span></td>
+      <td>${log.scoreBefore}</td>
+      <td><strong>${log.scoreAfter}</strong></td>
+      <td>${esc(log.reason)}</td>
+      <td>${esc(log.operator || '-')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Update loadAll to include credit scores
+const _origLoadAll = loadAll;
+async function loadAll() {
+  await Promise.all([
+    loadUsers(),
+    loadClients(),
+    loadAccess(),
+    loadCreditScores()
+  ]);
+  updateStats();
+}
+
+// Add search for credit tab
+document.getElementById('creditSearch')?.addEventListener('input', function() { renderCreditScores(this.value); });
+
 </script>
 
 </body>

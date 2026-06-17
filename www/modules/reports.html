@@ -97,6 +97,7 @@ body{background:#F7F8FA;height:100vh;overflow:hidden;display:flex;flex-direction
 
 @media(max-width:768px){.left-panel{width:200px}}
 </style>
+    <script src="../permission.js"></script>
 </head>
 <body>
 
@@ -193,7 +194,10 @@ function loadProjects() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       sel.innerHTML = '';
-      (data.projects || []).forEach(function(p, i) {
+      var user = getCurrentUser();
+      var allProjects = data.projects || [];
+      var filtered = filterProjects(user, allProjects);
+      filtered.forEach(function(p, i) {
         var opt = document.createElement('option');
         opt.value = p.name;
         opt.textContent = p.name;
@@ -203,12 +207,21 @@ function loadProjects() {
     })
     .catch(function() {
       // 降级：保留原有项目列表（不含 PMES POC）
-      sel.innerHTML =
-        '<option value="Para Detran">Para Detran</option>' +
-        '<option value="PMBV">PMBV</option>' +
-        '<option value="Para Segup">Para Segup</option>' +
-        '<option value="SEAP">SEAP</option>' +
-        '<option value="SESP">SESP</option>';
+      var user = getCurrentUser();
+      var fallbackProjects = [
+        {name: "Para Detran"},
+        {name: "PMBV"},
+        {name: "Para Segup"},
+        {name: "SEAP"},
+        {name: "SESP"}
+      ];
+      var filtered = filterProjects(user, fallbackProjects);
+      filtered.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        sel.appendChild(opt);
+      });
     });
 }
 

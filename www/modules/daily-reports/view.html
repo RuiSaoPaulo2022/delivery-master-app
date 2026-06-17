@@ -196,6 +196,7 @@
             border-color: #A5D6A7;
             color: #2E7D32;
         }
+<<<<<<< HEAD
         .report-chip.is-pmes {
             background: #E8F5E9;
             border-color: #C8E6C9;
@@ -204,15 +205,20 @@
         .report-chip.is-pmes:hover {
             background: #C8E6C9;
         }
+=======
+>>>>>>> local-new
         .report-chip .chip-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background: #9E9E9E;
         }
+<<<<<<< HEAD
         .report-chip.is-pmes .chip-dot {
             background: #2E7D32;
         }
+=======
+>>>>>>> local-new
 
         /* ====== 原有筛选 + 表格 ====== */
         .filter-bar {
@@ -301,6 +307,10 @@
             th { background: #1F497D !important; color: white !important; }
         }
     </style>
+<<<<<<< HEAD
+=======
+    <script src="../permission.js"></script>
+>>>>>>> local-new
 </head>
 <body>
     <div class="container">
@@ -312,6 +322,7 @@
         </div>
 
         <!-- 一键生成面板 -->
+<<<<<<< HEAD
         <div class="gen-panel">
             <div class="gen-panel-title">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -331,6 +342,29 @@
             </div>
             <div class="gen-status" id="gen-status"></div>
         </div>
+=======
+            <div class="gen-panel">
+                <div class="gen-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 3a2 2 0 114 0 2 2 0 01-4 0z" stroke="#2E7D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span data-i18n="daily_generate_title">日报一键生成</span>
+                </div>
+                <div class="gen-controls">
+                    <label for="gen-project">项目：</label>
+                    <select id="gen-project"></select>
+                    <label for="gen-date">日期：</label>
+                    <input type="date" id="gen-date" />
+                    <button class="btn-generate" id="btn-generate" onclick="generateReport()">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span data-i18n="generate_btn">生成日报</span>
+                    </button>
+                </div>
+                <div class="gen-status" id="gen-status"></div>
+            </div>
+>>>>>>> local-new
 
         <!-- 已有日报列表 -->
         <div class="reports-section">
@@ -377,11 +411,19 @@
             document.getElementById('gen-date').value = getTodayStr();
         }
 
+<<<<<<< HEAD
         // 生成 PMES POC 日报
+=======
+        // 生成日报（通用项目）
+>>>>>>> local-new
         async function generateReport() {
             const btn = document.getElementById('btn-generate');
             const statusEl = document.getElementById('gen-status');
             const dateVal = document.getElementById('gen-date').value;
+<<<<<<< HEAD
+=======
+            const projectVal = document.getElementById('gen-project').value || '';
+>>>>>>> local-new
 
             if (!dateVal) {
                 showStatus('error', '请选择日期');
@@ -395,10 +437,17 @@
             statusEl.innerHTML = '<span style="color:#666;">正在执行 Python 脚本，请稍候...</span>';
 
             try {
+<<<<<<< HEAD
                 const res = await fetch('/api/generate/pmes-daily', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date: dateVal }),
+=======
+                const res = await fetch('/api/generate/daily', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: dateVal, project: projectVal }),
+>>>>>>> local-new
                 });
 
                 const data = await res.json();
@@ -432,8 +481,34 @@
 
         // ====== 日报列表 ======
 
+<<<<<<< HEAD
         function loadReportList() {
             fetch('/api/generate/pmes-daily?t=' + Date.now())
+=======
+        // 加载项目列表（来自 _data/projects.json）
+        function loadProjects() {
+            const user = getCurrentUser();
+            fetch('../_data/projects.json')
+                .then(r => r.json())
+                .then(data => {
+                    const sel = document.getElementById('gen-project');
+                    sel.innerHTML = '';
+                    const allProjects = data.projects || [];
+                    const filtered = filterProjects(user, allProjects);
+                    filtered.forEach((p, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = p.name;
+                        opt.textContent = p.name;
+                        if (i === 0) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function loadReportList() {
+            fetch('/api/generate/daily?list=1&t=' + Date.now())
+>>>>>>> local-new
                 .then(r => r.json())
                 .then(data => {
                     const listEl = document.getElementById('reports-list');
@@ -442,8 +517,12 @@
                         return;
                     }
                     listEl.innerHTML = data.files.map(f => {
+<<<<<<< HEAD
                         const isPmes = f.startsWith('PMESPOC_');
                         return '<a class="report-chip' + (isPmes ? ' is-pmes' : '') + '" href="/modules/daily-reports/' + f + '" target="_blank">' +
+=======
+                        return '<a class="report-chip" href="/modules/daily-reports/' + f + '" target="_blank">' +
+>>>>>>> local-new
                             '<span class="chip-dot"></span>' + f.replace('.html', '').replace(/_/g, ' ') +
                             '</a>';
                     }).join('');
@@ -478,18 +557,40 @@
         function populateProjectFilter() {
             const select = document.getElementById('project-filter');
             while (select.options.length > 1) select.remove(1);
+<<<<<<< HEAD
+=======
+
+            const currentUser = getCurrentUser();
+
+>>>>>>> local-new
             projectsMap = {};
             issuesData.forEach(iss => {
                 const key = iss.project || '';
                 const name = iss.project_name || key || '未知';
+<<<<<<< HEAD
                 if (key && !projectsMap[key]) projectsMap[key] = name;
             });
+=======
+                if (key && !projectsMap[key]) {
+                    // 权限检查：admin 看全部，其他只看 allowedProjects
+                    if (currentUser && currentUser.role !== 'admin') {
+                        if (!currentUser.allowedProjects || currentUser.allowedProjects.indexOf(key) === -1) return;
+                    }
+                    projectsMap[key] = name;
+                }
+            });
+
+>>>>>>> local-new
             Object.keys(projectsMap).sort().forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
                 opt.textContent = projectsMap[key];
                 select.appendChild(opt);
             });
+<<<<<<< HEAD
+=======
+
+>>>>>>> local-new
             select.value = currentFilter;
             if (select.value !== currentFilter) select.value = '全部';
         }
@@ -578,6 +679,10 @@
         // ====== 初始化 ======
         window.addEventListener('DOMContentLoaded', function() {
             initDatePicker();
+<<<<<<< HEAD
+=======
+            loadProjects();
+>>>>>>> local-new
             loadReportList();
             loadData();
         });

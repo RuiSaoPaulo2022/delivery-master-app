@@ -185,6 +185,7 @@
             margin-left: 8px;
         }
     </style>
+    <script src="../permission.js"></script>
 </head>
 <body>
     <div class="container">
@@ -192,8 +193,8 @@
 
         <div class="toolbar">
             <button class="btn-primary" onclick="loadData()">刷新数据</button>
-            <button class="btn-success" onclick="saveData()">保存更改</button>
-            <button class="btn-secondary" onclick="addNewIssue()">新增问题</button>
+            <button class="btn-success" data-permission="write" onclick="saveData()">保存更改</button>
+            <button class="btn-secondary" data-permission="write" onclick="addNewIssue()">新增问题</button>
             <span id="status-message"></span>
         </div>
 
@@ -238,12 +239,20 @@
             // 保留第一个"全部"选项
             while (select.options.length > 1) select.remove(1);
 
-            // 收集所有唯一的项目名
+            const currentUser = getCurrentUser();
+
+            // 收集所有唯一的项目名（按权限过滤）
             projectsMap = {};
             issuesData.forEach(iss => {
                 const key = iss.project || '';
                 const name = iss.project_name || key || '未知';
-                if (key && !projectsMap[key]) projectsMap[key] = name;
+                if (key && !projectsMap[key]) {
+                    // 权限检查：admin 看全部，其他只看 allowedProjects
+                    if (currentUser && currentUser.role !== 'admin') {
+                        if (!currentUser.allowedProjects || currentUser.allowedProjects.indexOf(key) === -1) return;
+                    }
+                    projectsMap[key] = name;
+                }
             });
 
             // 按项目名排序后添加选项
@@ -384,11 +393,13 @@
                     + '<td class="td-timeline" contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'timeline_raw\', this.innerText)">' + timelineHtml + '</td>'
                     + '<td contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'solver\', this.innerText)">' + (issue.solver || '') + '</td>'
                     + '<td contenteditable="true" onblur="updateIssue(' + originalIndex + ', \'eta\', this.innerText)">' + (issue.eta || '') + '</td>'
-                    + '<td><button class="btn-danger" onclick="deleteIssue(' + originalIndex + ')">删除</button></td>';
+                    + '<td class="td-delete-permission"><button class="btn-danger" onclick="deleteIssue(' + originalIndex + ')">删除</button></td>';
                 tbody.appendChild(tr);
             });
 
             updateFilterCount();
+            // Apply write permissions to dynamic elements (delete buttons + contenteditable)
+            applyWriteButtons(getCurrentUser(), 'issues:write');
         }
 
         // ========== 更新筛选计数 ==========

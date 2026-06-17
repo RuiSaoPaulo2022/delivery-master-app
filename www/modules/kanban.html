@@ -378,6 +378,7 @@
         .board-empty h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
         .board-empty p { font-size: 14px; }
     </style>
+    <script src="../permission.js"></script>
 </head>
 <body>
 
@@ -413,9 +414,9 @@
             </span>
         </div>
         <div class="header-actions">
-            <button class="btn-new" onclick="newTask()" title="新建任务">➕ <span data-i18n="btn_new_task">新建</span></button>
+            <button class="btn-new" data-permission="write" onclick="newTask()" title="新建任务">➕ <span data-i18n="btn_new_task">新建</span></button>
             <button class="btn-export" onclick="exportBoard()" title="导出数据">📥 <span data-i18n="btn_export">导出</span></button>
-            <button class="btn-save" id="btnSave" onclick="saveBoard()" title="保存更改">💾 <span data-i18n="btn_save">保存</span></button>
+            <button class="btn-save" id="btnSave" data-permission="write" onclick="saveBoard()" title="保存更改">💾 <span data-i18n="btn_save">保存</span></button>
         </div>
         <div class="lang-wrap">
             <select class="lang-select" id="langSelectKanban"></select>
@@ -1272,6 +1273,7 @@ function closeModal() {
 
 // ===== 初始化 =====
 function init() {
+    var currentUser = getCurrentUser();
     // 动态加载数据包：file:// 协议需要预加载 bundle；HTTP 环境由服务器按需提供
     var needBundle = location.protocol === 'file:';
     if (needBundle) {
@@ -1281,11 +1283,13 @@ function init() {
             hideLoading();
             applyI18n();
             loadIndex();
+            applyWriteButtons(currentUser, 'kanban:write');
         };
         s.onerror = function() {
             hideLoading();
             console.error('Failed to load data bundle');
             renderEmptyBoard();
+            applyWriteButtons(currentUser, 'kanban:write');
         };
         document.head.appendChild(s);
     } else {
@@ -1293,6 +1297,7 @@ function init() {
         hideLoading();
         applyI18n();
         loadIndex();
+        applyWriteButtons(currentUser, 'kanban:write');
     }
 }
 
