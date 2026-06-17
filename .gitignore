@@ -45,3 +45,5 @@ www/modules/workplan/data/*.json
 www/modules/reports.json
 www/modules/reports/reports.json
 www/modules/daily-reports.json
+server.key
+certs/server.key

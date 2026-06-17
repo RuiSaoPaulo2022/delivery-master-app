@@ -6,6 +6,7 @@
  */
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -15,6 +16,7 @@ const DEFAULT_PORT = 8080;
 const MAX_PORT_RETRY = 3;  // 端口被占用时，最多尝试 +1, +2, +3
 const ROOT_DIR = __dirname;  // server.js 所在目录
 const DATA_DIR = path.join(__dirname, '_data');
+const CERTS_DIR = path.join(__dirname, 'certs');  // SSL 证书目录
 const JWT_SECRET = 'delivery-ops-master-2026';  // 简易认证密钥（生产环境需更换）
 const TOKEN_EXPIRY_DAYS = 7;
 const MIME_TYPES = {
@@ -1740,14 +1742,29 @@ function requestHandler(req, res) {
 
 // ========== 启动服务器 ==========
 function startServer(port) {
-  const server = http.createServer(requestHandler);
+  // 加载 SSL 证书
+  let sslOptions = null;
+  const keyPath = path.join(CERTS_DIR, 'server.key');
+  const crtPath = path.join(CERTS_DIR, 'server.crt');
+  if (fs.existsSync(keyPath) && fs.existsSync(crtPath)) {
+    sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(crtPath),
+    };
+  }
+  
+  const server = sslOptions
+    ? https.createServer(sslOptions, requestHandler)
+    : http.createServer(requestHandler);
+  
+  const proto = sslOptions ? 'https' : 'http';
   
   server.listen(port, '0.0.0.0', () => {
     console.log(`✅ 交维大师服务器已启动`);
     console.log(`📁 服务目录: ${ROOT_DIR}`);
-    console.log(`🌐 访问地址: http://localhost:${port}/index.html`);
+    console.log(`🔒 协议: ${proto.toUpperCase()}`);
+    console.log(`🌐 访问地址: ${proto}://localhost:${port}/index.html`);
     console.log(`⏹️  停止服务: Ctrl+C`);
-    console.log(`📡 API 预留: http://localhost:${port}/api/ (未来工单系统)`);
     console.log(`──────────────────────────────────────────`);
   });
   
