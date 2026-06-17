@@ -622,7 +622,7 @@
     </div>
 
     <div class="login-footer" data-i18n="copyright">&copy; 2026 Delivery Master</div>
-    <div class="login-version" id="loginVersion">V1.0.0_build28_20260617</div>
+    <div class="login-version" id="loginVersion">V1.0.0_build29_20260617</div>
 
     <div class="qr-download">
       <div class="qr-download-title" data-i18n="qrTitle">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
@@ -989,7 +989,7 @@ function checkServer() {
   }, 5000);
 }
 
-/* ---------- login (SHA-256 hashed) ---------- */
+/* ---------- login (server-side hashing for HTTP compatibility) ---------- */
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const username = document.getElementById('login-user').value.trim();
@@ -998,13 +998,12 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 
   setBtnLoading('btn-login', true);
   try {
-    // Client-side SHA-256 hash before sending
-    const hashedPwd = await sha256(password);
-
+    // Send plaintext — server handles SHA-256 hashing
+    // (crypto.subtle unavailable on HTTP LAN pages)
     const r = await fetch(API + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password: hashedPwd })
+      body: JSON.stringify({ username, password })
     });
     const data = await r.json();
     if (!r.ok) { showMsg('error', data.error || (loginI18n[getLoginLang()]||loginI18n.zh).errorLogin); setBtnLoading('btn-login', false); return; }
@@ -1053,9 +1052,7 @@ document.getElementById('changePwdForm').addEventListener('submit', async e => {
 
   setBtnLoading('btn-change-pwd', true);
   try {
-    const hashedOld = await sha256(oldPwd);
-    const hashedNew = await sha256(newPwd);
-
+    // Send plaintext — server handles hashing
     const token = localStorage.getItem('token');
     const r = await fetch(API + '/api/auth/change-password', {
       method: 'POST',
@@ -1063,7 +1060,7 @@ document.getElementById('changePwdForm').addEventListener('submit', async e => {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       },
-      body: JSON.stringify({ oldPassword: hashedOld, newPassword: hashedNew })
+      body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd })
     });
     const data = await r.json();
     if (!r.ok) { showMsg('error', data.error || (loginI18n[getLoginLang()]||loginI18n.zh).errorChangeFailed); setBtnLoading('btn-change-pwd', false); return; }

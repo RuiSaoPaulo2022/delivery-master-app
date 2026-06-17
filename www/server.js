@@ -337,10 +337,16 @@ function hashPassword(password) {
 }
 
 /** 验证密码
- *  客户端发送的是 SHA-256 哈希值，直接比对即可（不再二次哈希）
+ *  兼容两种模式：
+ *  1. 客户端发送 SHA-256 哈希 — 直接比对
+ *  2. 客户端发送明文 — 服务端哈希后比对（HTTP 环境 crypto.subtle 不可用时的 fallback）
  */
-function comparePassword(clientHashedPwd, storedHash) {
-  return clientHashedPwd === storedHash;
+function comparePassword(received, storedHash) {
+  // 直接比对（客户端已哈希）
+  if (received === storedHash) return true;
+  // 服务端哈希后比对（客户端送明文）
+  if (hashPassword(received) === storedHash) return true;
+  return false;
 }
 
 /** 密码策略验证：最少8位，必须包含数字和字母 */
@@ -661,8 +667,8 @@ async function handleAuthRoute(req, res) {
         return;
       }
 
-      // 旧密码比对（前端发送 SHA-256 哈希，直接比对）
-      if (user.password !== oldPassword) {
+      // 旧密码比对（兼容明文和 SHA-256 哈希）
+      if (!comparePassword(oldPassword, user.password)) {
         sendError(res, '旧密码错误', 401);
         return;
       }
