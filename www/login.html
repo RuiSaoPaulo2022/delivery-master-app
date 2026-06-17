@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>交维大师 - 登录</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -475,7 +475,9 @@
     .top-bar {
       position: fixed;
       top: 12px;
+      top: calc(12px + env(safe-area-inset-top, 0px));
       right: 16px;
+      right: calc(16px + env(safe-area-inset-right, 0px));
       display: flex;
       gap: 8px;
       z-index: 99;
@@ -505,7 +507,9 @@
     .server-config {
       position: fixed;
       top: 48px;
+      top: calc(48px + env(safe-area-inset-top, 0px));
       right: 16px;
+      right: calc(16px + env(safe-area-inset-right, 0px));
       z-index: 100;
       background: rgba(10,20,35,.95);
       border: 1px solid rgba(255,255,255,.12);
@@ -618,7 +622,7 @@
     </div>
 
     <div class="login-footer" data-i18n="copyright">&copy; 2026 Delivery Master</div>
-    <div class="login-version" id="loginVersion">V1.0.0_build20_20260617</div>
+    <div class="login-version" id="loginVersion">V1.0.0_build22_20260617</div>
 
     <div class="qr-download">
       <div class="qr-download-title" data-i18n="qrTitle">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
