@@ -462,6 +462,88 @@
       margin-bottom: 20px;
     }
 
+    /* Language switcher + Server config bar */
+    .top-bar {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 99;
+      align-items: center;
+    }
+    .lang-btn, .server-btn {
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.5);
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .lang-btn:hover, .server-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+    .lang-btn.active {
+      background: rgba(0,229,255,.2);
+      border-color: rgba(0,229,255,.4);
+      color: #fff;
+      font-weight: 600;
+    }
+    .server-btn { font-family: monospace; font-size: 10px; padding: 4px 10px; }
+
+    /* Server config panel */
+    .server-config {
+      position: fixed;
+      top: 48px;
+      right: 16px;
+      z-index: 100;
+      background: rgba(10,20,35,.95);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 14px 16px;
+      min-width: 270px;
+      backdrop-filter: blur(16px);
+      display: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .server-config.active { display: block; }
+    .server-config label {
+      color: rgba(255,255,255,.55);
+      font-size: 11px;
+      display: block;
+      margin-bottom: 6px;
+      letter-spacing: .3px;
+    }
+    .server-config input {
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      color: #00e5ff;
+      font-size: 12px;
+      font-family: monospace;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .server-config input:focus {
+      border-color: rgba(0,229,255,.4);
+      box-shadow: 0 0 8px rgba(0,229,255,.1);
+    }
+    .server-confirm-btn {
+      width: 100%;
+      padding: 7px;
+      background: linear-gradient(135deg,#2166B2,#1a4f8f);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: .5px;
+    }
+    .server-confirm-btn:hover { background: linear-gradient(135deg,#2874c7,#2166B2); }
+
     /* Responsive */
     @media (max-width: 480px) {
       .login-card { margin: 16px; }
@@ -477,14 +559,29 @@
   <div class="bg-particles"></div>
   <div class="bg-grid"></div>
 
+  <!-- Top bar: Language + Server config -->
+  <div class="top-bar" id="topBar">
+    <button class="lang-btn active" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="pt">PT</button>
+    <button class="server-btn" id="btnServerConfig" title="配置服务器地址 / Server Config">⚙️ 服务器</button>
+  </div>
+
+  <!-- Server config panel -->
+  <div class="server-config" id="serverConfig">
+    <label id="lblServerUrl" data-i18n="lblServerUrl">服务器地址</label>
+    <input type="text" id="inputServerUrl" placeholder="http://192.168.1.100:8080">
+    <button class="server-confirm-btn" id="btnServerConfirm" data-i18n="btnServerSave">保存并重连</button>
+  </div>
+
   <div class="login-card">
     <div class="logo-area">
       <div class="logo-container">
         <div class="logo-glow-ring"></div>
         <img src="assets/logo-shield.png" alt="D&M Shield" class="logo-shield">
       </div>
-      <div class="logo-title">交维大师</div>
-      <div class="logo-subtitle"><span>Delivery &amp; Ops Master</span></div>
+      <div class="logo-title" data-i18n="loginTitle">交维大师</div>
+      <div class="logo-subtitle"><span data-i18n="loginSub">Delivery &amp; Ops Master</span></div>
     </div>
 
     <div class="form-container" id="formContainer">
@@ -496,60 +593,257 @@
       <div id="panel-login" class="form-panel active">
         <form id="loginForm">
           <div class="form-group">
-            <label>用户名</label>
-            <input type="text" id="login-user" required placeholder="请输入用户名" autocomplete="username">
+            <label data-i18n="username">用户名</label>
+            <input type="text" id="login-user" required placeholder="请输入用户名" autocomplete="username" data-i18n-placeholder="username">
           </div>
           <div class="form-group">
-            <label>密码</label>
-            <input type="password" id="login-pass" required placeholder="请输入密码" autocomplete="current-password">
+            <label data-i18n="password">密码</label>
+            <input type="password" id="login-pass" required placeholder="请输入密码" autocomplete="current-password" data-i18n-placeholder="password">
           </div>
           <button type="submit" class="btn-submit" id="btn-login">
             <span class="spinner"></span>
-            <span class="btn-text">登 录</span>
+            <span class="btn-text" data-i18n="loginBtn">登 录</span>
           </button>
         </form>
       </div>
     </div>
 
-    <div class="login-footer">&copy; 2026 Delivery Master</div>
+    <div class="login-footer" data-i18n="copyright">&copy; 2026 Delivery Master</div>
 
     <div class="qr-download">
-      <div class="qr-download-title">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
-      <img src="assets/qrcode-shield-download.png" alt="下载交维大师APP" class="qr-download-img">
-      <div class="qr-download-hint">支持 Android · 中 / 英 / 葡萄牙语</div>
+      <div class="qr-download-title" data-i18n="qrTitle">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
+      <img src="assets/qrcode-shield-download.png" alt="Download APP" class="qr-download-img">
+      <div class="qr-download-hint" data-i18n="qrHint">支持 Android · 中 / 英 / 葡萄牙语</div>
     </div>
   </div>
 
   <!-- Change Password Modal -->
   <div class="modal-overlay" id="changePwdModal">
     <div class="modal-box">
-      <div class="modal-title">🔒 首次登录 — 修改密码</div>
-      <div class="modal-desc">密码至少8位，需包含数字和字母</div>
+      <div class="modal-title" data-i18n="modalTitle">🔒 首次登录 — 修改密码</div>
+      <div class="modal-desc" data-i18n="modalDesc">密码至少8位，需包含数字和字母</div>
       <div id="modal-error" class="alert error" style="margin-top:12px"></div>
       <form id="changePwdForm">
         <div class="form-group">
-          <label>当前密码</label>
-          <input type="password" id="cpd-old" required placeholder="请输入当前密码" autocomplete="current-password">
+          <label data-i18n="modalOldPwd">当前密码</label>
+          <input type="password" id="cpd-old" required placeholder="请输入当前密码" autocomplete="current-password" data-i18n-placeholder="modalOldPwd">
         </div>
         <div class="form-group">
-          <label>新密码</label>
-          <input type="password" id="cpd-new" required placeholder="至少8位，含数字+字母" autocomplete="new-password">
+          <label data-i18n="modalNewPwd">新密码</label>
+          <input type="password" id="cpd-new" required placeholder="至少8位，含数字+字母" autocomplete="new-password" data-i18n-placeholder="pwdRule">
           <div class="pwd-strength" id="pwdStrength"></div>
         </div>
         <div class="form-group">
-          <label>确认新密码</label>
-          <input type="password" id="cpd-confirm" required placeholder="再次输入新密码" autocomplete="new-password">
+          <label data-i18n="modalConfirmPwd">确认新密码</label>
+          <input type="password" id="cpd-confirm" required placeholder="再次输入新密码" autocomplete="new-password" data-i18n-placeholder="modalConfirmPwd">
         </div>
         <button type="submit" class="btn-submit" id="btn-change-pwd">
           <span class="spinner"></span>
-          <span class="btn-text">确认修改</span>
+          <span class="btn-text" data-i18n="modalSave">确认修改</span>
         </button>
       </form>
     </div>
   </div>
 
 <script>
-const API = window.location.origin;
+/* ==================== i18n ==================== */
+var loginI18n = {
+  zh: {
+    loginTitle: '交维大师',
+    loginSub: 'Delivery &amp; Ops Master',
+    serverChecking: '⏳ 正在连接服务器…',
+    serverOnline: '✅ 服务器已连接',
+    serverOffline: '⚠️ 无法连接服务器，请确认 <code>server.js</code> 已启动<br><span style="font-size:11px;opacity:0.6">提示：点击右上角⚙️配置服务器地址</span>',
+    username: '用户名',
+    password: '密码',
+    loginBtn: '登 录',
+    copyright: '© 2026 Delivery Master',
+    qrTitle: '📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span>',
+    qrHint: '支持 Android · 中 / 英 / 葡萄牙语',
+    lblServerUrl: '服务器地址',
+    btnServerSave: '保存并重连',
+    errorNoUser: '用户名和密码不能为空',
+    errorNoServer: '无法连接服务器，请确认 server.js 已启动',
+    errorLogin: '登录失败',
+    modalTitle: '🔒 首次登录 — 修改密码',
+    modalDesc: '密码至少8位，需包含数字和字母',
+    modalOldPwd: '当前密码',
+    modalNewPwd: '新密码',
+    modalConfirmPwd: '确认新密码',
+    modalSave: '确认修改',
+    pwdRule: '至少8位，含数字+字母',
+    modalSuccess: '密码修改成功，正在跳转...',
+    errorMismatch: '两次输入的新密码不一致',
+    errorTooShort: '新密码至少8位',
+    errorNoAlnum: '新密码必须包含数字和字母',
+    errorAllFields: '所有字段必填',
+    errorChangeFailed: '修改失败'
+  },
+  en: {
+    loginTitle: 'Delivery Master',
+    loginSub: 'Delivery &amp; Ops Master',
+    serverChecking: '⏳ Connecting to server…',
+    serverOnline: '✅ Server Connected',
+    serverOffline: '⚠️ Cannot connect, please ensure <code>server.js</code> is running<br><span style="font-size:11px;opacity:0.6">Tap ⚙️ to configure server address</span>',
+    username: 'Username',
+    password: 'Password',
+    loginBtn: 'Sign In',
+    copyright: '© 2026 Delivery Master',
+    qrTitle: '📱 Scan to download <span class="highlight">Delivery Master APP</span>',
+    qrHint: 'Android · ZH / EN / PT',
+    lblServerUrl: 'Server URL',
+    btnServerSave: 'Save & Reconnect',
+    errorNoUser: 'Username and password required',
+    errorNoServer: 'Cannot connect to server',
+    errorLogin: 'Login failed',
+    modalTitle: '🔒 First Login — Change Password',
+    modalDesc: 'Password must be at least 8 characters with letters and numbers',
+    modalOldPwd: 'Current Password',
+    modalNewPwd: 'New Password',
+    modalConfirmPwd: 'Confirm New Password',
+    modalSave: 'Confirm Change',
+    pwdRule: 'Min 8 chars, letters + numbers',
+    modalSuccess: 'Password changed, redirecting…',
+    errorMismatch: 'New passwords do not match',
+    errorTooShort: 'Password must be at least 8 characters',
+    errorNoAlnum: 'Password must contain letters and numbers',
+    errorAllFields: 'All fields required',
+    errorChangeFailed: 'Change failed'
+  },
+  pt: {
+    loginTitle: 'Delivery Master',
+    loginSub: 'Delivery &amp; Ops Master',
+    serverChecking: '⏳ Conectando ao servidor…',
+    serverOnline: '✅ Servidor Conectado',
+    serverOffline: '⚠️ Não foi possível conectar. Certifique-se de que <code>server.js</code> está rodando<br><span style="font-size:11px;opacity:0.6">Toque ⚙️ para configurar endereço do servidor</span>',
+    username: 'Usuário',
+    password: 'Senha',
+    loginBtn: 'Entrar',
+    copyright: '© 2026 Delivery Master',
+    qrTitle: '📱 Escaneie para baixar <span class="highlight">APP Delivery Master</span>',
+    qrHint: 'Android · CN / EN / PT',
+    lblServerUrl: 'URL do Servidor',
+    btnServerSave: 'Salvar & Reconectar',
+    errorNoUser: 'Usuário e senha obrigatórios',
+    errorNoServer: 'Não foi possível conectar ao servidor',
+    errorLogin: 'Falha no login',
+    modalTitle: '🔒 Primeiro Login — Alterar Senha',
+    modalDesc: 'Senha deve ter pelo menos 8 caracteres com letras e números',
+    modalOldPwd: 'Senha Atual',
+    modalNewPwd: 'Nova Senha',
+    modalConfirmPwd: 'Confirmar Nova Senha',
+    modalSave: 'Confirmar Alteração',
+    pwdRule: 'Mín. 8 caracteres, letras + números',
+    modalSuccess: 'Senha alterada, redirecionando…',
+    errorMismatch: 'As senhas não coincidem',
+    errorTooShort: 'Senha deve ter pelo menos 8 caracteres',
+    errorNoAlnum: 'Senha deve conter letras e números',
+    errorAllFields: 'Todos os campos são obrigatórios',
+    errorChangeFailed: 'Falha na alteração'
+  }
+};
+
+function getLoginLang() {
+  try { var s = localStorage.getItem('dm_lang'); if (loginI18n[s]) return s; } catch(e) {}
+  return 'zh';
+}
+
+function setLoginLang(lang) {
+  var d = loginI18n[lang]; if (!d) return;
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-BR' : 'en';
+
+  // Update text elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (d[key]) el.innerHTML = d[key];
+  });
+
+  // Update placeholder/button texts
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-placeholder');
+    if (d[key]) el.placeholder = d[key];
+  });
+  document.querySelectorAll('[data-i18n-value]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-value');
+    if (d[key]) el.value = d[key];
+  });
+
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+
+  // Save preference
+  try { localStorage.setItem('dm_lang', lang); } catch(e) {}
+}
+
+// Init language
+(function() {
+  var saved = null;
+  try { saved = localStorage.getItem('dm_lang'); } catch(e) {}
+  setLoginLang((saved && loginI18n[saved]) ? saved : 'zh');
+})();
+
+// Language button click
+document.getElementById('topBar').addEventListener('click', function(e) {
+  if (e.target.classList.contains('lang-btn')) {
+    setLoginLang(e.target.dataset.lang);
+  }
+});
+
+/* ==================== Server Config ==================== */
+var btnServer = document.getElementById('btnServerConfig');
+var panel = document.getElementById('serverConfig');
+var inputServer = document.getElementById('inputServerUrl');
+var btnConfirm = document.getElementById('btnServerConfirm');
+
+// Show/hide server config panel
+btnServer.addEventListener('click', function() {
+  panel.classList.toggle('active');
+  if (panel.classList.contains('active')) {
+    inputServer.value = API;
+    inputServer.focus();
+  }
+});
+
+// Save and reconnect
+btnConfirm.addEventListener('click', function() {
+  var url = inputServer.value.trim();
+  if (!url) return;
+  // Strip trailing slash
+  if (url.endsWith('/')) url = url.slice(0, -1);
+  try { localStorage.setItem('dm_server', url); } catch(e) {}
+  API = url;
+  panel.classList.remove('active');
+  // Re-check server connection
+  document.getElementById('server-status').className = 'server-status checking';
+  document.getElementById('server-status').textContent = '⏳ 正在重连…';
+  document.getElementById('server-status').style.display = 'block';
+  checkServer();
+});
+
+// Click outside to close
+document.addEventListener('click', function(e) {
+  if (!panel.contains(e.target) && e.target !== btnServer) {
+    panel.classList.remove('active');
+  }
+});
+// === Server URL config (supports Capacitor app + LAN access) ===
+// Priority: localStorage config > QR param > window.location (web)
+var API = (function() {
+  // 1. localStorage override (user-saved)
+  try { var s = localStorage.getItem('dm_server'); if (s) return s; } catch(e) {}
+  // 2. URL param (for QR code deep link)
+  var qp = new URLSearchParams(window.location.search);
+  var p = qp.get('server'); if (p) return p;
+  // 3. Web fallback (browser at same origin as server)
+  var o = window.location.origin;
+  // In Capacitor app, origin is not HTTP — use default LAN fallback
+  if (!o.startsWith('http')) {
+    return 'http://192.168.1.100:8080'; // placeholder, user will change
+  }
+  return o;
+})();
 
 /* ---------- SHA-256 client-side hash ---------- */
 async function sha256(text) {
@@ -594,11 +888,12 @@ function setBtnLoading(btnId, loading) {
 async function checkServer() {
   const statusEl = document.getElementById('server-status');
   const container = document.getElementById('formContainer');
+  var d = loginI18n[getLoginLang()] || loginI18n.zh;
   try {
     const r = await fetch(API + '/api/data/manifest.json', { method: 'GET', cache: 'no-cache' });
     if (r.ok) {
       statusEl.className = 'server-status online';
-      statusEl.textContent = '✅ 服务器已连接';
+      statusEl.textContent = d.serverOnline;
       container.classList.remove('form-disabled');
       setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
     } else {
@@ -606,7 +901,7 @@ async function checkServer() {
     }
   } catch (e) {
     statusEl.className = 'server-status offline';
-    statusEl.innerHTML = '⚠️ 无法连接服务器，请确认 <code>server.js</code> 已启动<br><span style="font-size:11px;opacity:0.6">提示：在 交维大师 目录运行 node server.js</span>';
+    statusEl.innerHTML = d.serverOffline;
     container.classList.add('form-disabled');
     setTimeout(checkServer, 3000);
   }
@@ -617,7 +912,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const username = document.getElementById('login-user').value.trim();
   const password = document.getElementById('login-pass').value;
-  if (!username || !password) { showMsg('error', '用户名和密码不能为空'); return; }
+  if (!username || !password) { showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorNoUser); return; }
 
   setBtnLoading('btn-login', true);
   try {
@@ -630,7 +925,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
       body: JSON.stringify({ username, password: hashedPwd })
     });
     const data = await r.json();
-    if (!r.ok) { showMsg('error', data.error || '登录失败'); setBtnLoading('btn-login', false); return; }
+    if (!r.ok) { showMsg('error', data.error || (loginI18n[getLoginLang()]||loginI18n.zh).errorLogin); setBtnLoading('btn-login', false); return; }
 
     // Store complete token + user info
     localStorage.setItem('token', data.token);
@@ -646,7 +941,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
       window.location.href = '/index.html';
     }
   } catch (err) {
-    showMsg('error', '无法连接服务器，请确认 server.js 已启动');
+    showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorNoServer);
     setBtnLoading('btn-login', false);
   }
 });
@@ -666,11 +961,11 @@ document.getElementById('changePwdForm').addEventListener('submit', async e => {
   const newPwd = document.getElementById('cpd-new').value;
   const confirmPwd = document.getElementById('cpd-confirm').value;
 
-  if (!oldPwd || !newPwd || !confirmPwd) { showMsg('error', '所有字段必填'); return; }
-  if (newPwd !== confirmPwd) { showMsg('error', '两次输入的新密码不一致'); return; }
-  if (newPwd.length < 8) { showMsg('error', '新密码至少8位'); return; }
+  if (!oldPwd || !newPwd || !confirmPwd) { showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorAllFields); return; }
+  if (newPwd !== confirmPwd) { showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorMismatch); return; }
+  if (newPwd.length < 8) { showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorTooShort); return; }
   if (!/[a-zA-Z]/.test(newPwd) || !/[0-9]/.test(newPwd)) {
-    showMsg('error', '新密码必须包含数字和字母'); return;
+    showMsg('error', (loginI18n[getLoginLang()]||loginI18n.zh).errorNoAlnum); return;
   }
 
   setBtnLoading('btn-change-pwd', true);
@@ -688,13 +983,13 @@ document.getElementById('changePwdForm').addEventListener('submit', async e => {
       body: JSON.stringify({ oldPassword: hashedOld, newPassword: hashedNew })
     });
     const data = await r.json();
-    if (!r.ok) { showMsg('error', data.error || '修改失败'); setBtnLoading('btn-change-pwd', false); return; }
+    if (!r.ok) { showMsg('error', data.error || (loginI18n[getLoginLang()]||loginI18n.zh).errorChangeFailed); setBtnLoading('btn-change-pwd', false); return; }
 
     // Update stored token and user
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    showMsg('success', '密码修改成功，正在跳转...');
+    showMsg('success', (loginI18n[getLoginLang()]||loginI18n.zh).modalSuccess);
     setTimeout(() => { window.location.href = '/index.html'; }, 800);
   } catch (err) {
     showMsg('error', '无法连接服务器');

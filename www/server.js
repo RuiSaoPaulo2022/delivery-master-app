@@ -1742,7 +1742,7 @@ function requestHandler(req, res) {
 function startServer(port) {
   const server = http.createServer(requestHandler);
   
-  server.listen(port, '127.0.0.1', () => {
+  server.listen(port, '0.0.0.0', () => {
     console.log(`✅ 交维大师服务器已启动`);
     console.log(`📁 服务目录: ${ROOT_DIR}`);
     console.log(`🌐 访问地址: http://localhost:${port}/index.html`);
@@ -1779,7 +1779,7 @@ function findAvailablePort(defaultPort, maxRetry) {
     
     function tryPort() {
       const server = http.createServer();
-      server.listen(port, '127.0.0.1', () => {
+      server.listen(port, '0.0.0.0', () => {
         server.close();
         resolve(port);
       });

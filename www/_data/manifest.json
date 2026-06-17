@@ -7,7 +7,7 @@
   "brand": {
     "spec": "_data/brand-spec.json",
     "version": "1.0.0",
-    "description": "交维大师输出文件视觉规范 — 所有HTML/Excel/邮件输出的唯一格式标准。PPT以海康母版为准。"
+    "description": "交维大师输出文件视觉规范 — 所有HTML/Excel/邮件输出的唯一格式标准。"
   },
   "schemas": {
     "issues": "SCHEMA.md"

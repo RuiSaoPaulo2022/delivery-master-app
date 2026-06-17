@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
-  appId: 'com.hikvision.deliverymaster',
+  appId: 'com.deliverymaster.app',
   appName: '交维大师',
   webDir: 'www',
   server: {

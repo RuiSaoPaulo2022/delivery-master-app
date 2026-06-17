@@ -1,4 +1,4 @@
-package com.hikvision.deliverymaster;
+package com.deliverymaster.app;
 
 import com.getcapacitor.BridgeActivity;
 
