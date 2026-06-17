@@ -1742,28 +1742,12 @@ function requestHandler(req, res) {
 
 // ========== 启动服务器 ==========
 function startServer(port) {
-  // 加载 SSL 证书
-  let sslOptions = null;
-  const keyPath = path.join(CERTS_DIR, 'server.key');
-  const crtPath = path.join(CERTS_DIR, 'server.crt');
-  if (fs.existsSync(keyPath) && fs.existsSync(crtPath)) {
-    sslOptions = {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(crtPath),
-    };
-  }
-  
-  const server = sslOptions
-    ? https.createServer(sslOptions, requestHandler)
-    : http.createServer(requestHandler);
-  
-  const proto = sslOptions ? 'https' : 'http';
+  const server = http.createServer(requestHandler);
   
   server.listen(port, '0.0.0.0', () => {
     console.log(`✅ 交维大师服务器已启动`);
     console.log(`📁 服务目录: ${ROOT_DIR}`);
-    console.log(`🔒 协议: ${proto.toUpperCase()}`);
-    console.log(`🌐 访问地址: ${proto}://localhost:${port}/index.html`);
+    console.log(`🌐 访问地址: http://localhost:${port}/index.html`);
     console.log(`⏹️  停止服务: Ctrl+C`);
     console.log(`──────────────────────────────────────────`);
   });
