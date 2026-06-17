@@ -1635,6 +1635,19 @@ function requestHandler(req, res) {
     return;
   }
   
+  // 心跳探针 — 无认证，供 APP 检测服务器连通性（绕过 WebView CORS）
+  if (pathname === '/ping') {
+    const PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+    res.writeHead(200, {
+      'Content-Type': 'image/png',
+      'Content-Length': PIXEL.length,
+      'Cache-Control': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(PIXEL);
+    return;
+  }
+
   // 认证 API 路由
   if (pathname.startsWith('/api/auth/')) {
     handleAuthRoute(req, res);

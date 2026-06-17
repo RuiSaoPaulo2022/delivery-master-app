@@ -622,7 +622,7 @@
     </div>
 
     <div class="login-footer" data-i18n="copyright">&copy; 2026 Delivery Master</div>
-    <div class="login-version" id="loginVersion">V1.0.0_build23_20260617</div>
+    <div class="login-version" id="loginVersion">V1.0.0_build24_20260617</div>
 
     <div class="qr-download">
       <div class="qr-download-title" data-i18n="qrTitle">📱 请扫描二维码下载 <span class="highlight">手机版交维大师</span></div>
@@ -898,29 +898,37 @@ function setBtnLoading(btnId, loading) {
   btn.disabled = loading;
 }
 
-/* ---------- server connectivity check ---------- */
-async function checkServer() {
+/* ---------- server connectivity check (image probe — bypasses WebView CORS) ---------- */
+function checkServer() {
   const statusEl = document.getElementById('server-status');
   const container = document.getElementById('formContainer');
   var d = loginI18n[getLoginLang()] || loginI18n.zh;
-  try {
-    const r = await fetch(API + '/api/data/manifest.json', { method: 'GET', cache: 'no-cache' });
-    if (r.ok) {
-      statusEl.className = 'server-status online';
-      statusEl.textContent = d.serverOnline;
-      container.classList.remove('form-disabled');
-      setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
-    } else {
-      throw new Error('bad status');
-    }
-  } catch (e) {
+  var img = new Image();
+  var done = false;
+  var cleanup = function() { done = true; };
+
+  img.onload = function() {
+    if (done) return; cleanup();
+    statusEl.className = 'server-status online';
+    statusEl.textContent = d.serverOnline;
+    container.classList.remove('form-disabled');
+    setTimeout(function() { statusEl.style.display = 'none'; }, 2000);
+  };
+
+  img.onerror = function() {
+    if (done) return; cleanup();
     statusEl.className = 'server-status offline';
-    var errInfo = e.message || String(e);
-    // Show actual error for debugging (small, below main message)
-    statusEl.innerHTML = d.serverOffline + '<br><span style="font-size:10px;opacity:0.6;display:block;margin-top:2px">' + errInfo + '</span>';
+    statusEl.innerHTML = d.serverOffline + '<br><span style="font-size:10px;opacity:0.6;display:block;margin-top:2px">fetch blocked (WebView), try ping</span>';
     container.classList.add('form-disabled');
     setTimeout(checkServer, 3000);
-  }
+  };
+
+  img.src = API.replace(/\/+$/, '') + '/ping?_=' + Date.now();
+
+  // Timeout fallback
+  setTimeout(function() {
+    if (!done) { img.src = ''; cleanup(); }
+  }, 5000);
 }
 
 /* ---------- login (SHA-256 hashed) ---------- */
